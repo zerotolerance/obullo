@@ -611,7 +611,7 @@ Class loader {
            
             $file = $root. DS .$sub_root. $path. DS .$file_name. EXT;
             
-            if(strpos($real_name, '.') === 0)   // ../outside folder request
+            if(strpos($real_name, '../') === 0)   // ../outside folder request
             {
                 $file = DIR .substr($path, 3). DS .$folder. DS .$file_name. EXT;
             }

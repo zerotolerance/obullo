@@ -198,6 +198,44 @@ if ( ! function_exists('view_app'))
 // ------------------------------------------------------------------------
 
 /**
+* Load global view temp check if it exist 
+* in modules/views otherwise load it from
+* application/views directory.
+*
+* @author CJ Lazell
+* @param  string  $filename
+* @param  array   $data
+* @param  boolean $string
+* @return void
+*/
+if ( ! function_exists('view_temp'))
+{
+    function view_temp($filename, $data = '', $string = FALSE)
+    {
+        $vi = Ssc::instance();
+        $return = FALSE;
+
+        if(isset($vi->_ew->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
+
+        $module_view_folder = $path = DIR. $GLOBALS['d'] . DS .'views'. $vi->_ew->app_view_folder;
+        $app_view_folder    = APP .'views'. $vi->_ew->app_view_folder;
+        
+        if(file_exists($module_view_folder . $filename .EXT)) 
+        {
+            $path = $module_view_folder;
+        } 
+        else 
+        {
+            $path = $app_view_folder;
+        }
+        
+        profiler_set('app_views', $filename, $path . $filename .EXT);
+
+        return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
+    }
+}
+
+/**
 * Render multiple view files.
 * 
 * @param array $filenames
@@ -212,9 +250,9 @@ if ( ! function_exists('view_render'))
         $var = '';        
         foreach($filenames as $filename)
         {
-            if(strpos($filename, '.') === 0)
+            if(strpos($filename, '../') === 0)
             {
-                $var .= view_app(substr($filename, 1), $data, TRUE);
+                $var .= view_temp(substr($filename, 3), $data, TRUE);
             } 
             else 
             {

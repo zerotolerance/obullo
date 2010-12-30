@@ -15,7 +15,7 @@ view_var('head', script('welcome'));
 <code>application/directories/welcome/views/view_welcome.php</code>
 
 <p>The corresponding <b>Controller</b> for this page is found at:</p>
-<code>application/directories/welcome/controllers/start.php</code>
+<code>modules/welcome/controllers/start.php</code>
 
 <p>The corresponding <b>Global</b> and <b>Application Controller</b> for this page is found at:</p>
 <code>application/parents/Global_controller.php , App_controller.php

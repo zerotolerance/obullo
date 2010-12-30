@@ -34,6 +34,7 @@ Class Ssc {
     public $_ity  = NULL; // secur_ity 
     public $_sion = NULL; // ses_sion
     public $_mark = NULL; // bench_mark
+    public $_tag  = NULL; // head_tag
     
     public $profiler_var = array(); // profiler variable.
 

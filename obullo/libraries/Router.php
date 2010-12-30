@@ -7,7 +7,7 @@ defined('BASE') or exit('Access Denied!');
  * PHP5 MVC Based Minimalist Software.
  *
  * @package         obullo
- * @subpackage      Base.base        
+ * @subpackage      Obullo.core        
  * @author          obullo.com
  * @copyright       Ersin Guvenc (c) 2009.
  * @filesource
@@ -21,7 +21,7 @@ Class RouterException extends CommonException {}
  * Parses URIs and determines routing 
  *
  * @package     Obullo
- * @subpackage  Base
+ * @subpackage  obullo
  * @category    URI
  * @author      Ersin Guvenc
  * @version     0.1 changed php4 rules as php5
@@ -216,7 +216,27 @@ Class OB_Router {
                 if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. EXT))
                 return $segments;  
             }
-
+            
+            /**
+            * Merge Segments
+            * 
+            * If you use a controller with the same name sd the folder
+            * it will make that the route.
+            * So instead of modulename/modulename/index it will be modulename/index
+            *
+            * @author CJ Lazell
+            */
+            if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[0]. EXT))
+            {
+                array_unshift($segments, $segments[0]);
+                
+                if( empty($segments[2]) ) 
+                {
+                    $segments[2]= 'index';
+                }
+              
+                return $segments;
+            }
         }
         
         show_404($segments[0].' / '.$segments[1]);

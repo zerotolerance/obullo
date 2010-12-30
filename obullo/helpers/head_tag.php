@@ -26,6 +26,18 @@ defined('BASE') or exit('Access Denied!');
  */
 // --------------------------------------------------------------------
 
+if( ! isset($_head->_tag))  // Helper Constructror
+{
+    $_head = Ssc::instance();
+    $_head->_tag = new stdClass();
+
+    $_head->_tag->arr_store = array();
+                      
+    log_me('debug', "Head_tag Helper Initialized");
+}
+
+// --------------------------------------------------------------------
+
 /**
 * Build css files in <head> tags
 * 
@@ -216,6 +228,7 @@ if( ! function_exists('meta') )
  * @param    boolean  should index_page be added to the css path
  * @return   string
  */
+/*
 if( ! function_exists('link_tag') ) 
 {
     function link_tag($href = '', $rel = 'stylesheet', $type = 'text/css', $title = '', $media = '', $index_page = FALSE)
@@ -290,6 +303,127 @@ if( ! function_exists('link_tag') )
             $link .= '/>';
         }
         
+        return $link;
+    }
+}
+*/
+
+/**
+ * Link
+ *
+ * Generates link to a CSS file
+ *
+ * @access   public
+ * @param    mixed    stylesheet hrefs or an array
+ * @param    string   rel
+ * @param    string   type
+ * @param    string   title
+ * @param    string   media
+ * @param    boolean  should index_page be added to the css path
+ * @return   string
+ */
+if( ! function_exists('link_tag') )
+{
+    function link_tag($href = '', $rel = 'stylesheet', $type = 'text/css', $title = '', $media = '', $index_page = FALSE)
+    {
+        $ob = this();
+
+        $link = '<link ';
+
+        $vi = Ssc::instance();   // obullo changes ..
+
+        // When user use view_set_folder('css', 'iphone'); ..  /sources/iphone/css/welcome.css
+        $path = '';
+        if(isset($vi->_ew->css_folder{1}))
+        {
+            $path = $vi->_ew->css_folder .'/';
+        }
+
+        if (is_array($href))
+        {
+            foreach ($href as $k => $v)
+            {
+                $v = ltrim($v, '/');   // remove first slash
+
+                if ($k == 'href' AND strpos($v, '://') === FALSE)
+                {
+                    if ($index_page === TRUE)
+                    {
+                        $link .= ' href="'.$ob->config->site_url($v).'" ';
+                    }
+                    else
+                    {
+                        $link .= ' href="'.$ob->config->public_url() . $path . $v.'" ';
+                    }
+                }
+                else
+                {
+                    $link .= "$k=\"$v\" ";
+                }
+            }
+
+            $link .= "/>";
+        }
+        else
+        {
+            $href = ltrim($href, '/');  // remove first slash
+
+            if ( strpos($href, '://') !== FALSE)
+            {
+                $link .= ' href="'.$href.'" ';
+            }
+            elseif ($index_page === TRUE)
+            {
+                $link .= ' href="'. $ob->config->site_url($href) .'" ';
+            }
+            else
+            {
+              // @author CJ Lazell
+              switch($type)
+              {
+                case 'text/javascript':
+                  $folder    = 'js/';
+                  $extension = '.js';
+                  break;
+                  
+                case 'text/css':
+                  $extension = '.css';
+                  $folder    = 'css/';
+                  break;
+                  
+                default:
+                  $folder    = '';
+                  $extension = '';
+              }
+
+              if(strpos($href, '../') === 0)
+              {
+                  $path = DS.preg_replace('/(\w+)\/(.+)/i', '$1/public/'.$folder.'$2', substr($href, 3));
+              } 
+              else 
+              {
+                  $path = $ob->config->public_url() . $path . $folder . $href;
+              }
+
+
+              $link .= ' href="'. $path . $extension .'" ';
+            }
+
+            $link .= 'rel="'.$rel.'" type="'.$type.'" ';
+
+            if ($media    != '')
+            {
+                $link .= 'media="'.$media.'" ';
+            }
+
+            if ($title    != '')
+            {
+                $link .= 'title="'.$title.'" ';
+            }
+
+            $link .= '/>';
+        }
+
         return $link;
     }
 }

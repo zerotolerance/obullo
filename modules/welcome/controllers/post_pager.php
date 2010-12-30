@@ -5,7 +5,6 @@ Class Post_pager extends Controller {
     function __construct()
     {   
         parent::__construct();
-        parent::__global();
         
         loader::database();
         loader::base_helper('form');
