@@ -27,7 +27,7 @@ view_var('head', script('welcome'));
 <code>modules/welcome/scripts/welcome.php</code>
 
 <p>The corresponding <b>Global View</b> file for this page is found at:</p>
-<code>application/views/view_base_layout.php</code>
+<code>application/layouts/base_layout.php</code>
 
 <p><b>Note:</b> If you are new to Obullo Framework, you should start by 
 reading the <a href="http://obullo.com/user_guide/<?php echo OBULLO_VERSION; ?>/index.html">User Guide</a>.</p>

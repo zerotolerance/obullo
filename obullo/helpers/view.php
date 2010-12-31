@@ -218,7 +218,7 @@ if ( ! function_exists('view_temp'))
         if(isset($vi->_ew->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
 
         $module_view_folder = $path = DIR. $GLOBALS['d'] . DS .'views'. $vi->_ew->app_view_folder;
-        $app_view_folder    = APP .'views'. $vi->_ew->app_view_folder;
+        $app_view_folder    = APP .'layouts'. $vi->_ew->app_view_folder;
         
         if(file_exists($module_view_folder . $filename .EXT)) 
         {
