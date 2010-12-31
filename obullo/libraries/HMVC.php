@@ -315,7 +315,6 @@ Class OB_HMVC
         if( ! isset($segments[0]) ) $segments[0] = '';
         if( ! isset($segments[1]) ) $segments[1] = '';
         
-        
         // Check directory
         if (is_dir(DIR. $segments[0]))
         {  
@@ -325,6 +324,27 @@ Class OB_HMVC
             {
                 if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. EXT))
                 return $segments;  
+            }
+            
+            /**
+            * Merge Segments
+            * 
+            * If you use a controller with the same name sd the folder
+            * it will make that the route.
+            * So instead of modulename/modulename/index it will be modulename/index
+            *
+            * @author CJ Lazell
+            */
+            if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[0]. EXT))
+            {
+                array_unshift($segments, $segments[0]);
+                
+                if( empty($segments[2]) ) 
+                {
+                    $segments[2]= 'index';
+                }
+              
+                return $segments;
             }
 
         }

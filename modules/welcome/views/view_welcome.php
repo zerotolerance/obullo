@@ -1,5 +1,5 @@
 <?php
-view_var('head', js('js/welcome.js'));
+view_var('head', js('welcome'));
 view_var('meta', meta('keywords', 'obullo, php5, framework'));   // You should set head tags // in view files. 
 view_var('head', script('welcome'));        
 ?>
@@ -12,10 +12,10 @@ view_var('head', script('welcome'));
 <p></p>
 
 <p>If you would like to edit this page you'll find <b>View</b> located at:</p>
-<code>application/directories/welcome/views/view_welcome.php</code>
+<code>modules/welcome/views/view_welcome.php</code>
 
 <p>The corresponding <b>Controller</b> for this page is found at:</p>
-<code>modules/welcome/controllers/start.php</code>
+<code>modules/welcome/controllers/welcome.php</code>
 
 <p>The corresponding <b>Global</b> and <b>Application Controller</b> for this page is found at:</p>
 <code>application/parents/Global_controller.php , App_controller.php

@@ -205,7 +205,6 @@ Class OB_Router {
         if( ! isset($segments[0]) ) $segments[0] = '';
         if( ! isset($segments[1]) ) $segments[1] = '';
         
-        
         // Check directory
         if (is_dir(DIR. $segments[0]))
         {  

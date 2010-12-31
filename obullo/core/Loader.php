@@ -49,8 +49,8 @@ defined('BASE') or exit('Access Denied!');
  * @version         2.0 loader::model('blog/model_filename'); bug fixed.
  * @version         2.1 added profiler_set(); functions and removed old $ssc->_profiler_ variables, renamed OB_DBFactory::init()
  *                      func as OB_DBFactory::Connect in loader::database();
- * @version         2.2 added  app_model and model('.outside_folder/model_name') and model('subfolder/model_name') support
- *                      added  app_helper and helper('.outside_folder/helper_name') - helper('subfolder/helper_name') support
+ * @version         2.2 added  app_model and model('../outside_folder/model_name') and model('subfolder/model_name') support
+ *                      added  app_helper and helper('../outside_folder/helper_name') - helper('subfolder/helper_name') support
  */
 
 Class LoaderException extends CommonException {}
@@ -220,7 +220,7 @@ Class loader {
     * Obullo Model Loader
     * 
     * loader::model('subfolder/model_name')  local sub folder load
-    * loader::model('.outside_folder/model_name')  outside directory load
+    * loader::model('../outside_folder/model_name')  outside directory load
     * 
     * @author    Ersin Guvenc
     * @param     string $model
@@ -367,7 +367,7 @@ Class loader {
     * loader::app_helper();
     * 
     * loader::app_helper('subfolder/helper_name')  local sub folder load
-    * loader::app_helper('.outside_folder/helper_name')  outside directory load
+    * loader::app_helper('../outside_folder/helper_name')  outside directory load
     * 
     * @version  0.1
     * @version  0.2 added self::$_app_helpers static var
@@ -402,7 +402,7 @@ Class loader {
     * loader::helper();
     * 
     * loader::helper('subfolder/helper_name')  local sub folder load
-    * loader::helper('.outside_folder/helper_name')  outside directory load
+    * loader::helper('../outside_folder/helper_name')  outside directory load
     * 
     * We have three helper directories
     *   o Base/helpers  : /base helpers
@@ -591,7 +591,7 @@ Class loader {
     private static function _load_file($filename, $folder = 'helpers', $loader_func = 'app_helper')
     {   
         $real_name  = strtolower($filename);
-        $root       = trim(DIR, DS);  // APP .'modules';
+        $root       = rtrim(DIR, DS);  // APP .'modules';
         
         if($loader_func == 'app_model')
         $root       = APP .'models';
