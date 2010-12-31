@@ -1,5 +1,7 @@
 <?php
-view_var('head', js('welcome'));
+
+// view_var('head', js(array('../welcome/welcome', '../welcome/test')));
+view_var('head', link_tag('../welcome/feed.rss', 'alternate', 'application/rss+xml', 'My RSS Feed'));
 view_var('meta', meta('keywords', 'obullo, php5, framework'));   // You should set head tags // in view files. 
 view_var('head', script('welcome'));        
 ?>
@@ -27,7 +29,7 @@ view_var('head', script('welcome'));
 <code>modules/welcome/scripts/welcome.php</code>
 
 <p>The corresponding <b>Global View</b> file for this page is found at:</p>
-<code>application/layouts/base_layout.php</code>
+<code>application/layouts/layout_base.php</code>
 
 <p><b>Note:</b> If you are new to Obullo Framework, you should start by 
 reading the <a href="http://obullo.com/user_guide/<?php echo OBULLO_VERSION; ?>/index.html">User Guide</a>.</p>

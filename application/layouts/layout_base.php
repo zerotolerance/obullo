@@ -14,7 +14,7 @@ echo meta('author', '');
 
 <base href="<?php echo base_url(); ?>" />
 
-<?php echo css('welcome');  // base layout css  ?>
+<?php echo css('../welcome/welcome');  // base layout css  ?>
 
 </head>
 
