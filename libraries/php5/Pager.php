@@ -70,4 +70,4 @@ Class pager_CORE implements PHP5_Library
 // END Pager Class
 
 /* End of file Pager.php */
-/* Location: ./base/libraries/php5/Pager.php */
+/* Location: ./obullo/libraries/php5/Pager.php */

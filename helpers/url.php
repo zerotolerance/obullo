@@ -57,9 +57,9 @@ if ( ! function_exists('base_url'))
 */
 if ( ! function_exists('public_url'))
 {
-    function public_url($uri = '', $no_slash = FALSE)
+    function public_url($uri = '', $no_folder = FALSE, $no_ext_uri_slash = FALSE)
     {
-        return this()->config->public_url($uri, $no_slash);
+        return this()->config->public_url($uri, $no_folder, $no_ext_uri_slash);
     }
 }
 
@@ -630,4 +630,4 @@ if ( ! function_exists('_parse_attributes'))
 }
 
 /* End of file url.php */
-/* Location: ./base/helpers/url.php */
+/* Location: ./obullo/helpers/url.php */

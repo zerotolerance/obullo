@@ -537,7 +537,83 @@ function profiler_get($type)
     return array();
 }
 
+// ------------------------------------------------------------------------ 
+
+/**
+* Parse head files to learn whether it
+* comes from modules directory.
+*
+* convert  this path ../welcome/welcome.css
+* to /public_url/modules/welcome/public/css/welcome.css
+* 
+* @author   CJ Lazell
+* @author   Ersin Guvenc
+* @access   private
+* @param    mixed $file_url
+* @param    mixed $extra_path
+* @return   string | FALSE
+*/
+if( ! function_exists('_get_public_path') )
+{
+    function _get_public_path($file_url, $extra_path = '')
+    {
+        $ob = this();
+        
+        $extra_path = ( $extra_path == '') ? '' : $extra_path . '/';
+        
+        if(strpos($file_url, '../') === 0)  // module request
+        {
+            $paths      = explode('/', substr($file_url, 3));   
+            $filename   = array_pop($paths);                   // get file name
+            $modulename = array_shift($paths);                 // get module name
+            
+            $sub_path   = '';
+            if(count($paths) > 0)
+            {
+                $sub_path   = implode('/', $paths) . '/';      // .public/css/sub/welcome.css  sub dir support
+            }
+            
+            $extension  = substr(strrchr($filename, '.'), 1);  // get extension 
+            $folder     = $extension;
+            
+            if($extension == FALSE) 
+            { 
+                return FALSE;
+            }
+        
+            $full_path  = $ob->config->public_url('', true) .trim(DIR, DS). '/';
+            
+            $full_path .= $modulename . '/'. $ob->config->item('public_folder') .'/'. $extra_path . $folder .'/'. $sub_path . $filename;
+        
+        } 
+        else 
+        {   
+            $filename = $file_url;
+            $sub_path = '';
+        
+            if(strpos($file_url, '/') !== FALSE)
+            {
+                $paths    = explode('/', $file_url);   
+                $filename = array_pop($paths);
+                $sub_path = implode('/', $paths) . '/';   // .public/css/sub/welcome.css  sub support
+            } 
+            
+            $folder = substr(strrchr($filename, '.'), 1);  // get extension 
+        
+            if($folder == FALSE) 
+            { 
+                return FALSE;
+            }
+            
+            $full_path = $ob->config->public_url(). $extra_path . $folder .'/'. $sub_path . $filename;
+        }
+        
+        return $full_path;
+    }   
+    
+}
+
 // END Common.php File
 
 /* End of file Common.php */
-/* Location: ./base/obullo/Common.php */
+/* Location: ./obullo/core/Common.php */

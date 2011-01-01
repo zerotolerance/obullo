@@ -141,4 +141,4 @@ if( ! function_exists('delete_cookie') )
 }
 
 /* End of file cookie.php */
-/* Location: ./base/helpers/cookie.php */
+/* Location: ./obullo/helpers/cookie.php */

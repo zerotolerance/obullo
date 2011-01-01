@@ -271,4 +271,4 @@ define('ori_rel', 5);
 
 
 /* End of file db.php */
-/* Location: ./base/constants/db.php */
+/* Location: ./obullo/constants/db.php */

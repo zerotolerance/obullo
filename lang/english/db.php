@@ -7,4 +7,4 @@ $lang['db_ac_update_set_table']     = 'Please set values for update operation.';
 $lang['db_ac_insert_set_table']     = 'Please set values for insert operation.';
 
 /* End of file db.php */
-/* Location: ./base/lang/english/db.php */
+/* Location: ./obullo/lang/english/db.php */

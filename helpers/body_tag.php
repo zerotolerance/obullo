@@ -208,10 +208,10 @@ if( ! function_exists('img') )
         $vi = Ssc::instance();       // obullo changes ..
                 
         // When user use view_set_folder('img');
-        $path = '';
-        if(isset($vi->_ew->img_folder{1}))
+        $extra_path = '';
+        if( isset($vi->_ew->img_folder{1}) )
         {
-            $path = $vi->_ew->img_folder . '/'; 
+            $extra_path = '/' . $vi->_ew->img_folder; 
         }
         
         $img = '<img';
@@ -226,11 +226,11 @@ if( ! function_exists('img') )
 
                 if ($index_page === TRUE)
                 {
-                    $img .= ' src="'.$ob->config->site_url($v).'" ';
+                    $img .= ' src="'.$ob->config->site_url($v, false).'" ';
                 }
                 else
                 {
-                    $img .= ' src="'.$ob->config->public_url(). $path . $v .'" ';   // Obullo changes..
+                    $img .= ' src="' . _get_public_path($v, 'images'. $extra_path) .'" ';
                 }
             }
             else
@@ -262,4 +262,4 @@ if( ! function_exists('nbs') )
 }
 
 /* End of file body_tag.php */
-/* Location: ./base/helpers/body_tag.php */
+/* Location: .obullo/helpers/body_tag.php */

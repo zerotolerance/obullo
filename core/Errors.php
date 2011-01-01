@@ -46,8 +46,6 @@ defined('BASE') or exit('Access Denied!');
 */
 function Obullo_Error_Template($errno, $errstr, $errfile, $errline, $type)
 { 
-    echo $errstr;
-    
     ob_start();
     include(APP .'system'. DS .'errors'. DS .'ob_error'. EXT);
     $buffer = ob_get_contents(); 
@@ -348,4 +346,4 @@ set_exception_handler('Obullo_Exception_Handler');
 // END Errors.php File
 
 /* End of file Errors.php */
-/* Location: ./base/obullo/Errors.php */
+/* Location: ./obullo/core/Errors.php */

@@ -9,7 +9,7 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         Obullo
  * @author          Obullo.com  
- * @subpackage      Base.database        
+ * @subpackage      Obullo.database        
  * @copyright       Copyright (c) 2009 Ersin Guvenc.
  * @license         public
  * @since           Version 1.0
@@ -21,7 +21,7 @@ defined('BASE') or exit('Access Denied!');
  * Abstract Database Adapter Class
  *
  * @package       Obullo
- * @subpackage    Base.database
+ * @subpackage    Obullo.database
  * @category      Database
  * @author        Ersin Guvenc
  * @link                              
@@ -250,4 +250,4 @@ Abstract Class OB_DBAdapter extends OB_DB {
 }
 
 /* End of file DBAdapter.php */
-/* Location: .base/database/DBAdapter.php */
+/* Location: .obullo/database/DBAdapter.php */

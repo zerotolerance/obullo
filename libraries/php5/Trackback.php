@@ -563,4 +563,4 @@ Class trackback_CORE implements PHP5_Library {
 // END Trackback Class
 
 /* End of file Trackback.php */
-/* Location: ./base/libraries/php5/Trackback.php */
+/* Location: ./obullo/libraries/php5/Trackback.php */

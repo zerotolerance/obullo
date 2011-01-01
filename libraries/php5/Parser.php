@@ -254,4 +254,4 @@ Class parser_CORE implements PHP5_Library {
 // END Parser Class
 
 /* End of file Parser.php */
-/* Location: ./base/libraries/php5/Parser.php */
+/* Location: ./obullo/libraries/php5/Parser.php */

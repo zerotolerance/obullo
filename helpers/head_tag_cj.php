@@ -450,4 +450,4 @@ if( ! function_exists('doctype') )
 }
 
 /* End of file head_tag.php */
-/* Location: ./base/helpers/head_tag.php */
+/* Location: ./obullo/helpers/head_tag.php */

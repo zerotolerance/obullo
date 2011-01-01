@@ -267,21 +267,22 @@ Class OB_Config
     * @param    bool $no_slash  no trailing slashes
     * @return   string
     */
-    public function public_url($uri = '', $no_slash = FALSE)
+    public function public_url($uri = '', $no_folder = FALSE, $no_ext_uri_slash = FALSE)
     {
-        $extra_uri = (trim($uri, '/') != '') ? trim($uri, '/').'/' : '';
+        $extra_uri     = (trim($uri, '/') != '') ? trim($uri, '/').'/' : '';
+        $public_folder = ($no_folder) ? '' : $this->item('public_folder').'/';
         
-        if($no_slash)   // Obullo changes ..
+        if($no_ext_uri_slash)
         {
             $extra_uri = trim($extra_uri, '/');
         }
         
         if($this->auto_public_url)    // Obullo changes ..
         {
-            return $this->base_url() . 'sources/'.$extra_uri;
+            return $this->base_url() .$public_folder. $extra_uri;
         }
         
-        return $this->slash_item('public_url').$extra_uri;
+        return $this->slash_item('public_url') .$public_folder. $extra_uri;
     }
     
     // --------------------------------------------------------------------
@@ -318,4 +319,4 @@ Class OB_Config
 // END Config Class
 
 /* End of file Config.php */
-/* Location: ./base/libraries/Config.php */
+/* Location: ./obullo/libraries/Config.php */

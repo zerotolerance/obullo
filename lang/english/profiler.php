@@ -17,4 +17,4 @@ $lang['profiler_no_uri']            = 'No URI data exists';
 $lang['profiler_no_memory']         = 'Memory Usage Unavailable';
 
 /* End of file profiler.php */
-/* Location: ./base/lang/english/profiler.php */
+/* Location: ./obullo/lang/english/profiler.php */

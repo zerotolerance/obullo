@@ -73,7 +73,7 @@ if ( ! function_exists('view_var'))
         
         if($use_layout)  // include setted layout.  
         {
-            view_app($vi->_ew->view_layout_name, $layout_data);
+            view_temp($vi->_ew->view_layout_name, $layout_data);
         }
         
         return;
@@ -124,7 +124,7 @@ if ( ! function_exists('view_set_folder'))
            case 'view_app':
              $vi->_ew->app_view_folder = DS. $folder_path;
              
-             log_me('debug', "View_app() Function Paths Changed");   
+             log_me('debug', "View_temp() Function Paths Changed");   
              break;
              
            case 'css':
@@ -169,38 +169,13 @@ if ( ! function_exists('view'))
         return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
     }
 }
-// ------------------------------------------------------------------------
 
-/**
-* Load global view file
-* 
-* @param string  $filename
-* @param array   $data
-* @param boolean $string
-* @return void
-*/
-if ( ! function_exists('view_app'))
-{
-    function view_app($filename, $data = '', $string = FALSE)
-    {
-        $vi = Ssc::instance(); 
-        $return = FALSE;
-        
-        if(isset($vi->_ew->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
-        
-        $path = APP .'views'. $vi->_ew->app_view_folder;
-        
-        profiler_set('app_views', $filename, $path . $filename .EXT); 
-        
-        return _load_view($path, $filename, $data, $string, $return, __FUNCTION__); 
-    }
-}
 // ------------------------------------------------------------------------
 
 /**
 * Load global view temp check if it exist 
 * in modules/views otherwise load it from
-* application/views directory.
+* application/layouts directory.
 *
 * @author CJ Lazell
 * @param  string  $filename
@@ -234,6 +209,8 @@ if ( ! function_exists('view_temp'))
         return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
     }
 }
+
+// ------------------------------------------------------------------------
 
 /**
 * Render multiple view files.
@@ -318,6 +295,7 @@ if ( ! function_exists('_load_script'))
         return "\n".$content; 
     }
 }
+
 // ------------------------------------------------------------------------ 
     
 /**
@@ -394,6 +372,7 @@ if ( ! function_exists('_load_view'))
         
     }
 }
+
 // ------------------------------------------------------------------------ 
 
 /**
@@ -414,4 +393,4 @@ if ( ! function_exists('_ob_object_to_array'))
 }
 
 /* End of file view.php */
-/* Location: ./base/helpers/view.php */
+/* Location: ./obullo/helpers/view.php */

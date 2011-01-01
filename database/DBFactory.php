@@ -8,7 +8,7 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         Obullo
  * @author          Obullo.com  
- * @subpackage      Base.database        
+ * @subpackage      Obullo.database        
  * @copyright       Copyright (c) 2009 Ersin Guvenc.
  * @license         public 
  * @since           Version 1.0
@@ -23,7 +23,7 @@ Class DBFactoryException extends CommonException {}
  * Factory PDO drivers.
  *
  * @package         Obullo 
- * @subpackage      Base.database     
+ * @subpackage      Obullo.database     
  * @category        Database
  * @version         0.1
  * @version         0.2 added construct(), active_record() functions
@@ -152,4 +152,4 @@ Class OB_DBFactory {
 }
 
 /* End of file DBFactory.php */
-/* Location: ./base/database/DBFactory.php */
+/* Location: .obullo/database/DBFactory.php */

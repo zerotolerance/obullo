@@ -9,7 +9,7 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         Obullo
  * @author          Obullo.com
- * @subpackage      Base.database
+ * @subpackage      Obullo.database
  * @copyright       Copyright (c) 2009 Ersin Guvenc.
  * @license         public
  * @since           Version 1.0
@@ -39,7 +39,7 @@ function ob_query_timer_end()
  * Extending to PDO Class.
  *
  * @package         Obullo
- * @subpackage      Base.database
+ * @subpackage      Obullo.database
  * @category        Database
  * @version         0.1
  * @version         0.2 added active record class
@@ -947,4 +947,4 @@ Class OB_DB extends OB_DBAc_sw {
 }
 
 /* End of file DB.php */
-/* Location: .base/database/DB.php */
+/* Location: .obullo/database/DB.php */

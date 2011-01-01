@@ -7,4 +7,4 @@ $lang['kilobyte_abbr'] = "KB";
 $lang['bytes']         = "Bytes";
 
 /* End of file number.php */
-/* Location: ./base/lang/english/number.php */
+/* Location: ./obullo/lang/english/number.php */

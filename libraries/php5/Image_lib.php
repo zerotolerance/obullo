@@ -1559,4 +1559,4 @@ Class image_lib_CORE implements PHP5_Library {
 // END Image_lib Class
 
 /* End of file Image_lib.php */
-/* Location: ./base/libraries/php5/Image_lib.php */
+/* Location: ./obullo/libraries/php5/Image_lib.php */

@@ -8,7 +8,7 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         Obullo  
  * @author          Obullo.com  
- * @subpackage      Base.obullo        
+ * @subpackage      Obullo.core        
  * @copyright       Copyright (c) 2009 Ersin Guvenc.
  * @license          
  * @filesource
@@ -17,10 +17,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Loader Class (Obullo Loader) (c) 2009 - 2010
  * Load Obullo library, model, config, lang and any other files ...
- *
- * @package         Obullo 
- * @subpackage      Base.obullo     
- * @category        Loader
+ * 
  * @version         0.1
  * @version         0.2 added model and load db function
  * @version         0.3 added static properties for database(),model(),library()
@@ -661,4 +658,4 @@ Class loader {
 // END Loader Class
 
 /* End of file Loader.php */
-/* Location: ./base/obullo/Loader.php */
+/* Location: ./obullo/core/Loader.php */

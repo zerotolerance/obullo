@@ -6,7 +6,8 @@ defined('BASE') or exit('Access Denied!');
  *
  * PHP5 MVC Based Minimalist Software.
  *
- * @package         obullo        
+ * @package         obullo    
+ * @subpackage      Obullo.core    
  * @author          obullo.com
  * @copyright       Ersin Guvenc (c) 2009 - 2010.
  * @since           Version 1.0
@@ -15,7 +16,7 @@ defined('BASE') or exit('Access Denied!');
  */
  
 /**
-* Super Static Controllers (SSC). (c) 2010.
+* Super Static Controller (SSC). (c) 2010.
 * Control the Procedural (static) Functions.
 * 
 * @version  0.1 
@@ -34,7 +35,6 @@ Class Ssc {
     public $_ity  = NULL; // secur_ity 
     public $_sion = NULL; // ses_sion
     public $_mark = NULL; // bench_mark
-    public $_tag  = NULL; // head_tag
     
     public $profiler_var = array(); // profiler variable.
 
@@ -49,7 +49,7 @@ Class Ssc {
     }
 }
 
-// END ssc Class
+// END Ssc Class
 
 /* End of file Ssc.php */
-/* Location: ./base/obullo/Ssc.php */
+/* Location: ./obullo/core/Ssc.php */

@@ -57,4 +57,4 @@ $lang['UP13']	= '(UTC +13:00) Phoenix Islands Time, Tonga';
 $lang['UP14']	= '(UTC +14:00) Line Islands';
 
 /* End of file date.php */
-/* Location: ./base/lang/english/date.php */
+/* Location: ./obullo/lang/english/date.php */

@@ -39,4 +39,4 @@ define('FOPEN_WRITE_CREATE_STRICT',             'xb');
 define('FOPEN_READ_WRITE_CREATE_STRICT',        'x+b');                                         
 
 /* End of file file.php */
-/* Location: ./base/constants/file.php */
+/* Location: ./obullo/constants/file.php */

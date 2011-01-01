@@ -21,7 +21,7 @@ defined('BASE') or exit('Access Denied!');
  * Main model class.
  *
  * @package         Obullo 
- * @subpackage      Base.obullo     
+ * @subpackage      Obullo.core     
  * @category        Libraries
  * @version         0.1
  * @version         0.2 added extend to ob
@@ -60,4 +60,4 @@ Class Model {
 // END Model Class
 
 /* End of file Model.php */
-/* Location: ./base/obullo/Model.php */
+/* Location: ./obullo/core/Model.php */

@@ -334,4 +334,4 @@ Class Obullo_DB_Driver_Oci extends OB_DBAdapter
 
 
 /* End of file oci_driver.php */
-/* Location: ./base/database/drivers/oci_driver.php */
+/* Location: ./obullo/database/drivers/oci_driver.php */

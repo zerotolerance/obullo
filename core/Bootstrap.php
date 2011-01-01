@@ -19,7 +19,7 @@ defined('BASE') or exit('Access Denied!');
  * Control Your Application Boot
  * 
  * @package         Obullo 
- * @subpackage      Base.obullo     
+ * @subpackage      Obullo.core
  * @category        Front Controller
  * @version         1.0
  */  
@@ -162,4 +162,4 @@ if( ! function_exists('ob_system_close'))
 // END Bootstrap.php File
 
 /* End of file Bootstrap.php
-/* Location: ./base/obullo/Bootstrap.php */
+/* Location: ./obullo/core/Bootstrap.php */

@@ -7,10 +7,9 @@ defined('BASE') or exit('Access Denied!');
  * PHP5 MVC Based Minimalist Software.
  *
  * @package         obullo
- * @subpackage      Base.obullo
+ * @subpackage      Obullo.core
  * @category        Front Controller     
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
  * @since           Version 1.0
  * @filesource
  * @license 
@@ -108,4 +107,4 @@ Class OB_Registry extends Obullo_Registry {
 // END Registry Class
 
 /* End of file Registry.php */
-/* Location: ./base/obullo/Registry.php */
+/* Location: ./obullo/core/Registry.php */
