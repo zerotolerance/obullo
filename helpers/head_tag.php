@@ -53,91 +53,12 @@ if( ! isset($_head->_tag))  // Helper Constructror
 */
 if( ! function_exists('css') ) 
 {
-    function css($href, $title = '', $media = '', $rel = 'stylesheet', $index_page = FALSE)
+    function css($filename, $title = '', $media = '', $rel = 'stylesheet', $index_page = FALSE)
     {
-        $ob = this();
-        $extension = '.css';
+        $link = link_tag($filename, $rel, 'text/css', $title, $media, $index_page);
         
-        $link = '<link ';
-
-        $vi = Ssc::instance();   // obullo changes ..
-
-        // When user use view_set_folder('css', 'iphone'); ..  /public/iphone/css/welcome.css
-        $path = '';
-        if(isset($vi->_ew->css_folder{1}))
-        {
-            $path = $vi->_ew->css_folder .'/';
-        }
-
-        if (is_array($href))
-        {   
-            $link = '';
-            
-            foreach ($href as $v)
-            {
-                $link .= '<link ';
-                
-                $v = ltrim($v, '/');   // remove first slash  ( Obullo changes )
-                
-                if ( strpos($v, '://') !== FALSE)
-                {
-                    $link .= ' href="'. $v . $extension .'" ';
-                }
-                else
-                {
-                    $link .= _fetch_head_file($v, $extension, 'css/', ' href="', '" ', $path);   
-                }
-        
-                $link .= 'rel="'.$rel.'" type="text/css" ';
-
-                if ($media    != '')
-                {
-                    $link .= 'media="'.$media.'" ';
-                }
-
-                if ($title    != '')
-                {
-                    $link .= 'title="'.$title.'" ';
-                }
-        
-                $link .= "/>\n";       
-            }
-        }
-        else
-        {
-            $href = ltrim($href, '/');  // remove first slash
-
-            if ( strpos($href, '://') !== FALSE)
-            {
-                $link .= ' href="'.$href.'" ';
-            }
-            elseif ($index_page === TRUE)
-            {
-                $link .= ' href="'. $ob->config->site_url($href) .'" ';
-            }
-            else
-            {
-                $link .= _fetch_head_file($href, $extension, 'css/', ' href="', '" ', $path);  // is .css file from /modules dir ?
-            }
-
-            $link .= 'rel="'.$rel.'" type="text/css" ';
-
-            if ($media    != '')
-            {
-                $link .= 'media="'.$media.'" ';
-            }
-
-            if ($title    != '')
-            {
-                $link .= 'title="'.$title.'" ';
-            }
-
-            $link .= '/>';
-        }
-
-        return $link;
-    }
-   
+        if($link) return $link."\n";
+    }   
 }
 // ------------------------------------------------------------------------
 
@@ -177,7 +98,11 @@ if( ! function_exists('js') )
                 }
                 else
                 {
-                    $link .= _fetch_head_file($v, $extension, 'js/', ' src="', '" ');   
+                    $path = _get_path($href, $type);                
+                
+                    $link .= ' src="'. $path .'" ';
+                
+                    // $link .= _fetch_head_file($v, $extension, 'js/', ' src="', '" ');   
                 }
         
                 $link .= "></script>\n";        
@@ -198,7 +123,11 @@ if( ! function_exists('js') )
             }
             else
             {
-                $link .= _fetch_head_file($src, $extension, 'js/', ' src="', '" ');  // is .js file from /modules dir ?
+                $path = _get_path($href, $type);                
+                if( ! $path) return;
+                $link .= ' src="'. $path .'" ';
+                
+                // $link .= _fetch_head_file($src, $extension, 'js/', ' src="', '" ');  // is .js file from /modules dir ?
             }
                 
             $link .= $arguments;
@@ -215,6 +144,8 @@ if( ! function_exists('js') )
 /**
 * Parse head files to learn whether it
 * comes from modules directory.
+* 
+* !!!! @deprecated !!!!
 * 
 * @author   CJ Lazell
 * @access   private
@@ -400,16 +331,19 @@ if( ! function_exists('link_tag') )
             }
             else
             {
-                if(strpos($href, '.') !== FALSE)
+                $extra_path = '';
+                if($type == 'text/css')   // When user use view_set_folder('css', 'iphone');
                 {
-                    $part = explode('.', $href);  // if url has extension like .rss
-                    print_r($part); exit;
-                    $link .= _fetch_head_file($href, '', 'rss/', ' href="', '" ');  // is .extension file from /modules dir ?
-                } 
-                else
-                {
-                    $link .= ' href="'.$href.'" ';
+                     // add extra path  ..  /public/iphone/css/welcome.css
+                    if(isset($vi->_ew->css_folder{1}))
+                    {
+                        $extra_path = $vi->_ew->css_folder .'/';
+                    }
                 }
+                
+                $path = _get_path($href, $type, $title, $media, $extra_path);
+                
+                $link .= ' href="'. $path .'" ';
             }
 
             $link .= 'rel="'.$rel.'" type="'.$type.'" ';
@@ -430,6 +364,160 @@ if( ! function_exists('link_tag') )
         return $link;
     }
 }
+
+// ------------------------------------------------------------------------
+
+/**
+* get_path
+*
+* Gets the correct path of the files
+*
+* @author   CJ Lazell
+* @param    mixed $file_name
+* @param    mixed $type
+* @param    string $title
+* @param    string $media
+* @param    string $extra_path  we need it for view_set_folder()
+* 
+* @version  0.2  added $extra_path parameter 
+* 
+* @access   public
+* @return   void
+*/
+if( ! function_exists('_get_path') )
+{
+    function _get_path($file_name, $type, $title= '', $media= '', $extra_path = '')
+    {
+        $_head = Ssc::instance();
+        $_head->_tag->arr_store = array();
+        
+        $ob = this();
+        
+        switch ($type) 
+        {
+            case 'text/javascript':
+             $folder    = 'js/';
+             $extension = "js";
+             $name      = '';
+             break;
+             
+            case 'text/css':
+             $folder    = 'css/';
+             $extension = "css";
+             $name      = 'stylesheet';
+             break;
+             
+            case 'application/rss+xml':
+             $folder    = 'rss/';
+             $extension = "rss";
+             $name      = '';
+             break;
+           
+            default:
+             $folder    = '';
+             $extension = '';
+             $name      = '';
+        }
+
+        if(strpos($file_name, '../') === 0)
+        {
+            $path = preg_replace('/(\w+)\/(.+)/i', '$1/public/'. $extra_path . $folder.'$2', substr($file_name, 3));
+        } 
+        else 
+        {
+            $path = $ob->config->public_url() . $extra_path . $folder . $file_name;
+
+            if(strpos($file_name, '*'))
+            {
+                $path     = substr($path, 0, -2);
+                $location = substr($file_name, 0, -2);
+                
+                $files  = _grab_files(FPATH .$path. DS, '', array($extension), strpos($file_name, '**') ? TRUE : FALSE);
+
+                foreach($files as $file)
+                {
+                      $file= str_replace(".$extension", '', substr($file, 1));
+                      
+                      if($extension != 'js') 
+                      {
+                          echo link_tag($location . DS . $file, $name, $type, $title, $media)."\n";
+                      }
+                      else
+                      {
+                          echo js($location . DS . $file)."\n";
+                      }
+                }
+                  
+                return;
+            }
+
+            return $path .'.'.$extension;
+         }
+
+   }
+   
+}
+
+// ------------------------------------------------------------------------
+
+/**
+* _grab_files
+*
+* Searches the directory and sub directories for your files
+*
+* @author   CJ Lazell
+* @access   private
+* @param    mixed $dir
+* @param    string $baseDir
+* @param    mixed $types
+* @param    mixed $recursive
+* @access   public
+* @return   void
+*/
+if( ! function_exists('_grab_files') )
+{
+    function _grab_files($dir, $base_dir = '', $types = NULL, $recursive = TRUE) 
+    {
+        $_head = Ssc::instance();
+        
+        if ($dh = opendir($dir)) 
+        {
+            while (($file = readdir($dh)) !== FALSE) 
+            {
+                if ($file === '.' || $file === '..' || preg_match("/(?<!.)\..+/i",$file)) 
+                {
+                    continue;
+                }
+                
+                if (is_file($dir . $file) AND ! preg_match("/\.\_.+/i",$file)) 
+                {
+                    if (is_array($types)) 
+                    {
+                        if ( ! in_array(strtolower(pathinfo($dir . $file, PATHINFO_EXTENSION)), $types, TRUE)) 
+                        {
+                            continue;
+                        }
+                    }
+                  
+                    $_head->_tag->arr_store[] = $base_dir .'/'. $file;
+                    
+                }
+                elseif($recursive AND is_dir($dir . $file)) 
+                {
+                    _grab_files($dir . $file . DIRECTORY_SEPARATOR, $base_dir .'/'. $file, $types, $recursive);
+                }
+            }
+            
+            closedir($dh);
+        }
+        
+        sort($_head->_tag->arr_store);
+        
+        return $_head->_tag->arr_store;
+    }
+  
+}
+
 
 // ------------------------------------------------------------------------
 
