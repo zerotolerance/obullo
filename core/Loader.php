@@ -161,8 +161,41 @@ Class loader {
          
         $OB = this();  // Grab the Super Object. 
         
-        $class_var = strtolower($class);
+        $loader_func = ($lib_dir == 'app') ? 'app_lib' : 'library';
         
+        $data = self::_load_file($class, $folder = 'libraries', $loader_func);
+        
+        $class_var = '';
+        
+        if( file_exists($data['file']))
+        {
+            require_once($data['file']);
+            
+            $class_var = strtolower($data['file_name']);
+                    
+            if($object_name != '') $class_var = $object_name; 
+            
+            if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
+            
+            if(is_array($params_or_no_ins))
+            {
+                $OB->$class_var = new $data['file_name']($params_or_no_ins);
+            } 
+            else 
+            {
+                $OB->$class_var = new $data['file_name']();    
+            }
+    
+            profiler_set('libraries', $class_var, $class_var);
+    
+        } 
+        else 
+        {
+            throw new LoaderException('Unable to locate the library file: '. $class . EXT);
+        }
+        
+        
+        /*
         $sub_path  = '';
         if(strpos($class, '/') > 0)         //  inside folder request
         {
@@ -188,10 +221,7 @@ Class loader {
              break;
         }
         
-        if($OB->$class_var === NULL)
-        throw new LoaderException('Unable to locate the '.$type.' library file: '. $class_var);
-    
-        profiler_set('libraries', $class_var, $class_var);
+        */
     }
         
     // --------------------------------------------------------------------
@@ -593,6 +623,9 @@ Class loader {
         if($loader_func == 'app_model')
         $root       = APP .'models';
         
+        if($loader_func == 'app_lib')
+        $root       = APP .'libraries';
+        
         if($loader_func == 'app_helper')
         $root       = APP .'helpers';
         
@@ -600,16 +633,17 @@ Class loader {
         {
             $paths      = explode('/',$real_name);   // paths[0] = path , [1] file name     
             $file_name  = array_pop($paths);          // get file name
-            $path       = implode('/', $paths);
+            $path       = implode(DS, $paths);
             
             $sub_root   = $GLOBALS['d']. DS .$folder. DS;
+            
             if(strpos($loader_func, 'app_') === 0)
             $sub_root   = '';
            
             $file = $root. DS .$sub_root. $path. DS .$file_name. EXT;
             
             if(strpos($real_name, '../') === 0)   // ../outside folder request
-            {
+            {                
                 $file = DIR .substr($path, 3). DS .$folder. DS .$file_name. EXT;
             }
                 
