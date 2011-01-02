@@ -154,16 +154,13 @@ function register_autoload($real_name)
         // -------------------------------------------------------------------- 
         if(substr($real_name, -11) == '_controller')
         {
-            if(substr($real_name, -11) == 'App_controller')
-            {
-                require(APP .'parents'. DS .$real_name. EXT);
-                return;
-            }
-        
             // If Global Controller file exist ..
             if(file_exists(APP .'parents'. DS .$real_name. EXT))
             {
                 require(APP .'parents'. DS .$real_name. EXT);
+                
+                profiler_set('parents', $real_name, APP .'parents'. DS .$real_name. EXT);
+                
                 return;
             }
         
@@ -171,6 +168,9 @@ function register_autoload($real_name)
             if(file_exists(DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT))
             {
                 require(DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT);
+                
+                profiler_set('parents', $real_name, DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT);
+                
                 return;
             }
         }

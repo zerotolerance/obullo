@@ -368,6 +368,7 @@ Class OB_Profiler {
         
         $output .= "</table>";
         $output .= "</div>";
+        
         return $output;    
     }
     // --------------------------------------------------------------------
@@ -397,6 +398,7 @@ Class OB_Profiler {
         
         $output .= "</table>";
         $output .= "</div>";
+        
         return $output;  
     }
 
@@ -490,6 +492,9 @@ Class OB_Profiler {
         $app_views  = '';
         foreach(profiler_get('app_views') as $view) { $app_views .= $view .'<br /> '; }
         
+        $controllers = '';
+        foreach(profiler_get('parents') as $gc) { $controllers .= $gc .'<br /> '; }
+        
         $base_helpers   = (isset($base_helpers{2}))   ? $base_helpers : '-';
         $app_helpers    = (isset($app_helpers{2}))    ? $app_helpers : '-';
         $loaded_helpers = (isset($loaded_helpers{2})) ? $loaded_helpers : '-';
@@ -513,6 +518,7 @@ Class OB_Profiler {
         $output .= "<tr><td class=\"td\">Local Views&nbsp;&nbsp;</td><td class=\"td_val\">".$local_views."</td></tr>";    
         $output .= "<tr><td class=\"td\">Application Views&nbsp;&nbsp;</td><td class=\"td_val\">".$app_views."</td></tr>";    
         $output .= "<tr><td class=\"td\">External Files&nbsp;&nbsp;</td><td class=\"td_val\">".$files."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Global Controllers&nbsp;&nbsp;</td><td class=\"td_val\">".$controllers."</td></tr>";    
         
         $output .= "</table>";
         $output .= "</div>";
@@ -540,7 +546,6 @@ Class OB_Profiler {
         $output .= $this->_compile_loaded_files();
         $output .= $this->_compile_queries();
         $output .= '</div>';
-
 
         return $output;
     }
