@@ -561,14 +561,14 @@ if( ! function_exists('_get_public_path') )
         
         $extra_path = ( $extra_path == '') ? '' : $extra_path . '/';
         
-        if(strpos($file_url, '../') === 0)  // module request
+        if( strpos($file_url, '../') === 0)  // module request
         {
             $paths      = explode('/', substr($file_url, 3));   
             $filename   = array_pop($paths);                   // get file name
             $modulename = array_shift($paths);                 // get module name
             
             $sub_path   = '';
-            if(count($paths) > 0)
+            if( count($paths) > 0)
             {
                 $sub_path   = implode('/', $paths) . '/';      // .public/css/sub/welcome.css  sub dir support
             }
@@ -581,17 +581,38 @@ if( ! function_exists('_get_public_path') )
                 return FALSE;
             }
         
-            $full_path  = $ob->config->public_url('', true) .trim(DIR, DS). '/';
+            $full_path     = $ob->config->public_url('', true) .str_replace(DS, '/', trim(DIR, DS)). '/';
+            $public_folder = $ob->config->item('public_folder');
             
-            $full_path .= $modulename . '/'. $ob->config->item('public_folder') .'/'. $extra_path . $folder .'/'. $sub_path . $filename;
-        
+            if ( strpos($ob->config->item('public_url'), '://') !== FALSE)  // if user want to keep static files in another server. 
+            {                                                               // don't touch the current configuration.
+                $public_folder = $ob->config->item('public_folder');    
+                
+                // example
+                // http://static.myserver.com/site/modules/welcome/public/css/welcome.css
+                // http://static.myserver.com/admin/modules/welcome/public/css/welcome.css
+            } 
+            else 
+            {
+                if( strpos($public_folder, '/') !== FALSE)     // if config public_folder = 'public/site' just grab the 'public' word
+                {                                              // so in multi applications user don't need to divide public folder files.
+                    $public_folder = current(explode('/', $public_folder));
+                }
+                
+                // example
+                // http://example.com/site/modules/welcome/public/css/welcome.css    (public/{site removed}/css/welcome.css)
+                // http://example.com/site/modules/welcome/public/css/welcome.css
+            }
+            
+            $full_path .= $modulename . '/'. $public_folder .'/'. $extra_path . $folder .'/'. $sub_path . $filename;
+            
         } 
         else 
         {   
             $filename = $file_url;
             $sub_path = '';
         
-            if(strpos($file_url, '/') !== FALSE)
+            if( strpos($file_url, '/') !== FALSE)
             {
                 $paths    = explode('/', $file_url);   
                 $filename = array_pop($paths);

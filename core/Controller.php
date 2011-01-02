@@ -19,7 +19,7 @@ defined('BASE') or exit('Access Denied!');
  * Dual Controller, Model and View (c) 2010  
  * 
  * @package         Obullo   
- * @subpackage      Base.controller 
+ * @subpackage      Core.controller 
  * @category        Controller
  * @author          Global Controllers (c) Ersin Guvenc
  * 
@@ -35,7 +35,7 @@ define('OBULLO_VERSION', '1.0.1');
  * Main Controller class.
  *
  * @package         Obullo 
- * @subpackage      Base.obullo     
+ * @subpackage      Obullo.core     
  * @category        Libraries
  * @version         0.1
  * @version         0.2 added extends App_controller
