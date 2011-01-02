@@ -77,7 +77,7 @@ if( ! function_exists('css') )
                 }
                 else
                 {
-                    $link .= ' href="'. _get_public_path($href, $extra_path) .'" ';   
+                    $link .= ' href="'. _get_public_path($v, $extra_path) .'" ';   
                 }
         
                 $link .= 'rel="'.$rel.'" type="text/css" ';
@@ -173,7 +173,7 @@ if( ! function_exists('js') )
                 }
                 else
                 {
-                    $link .= ' src="'. _get_public_path($src) .'" '; 
+                    $link .= ' src="'. _get_public_path($v) .'" '; 
                 }
         
                 $link .= "></script>\n";        
