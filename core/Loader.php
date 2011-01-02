@@ -183,9 +183,15 @@ Class loader {
             {
                 $OB->$class_var = new $data['file_name']($params_or_no_ins);
             } 
+            elseif($params_or_no_ins == FALSE OR isset($data['php5']))
+            {
+                profiler_set('libraries', $class_var, $class_var);
+                
+                return;
+            } 
             else 
             {
-                $OB->$class_var = new $data['file_name']();    
+                $OB->$class_var = new $data['file_name']();
             }
     
             profiler_set('libraries', $class_var, $class_var);
@@ -653,6 +659,8 @@ Class loader {
                     if(strpos($real_name, 'php5') > 0)
                     {
                         $file = DIR . substr(substr($path, 0, -4) , 3). $folder . DS .'php5'. DS .$file_name. EXT;
+                        
+                        return array('file_name' => $file_name, 'file' => $file, 'php5' => TRUE);
                     }
                 }
             }
