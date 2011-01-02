@@ -165,6 +165,8 @@ Class loader {
         
         $data = self::_load_file($class, $folder = 'libraries', $loader_func);
         
+        // print_r($data); exit;
+        
         $class_var = '';
         
         if( file_exists($data['file']))
@@ -643,8 +645,16 @@ Class loader {
             $file = $root. DS .$sub_root. $path. DS .$file_name. EXT;
             
             if(strpos($real_name, '../') === 0)   // ../outside folder request
-            {                
+            {
                 $file = DIR .substr($path, 3). DS .$folder. DS .$file_name. EXT;
+                    
+                if($folder == 'libraries') 
+                {
+                    if(strpos($real_name, 'php5') > 0)
+                    {
+                        $file = DIR . substr(substr($path, 0, -4) , 3). $folder . DS .'php5'. DS .$file_name. EXT;
+                    }
+                }
             }
                 
             return array('file_name' => $file_name, 'file' => $file);
