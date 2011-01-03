@@ -98,7 +98,7 @@ Class loader {
     */
     public static function lib($class, $no_ins_params = '', $object_name = '')
     {          
-        self::_library($class, $no_ins_params, FALSE, $object_name = '', 'directory'); 
+        self::_library($class, $no_ins_params, FALSE, $object_name = ''); 
     }
     
     // --------------------------------------------------------------------
@@ -115,34 +115,13 @@ Class loader {
     */
     public static function app_lib($class, $no_ins_params = NULL, $object_name = '')
     {          
-        self::_library($class, $no_ins_params, FALSE, $object_name = '', 'app');
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * loader::base_lib();
-    * 
-    * load base libraries from /base folder.
-    * 
-    * @param    mixed $class
-    * @param    mixed $no_ins_or_params array | null | false
-    * @param    string $object_name
-    * @return   self::_library()
-    */
-    public static function base_lib($class, $no_ins_params = NULL, $object_name = '')
-    {             
-        self::_library($class, $no_ins_params, TRUE, $object_name); 
+        self::_library($class, $no_ins_params, FALSE, $object_name = '', TRUE);
     }
     
     // --------------------------------------------------------------------
     
     /**
     * Obullo Library Loader.
-    * 
-    * Load user or system classes
-    * from application/libraries or base/libraries
-    * directories.
     * 
     * @author   Ersin Guvenc
     * @param    string $class class name
@@ -154,20 +133,18 @@ Class loader {
     * @version  0.4  added profiler_set() func.
     * @return   void
     */
-    private static function _library($class, $params_or_no_ins = '', $base = FALSE, $object_name = '', $lib_dir = '')
+    private static function _library($class, $params_or_no_ins = '', $base = FALSE, $object_name = '', $app_folder = FALSE)
     {
         if($class == '')
         return FALSE;
          
         $OB = this();  // Grab the Super Object. 
         
-        $loader_func = ($lib_dir == 'app') ? 'app_lib' : 'library';
-        
-        $data = self::_load_file($class, $folder = 'libraries', $loader_func);
-        
-        // print_r($data); exit;
+        $data = self::_load_file($class, $folder = 'libraries', $app_folder);
         
         $class_var = '';
+        
+        // print_r($data); exit;
         
         if( file_exists($data['file']))
         {
@@ -175,15 +152,19 @@ Class loader {
             
             $class_var = strtolower($data['file_name']);
                     
-            if($object_name != '') $class_var = $object_name; 
-            
-            if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
+            if($object_name != '') $class_var = $object_name;
             
             if(is_array($params_or_no_ins))
             {
+                if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
+                
                 $OB->$class_var = new $data['file_name']($params_or_no_ins);
+                
+                profiler_set('libraries', $class_var, $class_var);
+                
+                return;
             } 
-            elseif($params_or_no_ins == FALSE OR isset($data['php5']))
+            elseif($params_or_no_ins === FALSE OR isset($data['php5']))
             {
                 profiler_set('libraries', $class_var, $class_var);
                 
@@ -191,45 +172,17 @@ Class loader {
             } 
             else 
             {
+                if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
+                
                 $OB->$class_var = new $data['file_name']();
+                
+                profiler_set('libraries', $class_var, $class_var);
+                
+                return;
             }
-    
-            profiler_set('libraries', $class_var, $class_var);
-    
         } 
-        else 
-        {
-            throw new LoaderException('Unable to locate the library file: '. $class . EXT);
-        }
         
-        
-        /*
-        $sub_path  = '';
-        if(strpos($class, '/') > 0)         //  inside folder request
-        {
-            $paths     = explode('/', $class);   // paths[0] = path , [1] file name     
-            $class_var = array_pop($paths);      // get file name
-            $sub_path  = implode('/', $paths). DS;
-        }
-        
-        if($object_name != '') $class_var = $object_name; 
-        
-        if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
-        
-        switch ($base)
-        {
-           case FALSE:
-             $type = ($lib_dir == 'directory') ? 'local' : 'application';
-             $OB->$class_var = base_register($class_var, $params_or_no_ins, $lib_dir, $sub_path); 
-             break;
-             
-           case TRUE:
-             $type = 'base';
-             $OB->$class_var = base_register($class_var, $params_or_no_ins); 
-             break;
-        }
-        
-        */
+        throw new LoaderException('Unable to locate the library file: '. $class . EXT);
     }
         
     // --------------------------------------------------------------------
@@ -245,7 +198,7 @@ Class loader {
     */
     public static function app_model($model, $object_name = '', $params_or_no_ins = '')
     {
-        self::model($model, $object_name, $params_or_no_ins, 'app_model');
+        self::model($model, $object_name, $params_or_no_ins, TRUE);
     }
     
     // --------------------------------------------------------------------
@@ -276,7 +229,7 @@ Class loader {
     */
     public static function model($model, $object_name = '', $params_or_no_ins = '', $func = 'model')
     {   
-        $data = self::_load_file($model, $folder = 'models', $func);
+        $data = self::_load_file($model, $folder = 'models');
         
         self::_model($data['file'], $data['file_name'], $object_name, $params_or_no_ins);
     }
@@ -417,7 +370,7 @@ Class loader {
             return; 
         }
     
-        $data = self::_load_file($helper, $folder = 'helpers', 'app_helper');
+        $data = self::_load_file($helper, $folder = 'helpers', TRUE);
 
         if(file_exists($data['file']))
         {
@@ -462,8 +415,10 @@ Class loader {
             return; 
         }
         
-        $data = self::_load_file($helper, $folder = 'helpers', $loader_func = 'helper');
+        $data = self::_load_file($helper, $folder = 'helpers');
 
+        print_r($data);
+        
         if(file_exists($data['file']))
         {
             include($data['file']);
@@ -499,7 +454,13 @@ Class loader {
         { 
             $prefix = config_item('subhelper_prefix');
         
-            if(file_exists(APP .'helpers'. DS .$prefix. $helper. EXT))  // If app helper my_file exist.
+            if(file_exists(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT))
+            {
+                include(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT);
+                
+                self::$_base_helpers[$prefix . $helper] = $prefix . $helper; 
+            }
+            elseif(file_exists(APP .'helpers'. DS .$prefix. $helper. EXT))  // If app helper my_file exist.
             {
                 include(APP .'helpers'. DS .$prefix. $helper. EXT);
                 
@@ -623,55 +584,61 @@ Class loader {
     * 
     * return array  file_name | file
     */
-    private static function _load_file($filename, $folder = 'helpers', $loader_func = 'app_helper')
+    private static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE)
     {   
         $real_name  = strtolower($filename);
         $root       = rtrim(DIR, DS);  // APP .'modules';
         
-        if($loader_func == 'app_model')
-        $root       = APP .'models';
+        $sub_root   = $GLOBALS['d']. DS .$folder. DS;
+        if($app_folder)
+        {
+            $root     = APP . $folder;
+            $sub_root = '';
+        }
         
-        if($loader_func == 'app_lib')
-        $root       = APP .'libraries';
+        if(strpos($real_name, '../') === 0)   // ../module folder request
+        {
+            $paths      = explode('/', substr($real_name, 3));
+            $file_name  = array_pop($paths);         // get file name 
+            $modulename = array_shift($paths);       // get module name 
         
-        if($loader_func == 'app_helper')
-        $root       = APP .'helpers';
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path   = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
+            }
+            
+            $file = DIR . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;
+            
+            $return['file_name'] = $file_name;
+            $return['file']      = $file;
+            
+            if(strpos($sub_path, 'php5') !== FALSE)
+            {
+                $return['php5']  = TRUE;
+            }
+            
+            return $return;
+        }
         
         if(strpos($real_name, '/') > 0)         //  inside folder request
         {
             $paths      = explode('/',$real_name);   // paths[0] = path , [1] file name     
-            $file_name  = array_pop($paths);          // get file name
+            $file_name  = array_pop($paths);          // get file name 
             $path       = implode(DS, $paths);
             
-            $sub_root   = $GLOBALS['d']. DS .$folder. DS;
+            $return['file_name'] = $file_name;
+            $return['file']      = $root. DS .$sub_root. $path. DS .$file_name. EXT;
             
-            if(strpos($loader_func, 'app_') === 0)
-            $sub_root   = '';
-           
-            $file = $root. DS .$sub_root. $path. DS .$file_name. EXT;
-            
-            if(strpos($real_name, '../') === 0)   // ../outside folder request
+            if(strpos($path, 'php5') !== FALSE)
             {
-                $file = DIR .substr($path, 3). DS .$folder. DS .$file_name. EXT;
-                    
-                if($folder == 'libraries') 
-                {
-                    if(strpos($real_name, 'php5') > 0)
-                    {
-                        $file = DIR . substr(substr($path, 0, -4) , 3). $folder . DS .'php5'. DS .$file_name. EXT;
-                        
-                        return array('file_name' => $file_name, 'file' => $file, 'php5' => TRUE);
-                    }
-                }
+                $return['php5']  = TRUE;
             }
-                
-            return array('file_name' => $file_name, 'file' => $file);
+            
+            return $return;
         } 
         
-        $sub_root   = $GLOBALS['d']. DS .$folder. DS;
-        if(strpos($loader_func, 'app_') === 0)
-        $sub_root   = '';
-        
+
         return array('file_name' => $real_name, 'file' => $root. DS .$sub_root. $real_name. EXT);
     } 
     

@@ -56,21 +56,8 @@ function base_register($Class, $params_or_no_ins = '', $dir = '', $sub_path = ''
 {                  
     $registry  = OB_Registry::instance();
     
-    switch($dir)
-    {
-       case 'directory':
-       $path  = DIR .$GLOBALS['d']. DS .'libraries'. DS .$sub_path;
-         break;
-         
-       case 'app':
-       $path  = APP .'libraries'. DS .$sub_path; 
-         break;
-         
-       case '':
-       $path  = BASE .'libraries'. DS;
-       $Class = ucfirst($Class);
-         break;
-    }        
+    $path  = BASE .'libraries'. DS;
+    $Class = ucfirst($Class);    
 
     $getObject = $registry->get_object($Class);
                               
@@ -87,18 +74,19 @@ function base_register($Class, $params_or_no_ins = '', $dir = '', $sub_path = ''
             profiler_set('libraries', 'php_'.$Class.'_no_instantiate', $Class);
             return TRUE;
         }
+
+        // override support. 
+        // --------------------------------------------------------------------
         
-        if($dir == '')   // if base class
+        $classname = 'OB_'.$Class;
+        $prefix    = config_item('subclass_prefix');  // MY_
+        
+        if(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))
         {
-            $classname = 'OB_'.$Class;
-            $prefix    = config_item('subclass_prefix');  // MY_
-            if(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))
-            {
-                require(APP .'libraries'. DS .$prefix. $Class. EXT);
-                $classname = $prefix. $Class;
-                
-                profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-            }
+            require(APP .'libraries'. DS .$prefix. $Class. EXT);
+            $classname = $prefix. $Class;
+            
+            profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
         }
         
         // __construct params support. 
