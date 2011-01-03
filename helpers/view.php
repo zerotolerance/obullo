@@ -224,19 +224,18 @@ if ( ! function_exists('view_temp'))
 
         if(isset($vi->_ew->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
 
-        $module_view_folder = $path = DIR. $GLOBALS['d'] . DS .'views'. $vi->_ew->app_view_folder;
-        $app_view_folder    = APP .'layouts'. $vi->_ew->app_view_folder;
 
-        if(file_exists($module_view_folder . $filename .EXT))
+        if(strpos($filename, '../') === 0)
         {
-            $path = $module_view_folder;
+          $filename= substr($filename, 3);
+          $path= DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $filename);
+          $filename= preg_replace('/^(\w+\/)/', '', $filename);
         }
         else
-        {
-            $path = $app_view_folder;
-        }
+          $path= APP .'layouts'. $vi->_ew->app_view_folder. $filename ;
 
-        profiler_set('app_views', $filename, $path . $filename .EXT);
+
+        profiler_set('app_views', $filename, $path );
 
         return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
     }
@@ -261,7 +260,7 @@ if ( ! function_exists('view_render'))
         {
             if(strpos($filename, '../') === 0)
             {
-                $var .= view_temp(substr($filename, 3), $data, TRUE);
+                $var .= view_temp($filename, $data, TRUE);
             }
             else
             {
@@ -426,3 +425,7 @@ if ( ! function_exists('_ob_object_to_array'))
 
 /* End of file view.php */
 /* Location: ./obullo/helpers/view.php */
+
+
+
+
