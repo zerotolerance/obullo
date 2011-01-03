@@ -227,9 +227,9 @@ Class loader {
     * @version   0.8 added  model('.outside_folder/model_name') and model('subfolder/model_name') support
     * @return    void
     */
-    public static function model($model, $object_name = '', $params_or_no_ins = '', $func = 'model')
+    public static function model($model, $object_name = '', $params_or_no_ins = '', $app_folder = FALSE)
     {   
-        $data = self::_load_file($model, $folder = 'models');
+        $data = self::_load_file($model, $folder = 'models', $app_folder);
         
         self::_model($data['file'], $data['file_name'], $object_name, $params_or_no_ins);
     }
@@ -454,7 +454,7 @@ Class loader {
         { 
             $prefix = config_item('subhelper_prefix');
         
-            if(file_exists(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT))
+            if(file_exists(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
             {
                 include(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT);
                 

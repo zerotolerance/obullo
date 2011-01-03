@@ -231,7 +231,7 @@ if ( ! function_exists('view_temp'))
 
         if(isset($vi->_ew->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
 
-        $path= APP .'layouts'. $vi->_ew->app_view_folder. $filename ;
+        $path = APP .'layouts'. $vi->_ew->app_view_folder;
 
         profiler_set('app_views', $filename, $path );
 
@@ -254,10 +254,10 @@ if ( ! function_exists('view_temp'))
 
 if ( ! function_exists('view_data'))
 {
-  function view_data($data= array())
+  function view_data($data = array())
   {
     $vi = Ssc::instance();
-    $vi->_ew->view_data= $data;
+    $vi->_ew->view_data = $data;
   }
 }
 
@@ -362,7 +362,7 @@ if ( ! function_exists('_load_view'))
     function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
         $vi = Ssc::instance();
-        if(!$data AND isset($vi->_ew->view_data)) $data= $vi->_ew->view_data;
+        if( ! $data AND isset($vi->_ew->view_data)) $data= $vi->_ew->view_data;
         elseif(isset($vi->_ew->view_data)) $data= array_merge_recursive($vi->_ew->view_data, $data);
 
         if(strpos($filename, '../') === 0)
