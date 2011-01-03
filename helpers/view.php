@@ -224,16 +224,7 @@ if ( ! function_exists('view_temp'))
 
         if(isset($vi->_ew->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
 
-
-        if(strpos($filename, '../') === 0)
-        {
-          $filename= substr($filename, 3);
-          $path= DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $filename);
-          $filename= preg_replace('/^(\w+\/)/', '', $filename);
-        }
-        else
-          $path= APP .'layouts'. $vi->_ew->app_view_folder. $filename ;
-
+        $path= APP .'layouts'. $vi->_ew->app_view_folder. $filename ;
 
         profiler_set('app_views', $filename, $path );
 
@@ -258,14 +249,7 @@ if ( ! function_exists('view_render'))
         $var = '';
         foreach($filenames as $filename)
         {
-            if(strpos($filename, '../') === 0)
-            {
-                $var .= view_temp($filename, $data, TRUE);
-            }
-            else
-            {
-                $var .= view($filename, $data, TRUE);
-            }
+            $var .= view($filename, $data, TRUE);
         }
 
         return $var;
@@ -350,6 +334,13 @@ if ( ! function_exists('_load_view'))
 {
     function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
+        if(strpos($filename, '../') === 0)
+        {
+          $filename= substr($filename, 3);
+          $path= DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $filename);
+          $filename= preg_replace('/^(\w+\/)/', '', $filename);
+        }
+
         if( empty($data) ) $data = array();
 
         if ( ! file_exists($path . $filename . EXT) )
