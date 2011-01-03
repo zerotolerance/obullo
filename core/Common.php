@@ -53,23 +53,23 @@ interface PHP5_Library
 * @return   object  | NULL
 */
 function base_register($Class, $params_or_no_ins = '', $dir = '', $sub_path = '')
-{                  
+{
     $registry  = OB_Registry::instance();
-    
+
     $path  = BASE .'libraries'. DS;
-    $Class = ucfirst($Class);   
+    $Class = ucfirst($Class);
 
     $getObject = $registry->get_object($Class);
-                              
+
     if ($getObject !== NULL)
     return $getObject;
-    
+
     if(file_exists($path . $Class. EXT))
     {
         require($path . $Class. EXT);
         $classname = $Class;
-        
-        if($params_or_no_ins === FALSE) 
+
+        if($params_or_no_ins === FALSE)
         {
             profiler_set('libraries', 'php_'.$Class.'_no_instantiate', $Class);
             return TRUE;
@@ -77,36 +77,36 @@ function base_register($Class, $params_or_no_ins = '', $dir = '', $sub_path = ''
 
         $classname = 'OB_'.$Class;
         $prefix    = config_item('subclass_prefix');  // MY_
-        
+
         if(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))
         {
             require(APP .'libraries'. DS .$prefix. $Class. EXT);
             $classname = $prefix. $Class;
-            
+
             profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
         }
-    
-        // __construct params support. 
+
+        // __construct params support.
         // --------------------------------------------------------------------
         if(is_array($params_or_no_ins)) // construct support.
         {
             $registry->set_object($Class, new $classname($params_or_no_ins));
-            
-        } else 
+
+        } else
         {
             $registry->set_object($Class, new $classname());
         }
-    
-        // return to singleton object. 
+
+        // return to singleton object.
         // --------------------------------------------------------------------
         $Object = $registry->get_object($Class);
-        
+
         if(is_object($Object))
         return $Object;
-        
+
     }
 
-    return NULL;  // if register func return to null 
+    return NULL;  // if register func return to null
                   // we will show a loader exception
 }
 // --------------------------------------------------------------------
@@ -606,15 +606,15 @@ if( ! function_exists('_get_public_path') )
 
             if(!$extra_path) $folder = substr(strrchr($filename, '.'), 1) . '/';  // get extension
             else $folder= '';
-            
+
             if($folder === FALSE)
             {
                 return FALSE;
             }
 
             $full_path = $ob->config->public_url(). $extra_path . $folder . $sub_path . $filename;
-            
-            echo $full_path;
+
+            //echo $full_path;
         }
 
         return $full_path;

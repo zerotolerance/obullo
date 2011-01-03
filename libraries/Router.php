@@ -83,7 +83,7 @@ Class OB_Router {
         if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('controller_trigger')]))
         {
             $this->set_directory(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
-            
+
             // $this->set_subfolder(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
             $this->set_class(trim($this->uri->_filter_uri($_GET[config_item('controller_trigger')])));
 
@@ -203,7 +203,7 @@ Class OB_Router {
     public function _validate_request($segments)
     {
         // print_r($segments); exit();
-        
+
         // $segments[0] = directory
         // $segments[1] = controller name
 
@@ -217,42 +217,41 @@ Class OB_Router {
 
             if( ! empty($segments[1]))
             {
-                //----------- SUB FOLDER SUPPORT ----------// 
-                
-                if(is_dir(DIR . $segments[0] . DS .'controllers'. DS .$segments[1]))   // If there is a subfolder ? 
+                //----------- SUB FOLDER SUPPORT ----------//
+
+                if(is_dir(DIR . $segments[0] . DS .'controllers'. DS .$segments[1]))   // If there is a subfolder ?
                 {
                     $this->set_subfolder($segments[1]);
-                    
+
                     //       0      1           2
                     // module / controller /  method  /
                     //       0      1           2           3
                     // module / subfolder / controller /  method  /
-                    
+
                     if( ! isset($segments[2])) return $segments;
-                    
-                    if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT))
-                    {                        
+
+										if (is_dir(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]))
+										{
+												if(file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[1]. EXT)
+												AND !file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT))
+													array_unshift($segments, $segments[0]);
                          $segments[1] = $segments[2];     // change class
-                         
+
                          if(isset($segments[3]))
                          $segments[2] = $segments[3];     // change method
-                        
-                         ///print_r($segments);
-                         
-                         /* ( Merge Segments CJ )*/ 
-                         
-                        return $segments;  // Array ( [0] => welcome [1] => dashboard [2] => hello ) 
+
+                        return $segments;  // Array ( [0] => welcome [1] => dashboard [2] => hello )
                     }
-                    
+
                 //----------- SUB FOLDER SUPPORT ----------//
-                    
-                } 
-                else 
+
+                }
+                else
                 {
                     if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. EXT))
                     return $segments;
                 }
-                
+
             }
 
             /**
@@ -275,8 +274,7 @@ Class OB_Router {
 
                 return $segments;
             }
-            
-            
+
         }
 
         show_404($segments[0].' / '.$segments[1]);
@@ -412,7 +410,7 @@ Class OB_Router {
     {
         $this->directory = $dir.'';  // Obullo changes..
     }
-    
+
     /**
     *  Set the subfolder name
     *
@@ -437,7 +435,7 @@ Class OB_Router {
     {
         return $this->directory;
     }
-    
+
     /**
     *  Fetch the sub-directory (if any) that contains the requested controller class
     *
