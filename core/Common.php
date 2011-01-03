@@ -605,7 +605,7 @@ if( ! function_exists('_get_public_path') )
             }
 
             if(!$extra_path) $full_path .= $modulename . '/'. $public_folder .'/' . $folder .'/'. $sub_path . $filename;
-            else DS. $full_path .= $modulename . '/'. $public_folder .'/' . $extra_path .'/'. $sub_path . $filename;
+            else DS. $full_path .= $modulename . '/'. $public_folder .'/' . $extra_path . $sub_path . $filename;
 
         }
         else
