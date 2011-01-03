@@ -5,17 +5,17 @@ defined('BASE') or exit('Access Denied!');
  * Obullo Framework (c) 2009.
  *
  * PHP5 MVC Based Minimalist Software.
- * 
- * @package         obullo       
+ *
+ * @package         obullo
  * @author          obullo.com
  * @copyright       Ersin Guvenc (c) 2009.
  * @filesource
  * @license
  */
 
- 
-Class ViewException extends CommonException {}  
- 
+
+Class ViewException extends CommonException {}
+
 /**
  * Obullo View Helper
  *
@@ -28,9 +28,9 @@ Class ViewException extends CommonException {}
  * @version     0.3 added set_view_folder function, added return , fail gracefully function for views.
  * @version     0.4 added img_folder to view_set_folder() function.
  * @version     0.5 renamed all function prefix as "view_".
- * @link        
+ * @link
  */
- 
+
 if( ! isset($_vi->_ew))  // Helper Constructror
 {
     $_vi = Ssc::instance();
@@ -40,21 +40,21 @@ if( ! isset($_vi->_ew))  // Helper Constructror
     $_vi->_ew->app_view_folder  = DS. '';
     $_vi->_ew->css_folder       = '/';
     $_vi->_ew->img_folder       = '/';
-    
+
     $_vi->_ew->view_var         = array();
     $_vi->_ew->view_layout_name = '';
-                                               
+
     log_me('debug', "View Helper Initialized");
 }
 
-// ------------------------------------------------------------------------ 
+// ------------------------------------------------------------------------
 
 if ( ! function_exists('view_var'))
 {
     function view_var($key, $val = '', $use_layout = FALSE, $layout_data = array())
     {
         $vi = Ssc::instance();
-        
+
         if($val == '')
         {
             if(isset($vi->_ew->view_var[$key]))
@@ -62,20 +62,53 @@ if ( ! function_exists('view_var'))
                 $var = '';
                 foreach($vi->_ew->view_var[$key] as $value)
                 {
-                    $var .= $value; 
+                    $var .= $value;
                 }
-                
+
                 return $var;
             }
         }
-        
-        $vi->_ew->view_var[$key][] = $val;  
-        
-        if($use_layout)  // include setted layout.  
+
+        $vi->_ew->view_var[$key][] = $val;
+
+        if($use_layout)  // include setted layout.
         {
             view_temp($vi->_ew->view_layout_name, $layout_data);
         }
-        
+
+        return;
+    }
+}
+
+if ( ! function_exists('view_array'))
+{
+    function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
+    {
+        $val= (Array)$val;
+        $vi = Ssc::instance();
+
+        if($val == array())
+        {
+            if(isset($vi->_ew->view_array[$key]))
+            {
+                $var = array();
+                foreach($vi->_ew->view_array[$key] as $value)
+                {
+                    $var[] = $value;
+                }
+
+                return $var;
+            }
+        }
+
+        foreach($val AS $value)
+          $vi->_ew->view_array[$key][] = $value;
+
+        if($use_layout)  // include setted layout.
+        {
+            view_temp($vi->_ew->view_layout_name, $layout_data);
+        }
+
         return;
     }
 }
@@ -83,7 +116,7 @@ if ( ! function_exists('view_var'))
 /**
 * Set layout for all controller
 * functions.
-* 
+*
 * @param string $layout
 */
 if ( ! function_exists('view_set'))
@@ -99,11 +132,11 @@ if ( ! function_exists('view_set'))
 * Create your custom folders and
 * change all your view paths to supporting
 * multiple interfaces (iphone interface etc ..)
-* 
+*
 * @author   Ersin Guvenc
 * @param    string $func view function
 * @param    string $folder view folder (no trailing slash)
-* @version  0.1                 
+* @version  0.1
 * @version  0.2 added img folder
 */
 if ( ! function_exists('view_set_folder'))
@@ -112,42 +145,48 @@ if ( ! function_exists('view_set_folder'))
     {
         $vi = Ssc::instance();
         $folder_path = empty($folder) ? DS : $folder. DS;
-        
+
         switch ($func)
         {
            case 'view':
              $vi->_ew->view_folder     = DS. $folder_path;
-             
-             log_me('debug', "View() Function Paths Changed");  
+
+             log_me('debug', "View() Function Paths Changed");
              break;
-             
+
            case 'view_app':
              $vi->_ew->app_view_folder = DS. $folder_path;
-             
-             log_me('debug', "View_temp() Function Paths Changed");   
+
+             log_me('debug', "View_temp() Function Paths Changed");
              break;
-             
+
            case 'css':
              $vi->_ew->css_folder      = $folder;
-             
-             log_me('debug', "Css() Function Paths Changed");  
+
+             log_me('debug', "Css() Function Paths Changed");
              break;
-             
+
+           case 'js':
+             $vi->_ew->js_folder      = $folder;
+
+             log_me('debug', "Js() Function Paths Changed");
+             break;
+
            case 'img':
              $vi->_ew->img_folder      = $folder;
-             
-             log_me('debug', "Img() Function Paths Changed");  
+
+             log_me('debug', "Img() Function Paths Changed");
              break;
         }
-        
+
         return TRUE;
     }
 }
-// ------------------------------------------------------------------------ 
+// ------------------------------------------------------------------------
 
 /**
 * Load local view file
-* 
+*
 * @param string  $filename
 * @param array   $data
 * @param boolean $string default TRUE
@@ -156,16 +195,16 @@ if ( ! function_exists('view_set_folder'))
 if ( ! function_exists('view'))
 {
     function view($filename, $data = '', $string = TRUE)
-    {               
+    {
         $vi = Ssc::instance();
         $return = FALSE;
 
         if(isset($vi->_ew->view_folder{1})) { $return = TRUE; }    // if view folder changed don't show errors ..
 
         $path =  DIR .$GLOBALS['d']. DS .'views'. $vi->_ew->view_folder;
-        
-        profiler_set('local_views', $filename, $path . $filename .EXT);  
-        
+
+        profiler_set('local_views', $filename, $path . $filename .EXT);
+
         return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
     }
 }
@@ -173,7 +212,7 @@ if ( ! function_exists('view'))
 // ------------------------------------------------------------------------
 
 /**
-* Load global view temp check if it exist 
+* Load global view temp check if it exist
 * in modules/views otherwise load it from
 * application/layouts directory.
 *
@@ -192,19 +231,9 @@ if ( ! function_exists('view_temp'))
 
         if(isset($vi->_ew->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
 
-        $module_view_folder = $path = DIR. $GLOBALS['d'] . DS .'views'. $vi->_ew->app_view_folder;
-        $app_view_folder    = APP .'layouts'. $vi->_ew->app_view_folder;
-        
-        if(file_exists($module_view_folder . $filename .EXT)) 
-        {
-            $path = $module_view_folder;
-        } 
-        else 
-        {
-            $path = $app_view_folder;
-        }
-        
-        profiler_set('app_views', $filename, $path . $filename .EXT);
+        $path= APP .'layouts'. $vi->_ew->app_view_folder. $filename ;
+
+        profiler_set('app_views', $filename, $path );
 
         return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
     }
@@ -213,30 +242,43 @@ if ( ! function_exists('view_temp'))
 // ------------------------------------------------------------------------
 
 /**
+ * view_data
+ *
+ * Enables you to set data that is persistent in all views
+ *
+ * @author CJ Lazell
+ * @param array $data
+ * @access public
+ * @return void
+ */
+
+if ( ! function_exists('view_data'))
+{
+  function view_data($data= array())
+  {
+    $vi = Ssc::instance();
+    $vi->_ew->view_data= $data;
+  }
+}
+
+/**
 * Render multiple view files.
-* 
+*
 * @param array $filenames
 * @param array $data
 */
 if ( ! function_exists('view_render'))
 {
     function view_render($filenames = array(), $data = '')
-    {       
+    {
         $vi = Ssc::instance();
-        
-        $var = '';        
+
+        $var = '';
         foreach($filenames as $filename)
         {
-            if(strpos($filename, '../') === 0)
-            {
-                $var .= view_temp(substr($filename, 3), $data, TRUE);
-            } 
-            else 
-            {
-                $var .= view($filename, $data, TRUE);
-            }
+            $var .= view($filename, $data, TRUE);
         }
-        
+
         return $var;
     }
 }
@@ -246,7 +288,7 @@ if ( ! function_exists('view_render'))
 /**
 * Load Java script files externally
 * like fetch view files as string
-* 
+*
 * @author   Ersin Guvenc
 * @access   private
 * @param    string  $path
@@ -262,18 +304,18 @@ if ( ! function_exists('_load_script'))
     function _load_script($path, $filename, $data = '')
     {
         if( empty($data) ) $data = array();
-        
+
         if ( ! file_exists($path . $filename . EXT) )
         {
             throw new ViewException('Unable locate the script file: '. $path . $filename . EXT);
-        } 
-        
+        }
+
         $data = _ob_object_to_array($data);
-        
+
         if(sizeof($data) > 0) { extract($data, EXTR_SKIP); }
-        
+
         ob_start();
-        
+
         // Short open tag support.
         if ((bool) @ini_get('short_open_tag') === FALSE AND config_item('rewrite_short_tags') == TRUE)
         {
@@ -283,31 +325,31 @@ if ( ! function_exists('_load_script'))
         {
             include($path . $filename . EXT);
         }
-        
+
         $content = ob_get_contents();
-        
+
         ob_end_clean();
-                               
-        log_me('debug', 'Script file loaded: '.$path . $filename . EXT); 
-        
+
+        log_me('debug', 'Script file loaded: '.$path . $filename . EXT);
+
         profiler_set('scripts', $filename, $filename);
-        
-        return "\n".$content; 
+
+        return "\n".$content;
     }
 }
 
-// ------------------------------------------------------------------------ 
-    
+// ------------------------------------------------------------------------
+
 /**
-* Main view function        
-* 
+* Main view function
+*
 * @author   Ersin Guvenc
-* @access   private          
-* @param    string   $path file path 
-* @param    string   $filename 
+* @access   private
+* @param    string   $path file path
+* @param    string   $filename
 * @param    array    $data template vars
-* @param    boolean  $string 
-* @param    boolean  $return 
+* @param    boolean  $string
+* @param    boolean  $return
 * @version  0.1
 * @version  0.2 added empty $data
 * @version  0.3 added $return param
@@ -318,32 +360,43 @@ if ( ! function_exists('_load_script'))
 if ( ! function_exists('_load_view'))
 {
     function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
-    {   
+    {
+        $vi = Ssc::instance();
+        if(!$data AND isset($vi->_ew->view_data)) $data= $vi->_ew->view_data;
+        elseif(isset($vi->_ew->view_data)) $data= array_merge_recursive($vi->_ew->view_data, $data);
+
+        if(strpos($filename, '../') === 0)
+        {
+          $filename= substr($filename, 3);
+          $path= DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $filename);
+          $filename= preg_replace('/^(\w+\/)/', '', $filename);
+        }
+
         if( empty($data) ) $data = array();
 
         if ( ! file_exists($path . $filename . EXT) )
         {
-            if($return) 
-            { 
+            if($return)
+            {
                 log_me('debug', 'View file failed gracefully: '. $path . $filename . EXT);
-                
+
                 return;     // fail gracefully for different interfaces ..
                             // iphone, blackberry etc..
-            }  
-                                 
+            }
+
             throw new ViewException('Unable locate the view file: '. $filename . EXT);
-        } 
-        
+        }
+
         $data = _ob_object_to_array($data);
-        
+
         if(sizeof($data) > 0) { extract($data, EXTR_SKIP); }
-                
+
         ob_start();
-        
+
         // If the PHP installation does not support short tags we'll
         // do a little string replacement, changing the short tags
         // to standard PHP echo statements.
-        
+
         if ((bool) @ini_get('short_open_tag') === FALSE AND config_item('rewrite_short_tags') == TRUE)
         {
             echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($path.$filename.EXT))));
@@ -352,28 +405,28 @@ if ( ! function_exists('_load_view'))
         {
             include($path . $filename . EXT);
         }
-        
+
         log_me('debug', 'View file loaded: '.$path . $filename . EXT);
 
         if($string === TRUE)
         {
             $content = ob_get_contents();
             @ob_end_clean();
-        
+
             return $content;
         }
 
         // Set Global views inside to Output Class for caching functionality..
         base_register('Output')->append_output(ob_get_contents());
-        
+
         @ob_end_clean();
-        
+
         return;
-        
+
     }
 }
 
-// ------------------------------------------------------------------------ 
+// ------------------------------------------------------------------------
 
 /**
 * Object to Array
@@ -394,3 +447,7 @@ if ( ! function_exists('_ob_object_to_array'))
 
 /* End of file view.php */
 /* Location: ./obullo/helpers/view.php */
+
+
+
+
