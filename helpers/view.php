@@ -355,8 +355,8 @@ if ( ! function_exists('_load_view'))
     function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
         $vi = Ssc::instance();
-        if(!$data AND $vi->_ew->view_data) $data= $vi->_ew->view_data;
-        elseif($vi->_ew->view_data) $data= array_merge_recursive($vi->_ew->view_data, $data);
+        if(!$data AND isset($vi->_ew->view_data)) $data= $vi->_ew->view_data;
+        elseif(isset($vi->_ew->view_data)) $data= array_merge_recursive($vi->_ew->view_data, $data);
 
         if(strpos($filename, '../') === 0)
         {
