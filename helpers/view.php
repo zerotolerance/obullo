@@ -235,6 +235,26 @@ if ( ! function_exists('view_temp'))
 // ------------------------------------------------------------------------
 
 /**
+ * view_data
+ *
+ * Enables you to set data that is persistent in all views
+ *
+ * @author CJ Lazell
+ * @param array $data
+ * @access public
+ * @return void
+ */
+
+if ( ! function_exists('view_data'))
+{
+  function view_data($data= array())
+  {
+    $vi = Ssc::instance();
+    $vi->_ew->view_data= $data;
+  }
+}
+
+/**
 * Render multiple view files.
 *
 * @param array $filenames
@@ -334,6 +354,10 @@ if ( ! function_exists('_load_view'))
 {
     function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
+        $vi = Ssc::instance();
+        if(!$data AND $vi->_ew->view_data) $data= $vi->_ew->view_data;
+        elseif($vi->_ew->view_data) $data= array_merge_recursive($vi->_ew->view_data, $data);
+
         if(strpos($filename, '../') === 0)
         {
           $filename= substr($filename, 3);
