@@ -574,7 +574,7 @@ if( ! function_exists('_get_public_path') )
             }
 
             $extension  = substr(strrchr($filename, '.'), 1);  // get extension
-            $folder     = $extension;
+            if(!$extra_path) $folder     = $extension;
 
             if($extension == FALSE)
             {
@@ -604,7 +604,8 @@ if( ! function_exists('_get_public_path') )
                 // http://example.com/site/modules/welcome/public/css/welcome.css
             }
 
-            $full_path .= $modulename . '/'. $public_folder .'/'. $extra_path . $folder .'/'. $sub_path . $filename;
+            if(!$extra_path) $full_path .= $modulename . '/'. $public_folder .'/' . $folder .'/'. $sub_path . $filename;
+            else DS. $full_path .= $modulename . '/'. $public_folder .'/' . $extra_path .'/'. $sub_path . $filename;
 
         }
         else
@@ -627,7 +628,7 @@ if( ! function_exists('_get_public_path') )
                 return FALSE;
             }
 
-            $full_path = DS.$ob->config->public_url(). $extra_path . $folder . $sub_path . $filename;
+            $full_path = $ob->config->public_url(). $extra_path . $folder . $sub_path . $filename;
         }
 
         return $full_path;

@@ -166,6 +166,12 @@ if ( ! function_exists('view_set_folder'))
              log_me('debug', "Css() Function Paths Changed");
              break;
 
+           case 'js':
+             $vi->_ew->js_folder      = $folder;
+
+             log_me('debug', "Js() Function Paths Changed");
+             break;
+
            case 'img':
              $vi->_ew->img_folder      = $folder;
 

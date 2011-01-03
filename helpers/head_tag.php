@@ -157,6 +157,14 @@ if( ! function_exists('js') )
 
         $link = '<script type="'.$type.'" ';
 
+        $vi = Ssc::instance();   // obullo changes ..
+
+        // When user use view_set_folder('js', 'iphone'); ..  /public/iphone/css/welcome.css
+        $extra_path = '';
+        if( isset($vi->_ew->js_folder{1}) )
+        {
+            $extra_path = $vi->_ew->js_folder;
+        }
         if (is_array($src))
         {
             $link = '';
@@ -173,7 +181,7 @@ if( ! function_exists('js') )
                 }
                 else
                 {
-                    $link .= ' src="'. _get_public_path($v) .'" ';
+                    $link .= ' src="'. _get_public_path($v, $extra_path) .'" ';
                 }
 
                 $link .= "></script>\n";
@@ -194,7 +202,7 @@ if( ! function_exists('js') )
             }
             else
             {
-                $link .= ' src="'. _get_public_path($src) .'" ';
+                $link .= ' src="'. _get_public_path($src, $extra_path) .'" ';
             }
 
             $link .= $arguments;
