@@ -82,11 +82,11 @@ if ( ! function_exists('view_var'))
 
 if ( ! function_exists('view_array'))
 {
-    function view_array($key, $val = '', $use_layout = FALSE, $layout_data = array())
+    function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
     {
         $vi = Ssc::instance();
 
-        if($val == '')
+        if($val == array())
         {
             if(isset($vi->_ew->view_array[$key]))
             {
@@ -100,7 +100,8 @@ if ( ! function_exists('view_array'))
             }
         }
 
-        $vi->_ew->view_array[$key] = $val;
+        foreach($val AS $value)
+          $vi->_ew->view_array[$key][] = $value;
 
         if($use_layout)  // include setted layout.
         {
