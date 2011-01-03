@@ -619,14 +619,15 @@ if( ! function_exists('_get_public_path') )
                 $sub_path = implode('/', $paths) . '/';   // .public/css/sub/welcome.css  sub support
             }
 
-            $folder = substr(strrchr($filename, '.'), 1);  // get extension
+            if(!$extra_path) $folder = substr(strrchr($filename, '.'), 1).DS;  // get extension
+            else $folder= '';
 
-            if($folder == FALSE)
+            if($folder === FALSE)
             {
                 return FALSE;
             }
 
-            $full_path = DS.$ob->config->public_url(). $extra_path . $folder .'/'. $sub_path . $filename;
+            $full_path = DS.$ob->config->public_url(). $extra_path . $folder . $sub_path . $filename;
         }
 
         return $full_path;

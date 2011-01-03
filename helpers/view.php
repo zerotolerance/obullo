@@ -84,6 +84,7 @@ if ( ! function_exists('view_array'))
 {
     function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
     {
+        $val= (Array)$val;
         $vi = Ssc::instance();
 
         if($val == array())
