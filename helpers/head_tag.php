@@ -165,6 +165,7 @@ if( ! function_exists('js') )
         {
             $extra_path = $vi->_ew->js_folder;
         }
+        
         if (is_array($src))
         {
             $link = '';

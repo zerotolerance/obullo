@@ -558,7 +558,7 @@ if( ! function_exists('_get_public_path') )
             }
 
             $extension  = substr(strrchr($filename, '.'), 1);  // get extension
-            if(!$extra_path) $folder     = $extension;
+            if($extra_path != '') $folder     = $extension;
 
             if($extension == FALSE)
             {
@@ -606,13 +606,15 @@ if( ! function_exists('_get_public_path') )
 
             if(!$extra_path) $folder = substr(strrchr($filename, '.'), 1) . '/';  // get extension
             else $folder= '';
-
+            
             if($folder === FALSE)
             {
                 return FALSE;
             }
 
             $full_path = $ob->config->public_url(). $extra_path . $folder . $sub_path . $filename;
+            
+            echo $full_path;
         }
 
         return $full_path;

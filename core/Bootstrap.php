@@ -85,15 +85,37 @@ if( ! function_exists('ob_system_run'))
         _sanitize_globals(); // Initalize to input filter. ( Sanitize must be above the GLOBALS !! )
           
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
+        $GLOBALS['s']   = $router->fetch_subfolder();   // Check subfolder exist
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
         
-        // Check the controller exists or not
-        if ( ! file_exists(DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT))
+        if($GLOBALS['s'] != '')
         {
-            if(config_item('enable_query_strings') === TRUE) show_404("{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}");
+            $page_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
             
-            throw new CommonException('Unable to load your default controller.Please make sure the controller specified in your Routes.php file is valid.');
+            // Check the sub controller exists or not
+            if ( ! file_exists(DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT))
+            {
+                show_404($page_uri);
+            }
+            
+            $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;   
+            $arg_slice  = 4;
+        } 
+        else 
+        {
+            $page_uri = "{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
+            
+            // Check the controller exists or not
+            if ( ! file_exists(DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT))
+            {
+                if(config_item('enable_query_strings') === TRUE) show_404($page_uri);
+                
+                throw new CommonException('Unable to load your default controller.Please make sure the controller specified in your Routes.php file is valid.');
+            }
+            
+            $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
+            $arg_slice  = 3;
         }
         
         require (BASE .'core'. DS .'Loader'. EXT);
@@ -104,10 +126,10 @@ if( ! function_exists('ob_system_run'))
         benchmark_mark('loading_time_base_classes_end');
         
         // Mark a start point so we can benchmark the controller
-        benchmark_mark('execution_time_( '.$GLOBALS['d'].' / '.$GLOBALS['c'].' / '.$GLOBALS['m'].' )_start');
+        benchmark_mark('execution_time_( '.$page_uri.' )_start');
         
         // call the controller.
-        require (DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT);
+        require ($controller);
         
         if ( ! class_exists($GLOBALS['c']) OR $GLOBALS['m'] == 'controller' 
               OR $GLOBALS['m'] == '_output'       // security fix.
@@ -115,7 +137,7 @@ if( ! function_exists('ob_system_run'))
               OR in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods('Controller')))
             )
         {
-            show_404("{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}");
+            show_404($page_uri);
         }
         
         // If Everyting ok Declare Called Controller !
@@ -124,16 +146,16 @@ if( ! function_exists('ob_system_run'))
         // Check method exist or not
         if ( ! in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods($OB))))
         {
-            show_404("{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}");
+            show_404($page_uri);
         }
-
+        
         // Call the requested method.                1       2       3
         // Any URI segments present (besides the directory/class/method) 
         // will be passed to the method for convenience
-        call_user_func_array(array($OB, $GLOBALS['m']), array_slice($OB->uri->rsegments, 3));
+        call_user_func_array(array($OB, $GLOBALS['m']), array_slice($OB->uri->rsegments, $arg_slice));
         
         // Mark a benchmark end point
-        benchmark_mark('execution_time_( '.$GLOBALS['d'].' / '.$GLOBALS['c'].' / '.$GLOBALS['m'].' )_end');
+        benchmark_mark('execution_time_( '.$page_uri.' )_end');
         
         // Write Cache file if cache on ! and Send the final rendered output to the browser
         $output->_display();
