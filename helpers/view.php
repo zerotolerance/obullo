@@ -366,16 +366,18 @@ if ( ! function_exists('_load_view'))
 				_set_view_data($data);
 				$data= $vi->_ew->view_data;
 
-        if(strpos($filename, '../') === 0)
-        {
-          $filename= substr($filename, 3);
-          $path= DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $filename);
-          $filename= preg_replace('/^(\w+\/)/', '', $filename);
-        }
+				$module_extra= (strpos($filename, '../') !== 0)?'../'.$GLOBALS['d'].DS:'';
+        $module_filename= substr($module_extra.$filename, 3);
+				$module_path= DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $module_filename);
+				$module_filename= preg_replace('/^(\w+\/)/', '', $module_filename);
 
-        if( empty($data) ) $data = array();
-
-        if ( ! file_exists($path . $filename . EXT) )
+				$is_module_file= file_exists($module_path . $module_filename . EXT);
+				if($is_module_file)
+				{
+					$path     = $module_path;
+					$filename = $module_filename;
+				}
+				else if ( ! file_exists($path . $filename . EXT) )
         {
             if($return)
             {
@@ -387,6 +389,9 @@ if ( ! function_exists('_load_view'))
 
             throw new ViewException('Unable locate the view file: '. $filename . EXT);
         }
+				
+        if( empty($data) ) $data = array();
+
 
         $data = _ob_object_to_array($data);
 
