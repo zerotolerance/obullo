@@ -242,7 +242,7 @@ if ( ! function_exists('view_temp'))
 // ------------------------------------------------------------------------
 
 /**
- * view_data
+ * _set_view_data
  *
  * Enables you to set data that is persistent in all views
  *
@@ -252,12 +252,13 @@ if ( ! function_exists('view_temp'))
  * @return void
  */
 
-if ( ! function_exists('view_data'))
+if ( ! function_exists('_set_view_data'))
 {
-  function view_data($data = array())
+  function _set_view_data($data = array())
   {
-    $vi = Ssc::instance();
-    $vi->_ew->view_data = $data;
+		$vi = Ssc::instance();
+		if(isset($vi->_ew->view_data)) $vi->_ew->view_data= array_merge_recursive($vi->_ew->view_data, (array)$data);
+		else $vi->_ew->view_data= $data;
   }
 }
 
@@ -361,9 +362,9 @@ if ( ! function_exists('_load_view'))
 {
     function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
-        $vi = Ssc::instance();
-        if( ! $data AND isset($vi->_ew->view_data)) $data= $vi->_ew->view_data;
-        elseif(isset($vi->_ew->view_data)) $data= array_merge_recursive($vi->_ew->view_data, $data);
+			  $vi = Ssc::instance();
+				_set_view_data($data);
+				$data= $vi->_ew->view_data;
 
         if(strpos($filename, '../') === 0)
         {
