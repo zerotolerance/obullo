@@ -28,6 +28,7 @@ if( ! isset($_ses->_sion))
     $_ses->_sion->flashdata_key        = 'flash';
     $_ses->_sion->time_reference       = 'time';
     $_ses->_sion->gc_probability       = 5;
+    $_ses->_sion->sess_id_ttl          = '';
     $_ses->_sion->userdata             = array();
 }
  

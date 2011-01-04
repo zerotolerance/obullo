@@ -544,6 +544,10 @@ if( ! function_exists('_get_public_path') )
         $ob = this();
         $file_url = strtolower($file_url);
         
+        $extension = substr(strrchr($file_url, '.'), 1);
+            
+        if($extension == FALSE) return FALSE;
+        
         //------------- if ./public folder request  -----------------//
         
         if(strpos($file_url, './') === 0)
@@ -559,10 +563,6 @@ if( ! function_exists('_get_public_path') )
             }
             
             //------- find file extension and sub paths -------//
-            
-            $extension = substr(strrchr($filename, '.'), 1);
-            
-            if($extension == FALSE) return FALSE;
 
             $folder = $extension . '/';
             
@@ -571,8 +571,6 @@ if( ! function_exists('_get_public_path') )
                 $extra_path = trim($extra_path, '/').'/';
                 $folder = '';
             }
-
-            echo $ob->config->public_url(). $extra_path . $folder . $sub_path . $filename.'<br />';
             
             return  $ob->config->public_url(). $extra_path . $folder . $sub_path . $filename;
         }
@@ -634,8 +632,6 @@ if( ! function_exists('_get_public_path') )
         // http://example.com/admin/modules/welcome/public/css/welcome.css
 
         $full_path .= $modulename . '/'. $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
-        
-        echo $full_path.'<br />';
         
         return $full_path;
     }
