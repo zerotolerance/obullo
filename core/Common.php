@@ -588,7 +588,7 @@ if( ! function_exists('_get_public_path') )
                 // http://example.com/site/modules/welcome/public/css/welcome.css
             }
 
-            if(!$extra_path) $full_path .= $modulename . '/'. $public_folder .'/' . $folder .'/'. $sub_path . $filename;
+            if(!$extra_path) $full_path .= $modulename . '/'. $public_folder .'/' . $extension .'/'. $sub_path . $filename;
             else '/'. $full_path .= $modulename . '/'. $public_folder .'/' . $extra_path . $sub_path . $filename;
 
         }
