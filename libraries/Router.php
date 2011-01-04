@@ -83,8 +83,11 @@ Class OB_Router {
         if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('controller_trigger')]))
         {
             $this->set_directory(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
-
-            // $this->set_subfolder(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
+            
+            // ( Obullo sub folder support )
+            $this->set_subfolder(trim($this->uri->_filter_uri($_GET[config_item('subfolder_trigger')])));
+            // ( Obullo sub folder support )
+            
             $this->set_class(trim($this->uri->_filter_uri($_GET[config_item('controller_trigger')])));
 
             if (isset($_GET[config_item('function_trigger')]))
@@ -194,6 +197,7 @@ Class OB_Router {
     * the controller.
     *
     * @author   Ersin Guvenc
+    * @author   CJ Lazell
     * @access   private
     * @param    array
     * @version  Changed segments[0] as segments[1]
@@ -202,8 +206,6 @@ Class OB_Router {
     */
     public function _validate_request($segments)
     {
-        // print_r($segments); exit();
-
         // $segments[0] = directory
         // $segments[1] = controller name
 
@@ -221,29 +223,34 @@ Class OB_Router {
 
                 if(is_dir(DIR . $segments[0] . DS .'controllers'. DS .$segments[1]))   // If there is a subfolder ?
                 {
-                    $this->set_subfolder($segments[1]);
-
                     //       0      1           2
                     // module / controller /  method  /
                     //       0      1           2           3
                     // module / subfolder / controller /  method  /
+                    
+                    $this->set_subfolder($segments[1]);
 
                     if( ! isset($segments[2])) return $segments;
 
-										if (is_dir(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]))
-										{
-												if(file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[1]. EXT)
-												AND !file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT))
-													array_unshift($segments, $segments[0]);
+					if (is_dir(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]))
+					{
+					    if( file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[1]. EXT)
+					        AND ! file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT)) 
+                        {
+					        array_unshift($segments, $segments[0]);
+                        }
+                                                  
                          $segments[1] = $segments[2];     // change class
 
-                         if(isset($segments[3]))
-                         $segments[2] = $segments[3];     // change method
+                         if(isset($segments[3]))          // change method
+                         {
+                            $segments[2] = $segments[3];  
+                         }
 
-                        return $segments;  // Array ( [0] => welcome [1] => dashboard [2] => hello )
+                        return $segments;
                     }
 
-                //----------- SUB FOLDER SUPPORT ----------//
+                //----------- SUB FOLDER SUPPORT END ----------//
 
                 }
                 else
@@ -269,16 +276,15 @@ Class OB_Router {
 
                 if( empty($segments[2]) )
                 {
-                    $segments[2]= 'index';
+                    $segments[2] = $this->routes['index_method'];
                 }
 
                 return $segments;
             }
 
         }
-
-        show_404($segments[0].' / '.$segments[1]);
-
+        
+        show_404(); // security fix.
     }
 
     // --------------------------------------------------------------------
@@ -327,7 +333,7 @@ Class OB_Router {
                 {
                     $val = preg_replace('#^'.$key.'$#', $val, $uri);
                 }
-
+                
                 $this->_set_request(explode('/', $val));
                 return;
             }

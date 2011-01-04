@@ -262,6 +262,7 @@ Class OB_Config
     /**
     * Public URL (Get the url for static media files)
     *
+    * @author   Ersin Guvenc
     * @access   public
     * @param    string uri
     * @param    bool $no_slash  no trailing slashes
@@ -270,7 +271,7 @@ Class OB_Config
     public function public_url($uri = '', $no_folder = FALSE, $no_ext_uri_slash = FALSE)
     {
         $extra_uri     = (trim($uri, '/') != '') ? trim($uri, '/').'/' : '';
-        $public_folder = ($no_folder) ? '' : $this->item('public_folder').'/';
+        $public_folder = ($no_folder) ? '' : trim($this->item('public_folder'), '/').'/';
         
         if($no_ext_uri_slash)
         {

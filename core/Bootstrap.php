@@ -96,11 +96,16 @@ if( ! function_exists('ob_system_run'))
             // Check the sub controller exists or not
             if ( ! file_exists(DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT))
             {
+                if(config_item('enable_query_strings') === TRUE) show_404();
+                
                 show_404($page_uri);
             }
             
             $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;   
             $arg_slice  = 4;
+            
+            // Call the requested method.                1        2       3       4
+            // Any URI segments present (besides the directory/subfolder/class/method) 
         } 
         else 
         {
@@ -109,9 +114,9 @@ if( ! function_exists('ob_system_run'))
             // Check the controller exists or not
             if ( ! file_exists(DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT))
             {
-                if(config_item('enable_query_strings') === TRUE) show_404($page_uri);
+                if(config_item('enable_query_strings') === TRUE) show_404();
                 
-                throw new CommonException('Unable to load your default controller.Please make sure the controller specified in your Routes.php file is valid.');
+                throw new Exception('Unable to load your default controller.Please make sure the controller specified in your Routes.php file is valid.');
             }
             
             $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;

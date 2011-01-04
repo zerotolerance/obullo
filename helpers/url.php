@@ -106,9 +106,9 @@ if ( ! function_exists('current_url'))
 * @param    string uri
 * @return   string
 */
-if ( ! function_exists('current_dir'))
+if ( ! function_exists('this_dir'))
 {
-    function current_dir($uri = '')
+    function this_dir($uri = '')
     {
         $separator = '';
         if($uri != '')
@@ -117,36 +117,6 @@ if ( ! function_exists('current_dir'))
         }
         
         return (string)$GLOBALS['d']. $separator . $uri;
-    }
-}
-// ------------------------------------------------------------------------ 
-
-/**
-* Get current class
-* 
-* @access   public
-* @return   string
-*/
-if ( ! function_exists('current_class'))
-{
-    function current_class()
-    {        
-        return (string)$GLOBALS['c'];
-    }
-}
-// ------------------------------------------------------------------------ 
-
-/**
-* Get current directory
-* 
-* @access   public
-* @return   string
-*/
-if ( ! function_exists('current_method'))
-{
-    function current_method()
-    {        
-        return (string)$GLOBALS['m'];
     }
 }
 // ------------------------------------------------------------------------ 

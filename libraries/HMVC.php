@@ -45,6 +45,7 @@ Class OB_HMVC
     public $class               = '';
     public $method              = 'index';
     public $directory           = '';
+    public $_error              = '';
     public $default_controller;
     
     public function __construct()
@@ -103,6 +104,7 @@ Class OB_HMVC
         $this->directory    = '';
         $this->post_keys    = array();
         $this->get_keys     = array();
+        $this->_error       = '';
         $this->default_controller  = '';    
     }
     
@@ -150,6 +152,7 @@ Class OB_HMVC
     public function exec()
     {
         $GLOBALS['d']   = $this->fetch_directory();   // Get requested directory
+        $GLOBALS['s']   = $this->fetch_subfolder();   // Get requested subfolder
         $GLOBALS['c']   = $this->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $this->fetch_method();      // Get requested method
         
@@ -165,19 +168,42 @@ Class OB_HMVC
             return;
         }
         
-        // Check the controller exists or not
-        if ( ! file_exists(DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT))
+        if($GLOBALS['s'] != '')  // sub folder request ?
         {
-            if(config_item('enable_query_strings') === TRUE) 
-            {
-                show_404("{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}");
+            $hmvc_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
+            
+            // Check the sub controller exists or not
+            if ( ! file_exists(DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT))
+            {   
+                $this->_set_error('Hmvc request not found: '.$hmvc_uri);
+                
+                return FALSE;
             }
             
-            throw new HMVCException('HMVC Unable to load your controller.Check your routes in Routes.php file is valid.');
-        }
+            $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;   
+            $arg_slice  = 4;
             
+            // Call the requested method.                1        2       3       4
+            // Any URI segments present (besides the directory/subfolder/class/method) 
+        } 
+        else
+        {
+            $page_uri = "{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
+            
+            // Check the controller exists or not
+            if ( ! file_exists(DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT))
+            {   
+                $this->_set_error('HMVC Unable to load your controller.Check your routes in Routes.php file is valid.');
+                
+                return FALSE;
+            }
+            
+            $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
+            $arg_slice  = 3;
+        }
+        
         // Call the controller.
-        require_once(DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT);
+        require_once($controller);
         
         if ( ! class_exists($GLOBALS['c']) OR $GLOBALS['m'] == 'controller' 
               OR $GLOBALS['m'] == '_output'       
@@ -185,7 +211,7 @@ Class OB_HMVC
               OR in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods('Controller')))
             )
         {
-            throw new HMVCException('Hmvc request not found: '."{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}");
+            echo ('Hmvc request not found: '.$hmvc_uri);
         }
         
         // If Everyting ok Declare Called Controller !
@@ -194,21 +220,27 @@ Class OB_HMVC
         // Check method exist or not
         if ( ! in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods($OB))))
         {
-            throw new HMVCException('Hmvc request not found: '."{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}");
+            echo ('Hmvc request not found: '."{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}");
+            
         }
-         
-        ob_start();
+        
+        ob_start(); 
     
         // Call the requested method.                1       2       3
         // Any URI segments present (besides the directory/class/method) 
         // will be passed to the method for convenience
-        call_user_func_array(array($OB, $GLOBALS['m']), array_slice($this->rsegments, 3));
+        call_user_func_array(array($OB, $GLOBALS['m']), array_slice($this->rsegments, $arg_slice));
          
         $content = ob_get_contents();
         @ob_end_clean();
          
+        ob_start(); 
+         
         // Write cache file if cache on ! and Send the final rendered output to the browser
         $output->_display_hmvc($content, $URI);
+        
+        $content = ob_get_contents();
+        @ob_end_clean();
         
         //---------------------- Reset Variables ------------------//
         
@@ -217,6 +249,7 @@ Class OB_HMVC
                          
         $router = base_register('Router');
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
+        $GLOBALS['s']   = $router->fetch_subfolder();   // Get requested subfolder
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
         
@@ -232,6 +265,8 @@ Class OB_HMVC
         {
             unset($_GET[$key]);
         }
+        
+        return $content;
     }
     
     // --------------------------------------------------------------------
@@ -618,8 +653,31 @@ Class OB_HMVC
     {
         return ( ! isset($this->segments[$n])) ? $no_result : $this->segments[$n];
     }
-
+    
+    /**
+     * Set Message
+     *
+     * @access    private
+     * @param    string
+     * @return    string
+     */
+    private function _set_error($val = '')
+    {
+        $this->_error = $val;
+    }
+    
     // --------------------------------------------------------------------
+    
+    /**
+     * Get Error Message
+     *
+     * @access    public
+     * @return    string
+     */
+    public function get_error()
+    {
+        return $this->_error;
+    }
    
 }
 // END HMVC Class
