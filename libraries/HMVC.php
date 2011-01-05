@@ -36,8 +36,7 @@ Class OB_HMVC
     public $rsegments    = array();
     
     // Post and Get variables
-    public $POST_keys    = array();
-    public $GET_keys     = array();
+    public $request_keys = array();
     
     // Router variables.. 
     public $config;    
@@ -49,7 +48,12 @@ Class OB_HMVC
     public $subfolder           = '';
     public $response            = '';
     public $hmvc_connect        = TRUE;
+    public $request_method      = 'GET';
     public $default_controller;
+    
+    public $_GET_BACKUP      = '';
+    public $_POST_BACKUP     = '';
+    public $_REQUEST_BACKUP  = '';  
     
     public function __construct()
     {
@@ -116,17 +120,23 @@ Class OB_HMVC
         $this->method       = 'index';
         $this->directory    = '';
         $this->subfolder    = '';
-        $this->post_keys    = array();
-        $this->get_keys     = array();
+        $this->request_keys = array();
         $this->reponse      = '';
         $this->hmvc_connect = TRUE;
-        $this->default_controller  = '';    
+        $this->default_controller  = ''; 
+        
+        $this->request_method   = 'GET';
+        $this->_GET_BACKUP      = '';
+        $this->_POST_BACKUP     = '';
+        $this->_REQUEST_BACKUP  = '';   
     }
     
     // --------------------------------------------------------------------
     
     public function set_method($method = 'GET' , $params = array())
     {
+        $this->request_method = $method;
+        
         if($this->query_string != '')
         {
             $query_str_params = $this->parse_query($this->query_string);
@@ -136,27 +146,36 @@ Class OB_HMVC
                 $params = array_merge($query_str_params, $params);
             }
         }
+
+        /* Overload to $_REQUEST variables .. */
+        $this->_GET_BACKUP     = $_GET;
+        $this->_POST_BACKUP    = $_POST;
+        $this->_REQUEST_BACKUP = $_REQUEST;
         
+        $_POST = $_GET = $_REQUEST = array();
+               
         switch ($method) 
         {
            case 'POST':
             foreach($params as $key => $val)
             {
-                $_POST[$key] = $val;
+                $_POST[$key]    = $val;
+                $_REQUEST[$key] = $val;
                 
-                $this->POST_keys[$key] = '';
+                $this->request_keys[$key] = '';
             }
              break;
              
            case 'GET':
            foreach($params as $key => $val)
             {
-                $_GET[$key] = $val;
+                $_GET[$key]     = $val;
+                $_REQUEST[$key] = $val;
                 
-                $this->GET_keys[$key] = '';
+                $this->request_keys[$key] = '';
             }
              break;
-        }
+        }        
     }
     
     // --------------------------------------------------------------------
@@ -335,9 +354,11 @@ Class OB_HMVC
     {
         @ob_end_clean(); // close buffer
         
-        $this->clear();  // reset all variables.
-                         // reset $GLOBALS
-                         
+        $_POST = $_GET = $_REQUEST = array();
+        $_GET     = $this->_GET_BACKUP;
+        $_POST    = $this->_POST_BACKUP;
+        $_REQUEST = $this->_REQUEST_BACKUP;
+        
         $router = base_register('Router');
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
         $GLOBALS['s']   = $router->fetch_subfolder();   // Get requested subfolder
@@ -345,17 +366,8 @@ Class OB_HMVC
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
         
         
-        // reset POST data foreach request
-        foreach($this->POST_keys as $key => $val)
-        {
-            unset($_POST[$key]);
-        }
-        
-        // reset GET data foreach request
-        foreach($this->GET_keys as $key => $val)
-        {
-            unset($_GET[$key]);
-        }
+        $this->clear();  // reset all variables.
+                         // reset $GLOBALS
     }
     
     // --------------------------------------------------------------------
