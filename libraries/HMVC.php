@@ -489,7 +489,13 @@ Class OB_HMVC
     */    
     public function _validate_request($segments)
     {
-        if( ! isset($segments[0])) show_404(); 
+        print_r($segments);
+        
+        if( ! isset($segments[0])) 
+        {
+            $this->_set_response('HMVC uri not found !');
+            return FALSE;
+        }
         
         // Check directory
         if (is_dir(DIR . $segments[0]))
@@ -643,7 +649,7 @@ Class OB_HMVC
                 if (isset($segments[2]))
                 {
                         // A standard method request
-                        $this->set_method($segments[2]);
+                        $this->set_router_method($segments[2]);
                 }
                 else
                 {
@@ -660,7 +666,7 @@ Class OB_HMVC
                 if (isset($segments[3]))
                 {
                         // A standard method request
-                        $this->set_method($segments[3]);
+                        $this->set_router_method($segments[3]);
                 }
                 else
                 {
@@ -681,7 +687,7 @@ Class OB_HMVC
             if (isset($segments[2]))
             {
                     // A standard method request
-                    $this->set_method($segments[2]);
+                    $this->set_router_method($segments[2]);
             }
             else
             {
