@@ -1,12 +1,12 @@
-<?php 
-defined('BASE') or exit('Access Denied!'); 
+<?php
+defined('BASE') or exit('Access Denied!');
 
 /**
  * Obullo Framework (c) 2009.
  *
  * PHP5 MVC Based Minimalist Software.
  *
- * @package         obullo       
+ * @package         obullo
  * @author          obullo.com
  * @copyright       Ersin Guvenc (c) 2009.
  * @license         public
@@ -24,29 +24,29 @@ defined('BASE') or exit('Access Denied!');
  * @subpackage  Helpers
  * @category    Helpers
  * @author      Ersin Guvenc
- * @link        
+ * @link
  */
 
 // ------------------------------------------------------------------------
 
 /**
 * Call HMVC Request using HMVC Class.
-* 
+*
 * @access   public
 * @param    string  $request
 * @param    integer $cache_time
 * @return   object of HMVC class
 */
-if( ! function_exists('hmvc_query') ) 
+if( ! function_exists('hmvc_process') )
 {
-    function hmvc_query($request_uri, $method = 'GET', $params = array(), $cache_time = 0)
+    function hmvc_process($method = 'GET', $request_uri= '', $params = array(), $cache_time = 0)
     {
         $hmvc = base_register('HMVC');
         $hmvc->clear();                 // clear variables for each request.
         $hmvc->hmvc_request($request_uri, $cache_time);
         $hmvc->set_method($method, $params);
         $hmvc->exec();
-        
+
         return $hmvc->response();  // return to HMVC response
     }
 
