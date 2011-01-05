@@ -204,7 +204,7 @@ Class OB_Output {
                     $output = str_replace('{memory_usage}', $memory, $output);
                 }       
                 
-                echo $output;
+                return $output;
             }
         
         log_me('debug', 'HMVC '.str_replace('__HMVC_URI__', '', $URI->uri_string).' uri output sent to browser');  

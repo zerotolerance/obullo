@@ -84,9 +84,11 @@ Class OB_Router {
         {
             $this->set_directory(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
             
-            // ( Obullo sub folder support )
-            $this->set_subfolder(trim($this->uri->_filter_uri($_GET[config_item('subfolder_trigger')])));
-            // ( Obullo sub folder support )
+            if(isset($_GET[config_item('subfolder_trigger')]))
+            {
+                // ( Obullo sub folder support )
+                $this->set_subfolder(trim($this->uri->_filter_uri($_GET[config_item('subfolder_trigger')])));
+            }
             
             $this->set_class(trim($this->uri->_filter_uri($_GET[config_item('controller_trigger')])));
 

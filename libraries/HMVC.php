@@ -229,6 +229,8 @@ Class OB_HMVC
             return FALSE;
         } 
     
+        // echo $this->_detect_uri();
+    
         $GLOBALS['d']   = $this->fetch_directory();   // Get requested directory
         $GLOBALS['s']   = $this->fetch_subfolder();   // Get requested subfolder
         $GLOBALS['c']   = $this->fetch_class();       // Get requested controller
@@ -397,6 +399,57 @@ Class OB_HMVC
 
     // --------------------------------------------------------------------
     
+    private function _detect_uri()
+    {
+        if ( ! empty($_SERVER['PATH_INFO']))
+        {
+            // PATH_INFO does not contain the docroot or index
+            $uri = $_SERVER['PATH_INFO'];
+        }
+        else
+        {
+            // REQUEST_URI and PHP_SELF include the docroot and index
+
+            if (isset($_SERVER['REQUEST_URI']))
+            {
+                // REQUEST_URI includes the query string, remove it
+                $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+                // Decode the request URI
+                $uri = rawurldecode($uri);
+            }
+            elseif (isset($_SERVER['PHP_SELF']))
+            {
+                $uri = $_SERVER['PHP_SELF'];
+            }
+            elseif (isset($_SERVER['REDIRECT_URL']))
+            {
+                $uri = $_SERVER['REDIRECT_URL'];
+            }
+            else
+            {
+                throw new Exception('Unable to detect the URI using PATH_INFO, REQUEST_URI, PHP_SELF or REDIRECT_URL');
+            }
+
+            // Get the path from the base URL, including the index file
+            $base_url = parse_url(base_url(), PHP_URL_PATH);
+
+            if (strpos($uri, $base_url) === 0)
+            {
+                // Remove the base URL from the URI
+                $uri = (string) substr($uri, strlen($base_url));
+            }
+
+            if (config_item('index_page') AND strpos($uri, config_item('index_page')) === 0)
+            {
+                // Remove the index file from the URI
+                $uri = (string) substr($uri, strlen(config_item('index_page')));
+            }
+        }
+
+        return $uri;
+    }
+    
     /**
     * Set the route mapping
     *
@@ -412,24 +465,7 @@ Class OB_HMVC
     {
         $ob = this();
         
-        // Are query strings enabled in the config file?
-        // If so, we're done since segment based URIs are not used with query strings.
-        if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('controller_trigger')]))
-        {
-            $this->set_directory(trim($ob->uri->_filter_uri($_GET[config_item('directory_trigger')])));
-            
-            // ( Obullo sub folder support )
-            $this->set_subfolder(trim($ob->uri->_filter_uri($_GET[config_item('subfolder_trigger')])));
-            
-            $this->set_class(trim($ob->uri->_filter_uri($_GET[config_item('controller_trigger')])));
-
-            if (isset($_GET[config_item('function_trigger')]))
-            {
-                $this->set_router_method(trim($ob->uri->_filter_uri($_GET[config_item('function_trigger')])));
-            }
-
-            return;
-        }
+        // there is a loop when query strings on in HMVC becarefull we don' t need it !!!
         
         // Set the default controller so we can display it in the event
         // the URI doesn't correlated to a valid controller.
