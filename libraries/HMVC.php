@@ -341,6 +341,12 @@ Class OB_HMVC
         
         $this->_set_response($content);
             
+        // Again call same uri we need main controller this() object available in the main controller !!    
+        // print_r(base_register('URI')->rsegments);
+        
+        // $uri = $GLOBALS['d'] . $GLOBALS['s'] . $GLOBALS['c'] . $GLOBALS['m'];
+        
+            
         return TRUE;
     }
     
@@ -398,57 +404,6 @@ Class OB_HMVC
     }
 
     // --------------------------------------------------------------------
-    
-    private function _detect_uri()
-    {
-        if ( ! empty($_SERVER['PATH_INFO']))
-        {
-            // PATH_INFO does not contain the docroot or index
-            $uri = $_SERVER['PATH_INFO'];
-        }
-        else
-        {
-            // REQUEST_URI and PHP_SELF include the docroot and index
-
-            if (isset($_SERVER['REQUEST_URI']))
-            {
-                // REQUEST_URI includes the query string, remove it
-                $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-                // Decode the request URI
-                $uri = rawurldecode($uri);
-            }
-            elseif (isset($_SERVER['PHP_SELF']))
-            {
-                $uri = $_SERVER['PHP_SELF'];
-            }
-            elseif (isset($_SERVER['REDIRECT_URL']))
-            {
-                $uri = $_SERVER['REDIRECT_URL'];
-            }
-            else
-            {
-                throw new Exception('Unable to detect the URI using PATH_INFO, REQUEST_URI, PHP_SELF or REDIRECT_URL');
-            }
-
-            // Get the path from the base URL, including the index file
-            $base_url = parse_url(base_url(), PHP_URL_PATH);
-
-            if (strpos($uri, $base_url) === 0)
-            {
-                // Remove the base URL from the URI
-                $uri = (string) substr($uri, strlen($base_url));
-            }
-
-            if (config_item('index_page') AND strpos($uri, config_item('index_page')) === 0)
-            {
-                // Remove the index file from the URI
-                $uri = (string) substr($uri, strlen(config_item('index_page')));
-            }
-        }
-
-        return $uri;
-    }
     
     /**
     * Set the route mapping
@@ -534,12 +489,8 @@ Class OB_HMVC
     */    
     public function _validate_request($segments)
     {
-        // $segments[0] = directory
-        // $segments[1] = controller name
-
-        if( ! isset($segments[0]) ) $segments[0] = '';
-        if( ! isset($segments[1]) ) $segments[1] = '';
-
+        if( ! isset($segments[0])) show_404(); 
+        
         // Check directory
         if (is_dir(DIR . $segments[0]))
         {
@@ -562,24 +513,11 @@ Class OB_HMVC
 
                     if (is_dir(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]))
                     {
-                        if( file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[1]. EXT)
-                            AND ! file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT)) 
-                        {
-                            array_unshift($segments, $segments[0]);
-                        }
-                                                  
-                         $segments[1] = $segments[2];     // change class
-
-                         if(isset($segments[3]))          // change method
-                         {
-                            $segments[2] = $segments[3];  
-                         }
-
                         return $segments;
                     }
-
+                    
                 //----------- SUB FOLDER SUPPORT END ----------//
-
+                
                 }
                 else
                 {
@@ -589,15 +527,8 @@ Class OB_HMVC
 
             }
 
-            /**
-            * Merge Segments
-            *
-            * If you use a controller with the same name sd the folder
-            * it will make that the route.
-            * So instead of modulename/modulename/index it will be modulename/index
-            *
-            * @author CJ Lazell
-            */
+            // Merge Segments 
+            
             if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[0]. EXT))
             {
                 array_unshift($segments, $segments[0]);
@@ -693,22 +624,71 @@ Class OB_HMVC
     public function _set_request($segments = array())
     {   
         $segments = $this->_validate_request($segments);
-        
+
         if (count($segments) == 0)
         return;
-                        
-        $this->set_class($segments[1]);
+    
+        //----------- SUB FOLDER SUPPORT ----------//
+    
+        if($this->fetch_subfolder() != '' AND isset($segments[2]))
+        {
+            $subfolder_default_controller = DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[1]. EXT;
+            $subfolder_custom_controller  = DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT;
         
-        if (isset($segments[2]))
+            if(file_exists($subfolder_default_controller) AND ! file_exists($subfolder_custom_controller))
+            {
+                // Set the class + 1 if sub folder exist
+                $this->set_class($segments[1]);
+            
+                if (isset($segments[2]))
+                {
+                        // A standard method request
+                        $this->set_method($segments[2]);
+                }
+                else
+                {
+                    // This lets the "routed" segment array identify that the default
+                    // index method is being used.
+                    $segments[2] = $this->routes['index_method'];
+                }
+            } 
+            else 
+            {
+                // Set the class + 1 if sub folder exist
+                $this->set_class($segments[2]);
+            
+                if (isset($segments[3]))
+                {
+                        // A standard method request
+                        $this->set_method($segments[3]);
+                }
+                else
+                {
+                    // This lets the "routed" segment array identify that the default
+                    // index method is being used.
+                    $segments[2] = $this->routes['index_method'];
+                }
+            }
+        
+        } 
+        
+        //----------- SUB FOLDER SUPPORT END ----------//
+        
+        else 
         {
-                // A standard method request
-                $this->set_router_method($segments[2]);   
-        }
-        else
-        {
-            // This lets the "routed" segment array identify that the default
-            // index method is being used.
-            $segments[2] = $this->routes['index_method'];
+            $this->set_class($segments[1]);
+        
+            if (isset($segments[2]))
+            {
+                    // A standard method request
+                    $this->set_method($segments[2]);
+            }
+            else
+            {
+                // This lets the "routed" segment array identify that the default
+                // index method is being used.
+                $segments[2] = $this->routes['index_method'];
+            }
         }
         
         // Update our "routed" segment array to contain the segments.

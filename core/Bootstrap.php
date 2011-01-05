@@ -88,7 +88,7 @@ if( ! function_exists('ob_system_run'))
         $GLOBALS['s']   = $router->fetch_subfolder();   // Check subfolder exist
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
-        
+
         if($GLOBALS['s'] != '')
         {
             $page_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
