@@ -38,7 +38,7 @@ if( ! function_exists('_sess_start') )
         } 
         else 
         {
-            session_set_cookie_params($ses->_sion->sess_expiration);
+            session_set_cookie_params($ses->_sion->sess_expiration, $ses->_sion->cookie_path, $ses->_sion->cookie_domain);
             
             // Configure garbage collection
             ini_set('session.gc_divisor', 100);

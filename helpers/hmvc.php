@@ -37,16 +37,18 @@ defined('BASE') or exit('Access Denied!');
 * @param    integer $cache_time
 * @return   object of HMVC class
 */
-if( ! function_exists('hmvc_call') ) 
+if( ! function_exists('hmvc_query') ) 
 {
-    function hmvc_call($request, $cache_time = 0)
+    function hmvc_query($request_uri, $method = 'GET', $params = array(), $cache_time = 0)
     {
         $hmvc = base_register('HMVC');
         $hmvc->clear();                 // clear variables for each request.
-        $hmvc->hmvc_request($request, $cache_time);
+        $hmvc->hmvc_request($request_uri, $cache_time);
+        $hmvc->set_method($method, $params);
+        $hmvc->exec();
         
-        return $hmvc;  // return to HMVC Object.
-    }  
+        return $hmvc->response();  // return to HMVC response
+    }
 
 }
 
