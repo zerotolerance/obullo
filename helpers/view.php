@@ -257,7 +257,7 @@ if ( ! function_exists('_set_view_data'))
   function _set_view_data($data = array())
   {
 		$vi = Ssc::instance();
-		if(isset($vi->_ew->view_data)) $vi->_ew->view_data= array_merge_recursive((array)$vi->_ew->view_data, (array)$data);
+		if(isset($vi->_ew->view_data)) $vi->_ew->view_data= array_merge((array)$vi->_ew->view_data, (array)$data);
 		else $vi->_ew->view_data= $data;
   }
 }
