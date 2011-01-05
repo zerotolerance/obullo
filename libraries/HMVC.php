@@ -270,7 +270,7 @@ Class OB_HMVC
             }
             
             $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;   
-            $arg_slice  = 3;
+            $arg_slice  = 4;
             
             // Call the requested method.                1        2       3       4
             // Any URI segments present (besides the directory/subfolder/class/method) 
@@ -489,14 +489,12 @@ Class OB_HMVC
     */    
     public function _validate_request($segments)
     {
-        print_r($segments);
-        
-        if( ! isset($segments[0])) 
-        {
-            $this->_set_response('HMVC uri not found !');
-            return FALSE;
-        }
-        
+        // $segments[0] = directory
+        // $segments[1] = controller name
+
+        if( ! isset($segments[0]) ) $segments[0] = '';
+        if( ! isset($segments[1]) ) $segments[1] = '';
+
         // Check directory
         if (is_dir(DIR . $segments[0]))
         {
@@ -519,11 +517,24 @@ Class OB_HMVC
 
                     if (is_dir(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]))
                     {
+                        if( file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[1]. EXT)
+                            AND ! file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT)) 
+                        {
+                            array_unshift($segments, $segments[0]);
+                        }
+                                                  
+                         $segments[1] = $segments[2];     // change class
+
+                         if(isset($segments[3]))          // change method
+                         {
+                            $segments[2] = $segments[3];  
+                         }
+
                         return $segments;
                     }
-                    
+
                 //----------- SUB FOLDER SUPPORT END ----------//
-                
+
                 }
                 else
                 {
@@ -533,8 +544,15 @@ Class OB_HMVC
 
             }
 
-            // Merge Segments 
-            
+            /**
+            * Merge Segments
+            *
+            * If you use a controller with the same name sd the folder
+            * it will make that the route.
+            * So instead of modulename/modulename/index it will be modulename/index
+            *
+            * @author CJ Lazell
+            */
             if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[0]. EXT))
             {
                 array_unshift($segments, $segments[0]);
@@ -630,71 +648,22 @@ Class OB_HMVC
     public function _set_request($segments = array())
     {   
         $segments = $this->_validate_request($segments);
-
+        
         if (count($segments) == 0)
         return;
-    
-        //----------- SUB FOLDER SUPPORT ----------//
-    
-        if($this->fetch_subfolder() != '' AND isset($segments[2]))
+                        
+        $this->set_class($segments[1]);
+        
+        if (isset($segments[2]))
         {
-            $subfolder_default_controller = DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[1]. EXT;
-            $subfolder_custom_controller  = DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT;
-        
-            if(file_exists($subfolder_default_controller) AND ! file_exists($subfolder_custom_controller))
-            {
-                // Set the class + 1 if sub folder exist
-                $this->set_class($segments[1]);
-            
-                if (isset($segments[2]))
-                {
-                        // A standard method request
-                        $this->set_router_method($segments[2]);
-                }
-                else
-                {
-                    // This lets the "routed" segment array identify that the default
-                    // index method is being used.
-                    $segments[2] = $this->routes['index_method'];
-                }
-            } 
-            else 
-            {
-                // Set the class + 1 if sub folder exist
-                $this->set_class($segments[2]);
-            
-                if (isset($segments[3]))
-                {
-                        // A standard method request
-                        $this->set_router_method($segments[3]);
-                }
-                else
-                {
-                    // This lets the "routed" segment array identify that the default
-                    // index method is being used.
-                    $segments[2] = $this->routes['index_method'];
-                }
-            }
-        
-        } 
-        
-        //----------- SUB FOLDER SUPPORT END ----------//
-        
-        else 
+                // A standard method request
+                $this->set_router_method($segments[2]);   
+        }
+        else
         {
-            $this->set_class($segments[1]);
-        
-            if (isset($segments[2]))
-            {
-                    // A standard method request
-                    $this->set_router_method($segments[2]);
-            }
-            else
-            {
-                // This lets the "routed" segment array identify that the default
-                // index method is being used.
-                $segments[2] = $this->routes['index_method'];
-            }
+            // This lets the "routed" segment array identify that the default
+            // index method is being used.
+            $segments[2] = $this->routes['index_method'];
         }
         
         // Update our "routed" segment array to contain the segments.
