@@ -270,7 +270,7 @@ Class OB_HMVC
             }
             
             $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;   
-            $arg_slice  = 4;
+            $arg_slice  = 3;
             
             // Call the requested method.                1        2       3       4
             // Any URI segments present (besides the directory/subfolder/class/method) 
