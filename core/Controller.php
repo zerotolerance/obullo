@@ -73,7 +73,7 @@ Class Controller extends App_controller {
     {       
         return self::$instance;
     } 
-    
+
 }
 
 /**

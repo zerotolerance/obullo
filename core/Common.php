@@ -136,7 +136,7 @@ function register_autoload($real_name)
 
         // Parents folder files: App_controller and Global Controllers
         // --------------------------------------------------------------------
-        if(substr($real_name, -11) == '_controller')
+        if(substr(strtolower($real_name), -11) == '_controller')
         {
             // If Global Controller file exist ..
             if(file_exists(APP .'parents'. DS .$real_name. EXT))
@@ -150,7 +150,7 @@ function register_autoload($real_name)
 
             // If local Global Controller file exist ..
             if(file_exists(DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT))
-            {
+            {            
                 require(DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT);
 
                 profiler_set('parents', $real_name, DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT);

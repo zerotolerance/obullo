@@ -133,6 +133,12 @@ Class OB_HMVC
     
     // --------------------------------------------------------------------
     
+    /**
+    * Set HMVC Request Method
+    * 
+    * @param mixed $method
+    * @param array $params
+    */
     public function set_method($method = 'GET' , $params = array())
     {
         $this->request_method = $method;
@@ -228,8 +234,8 @@ Class OB_HMVC
         {
             return FALSE;
         } 
-    
-        // echo $this->_detect_uri();
+
+        $backup_this = this(); 
     
         $GLOBALS['d']   = $this->fetch_directory();   // Get requested directory
         $GLOBALS['s']   = $this->fetch_subfolder();   // Get requested subfolder
@@ -321,8 +327,6 @@ Class OB_HMVC
             
             return FALSE;
         }
-    
-        ob_start();
         
         // Call the requested method.                1       2       3
         // Any URI segments present (besides the directory/class/method) 
@@ -340,13 +344,19 @@ Class OB_HMVC
         $this->_reset_router();
         
         $this->_set_response($content);
-            
-        // Again call same uri we need main controller this() object available in the main controller !!    
-        // print_r(base_register('URI')->rsegments);
         
-        // $uri = $GLOBALS['d'] . $GLOBALS['s'] . $GLOBALS['c'] . $GLOBALS['m'];
+        // Delete called hmvc object objects ..
+        foreach(array_keys(get_object_vars(this())) as $key)
+        {
+            unset(this()->{$key});   
+        }
         
-            
+        // Assign this() object objects we backed up before ..
+        foreach(array_keys(get_object_vars($backup_this)) as $key)
+        {
+            this()->{$key} = $backup_this->$key;
+        }
+          
         return TRUE;
     }
     
@@ -360,7 +370,7 @@ Class OB_HMVC
     */
     private function _reset_router()
     {
-        @ob_end_clean(); // close buffer
+        while (@ob_end_clean());  // close all buffers
         
         $_POST = $_GET = $_REQUEST = array();
         $_GET     = $this->_GET_BACKUP;
@@ -418,9 +428,7 @@ Class OB_HMVC
     */
     public function _set_routing()
     {
-        $ob = this();
-        
-        // there is a loop when query strings on in HMVC becarefull we don' t need it !!!
+        // there is a loop when query strings on in HMVC we don' t need it !!!
         
         // Set the default controller so we can display it in the event
         // the URI doesn't correlated to a valid controller.
@@ -844,23 +852,6 @@ Class OB_HMVC
         unset($this->rsegments[0]);
     }    
     
-    // --------------------------------------------------------------------
-    
-    /**
-     * Fetch a URI Segment
-     *
-     * This function returns the URI segment based on the number provided.
-     *
-     * @access   public
-     * @param    integer
-     * @param    bool
-     * @return   string
-     */
-    public function segment($n, $no_result = FALSE)
-    {
-        return ( ! isset($this->segments[$n])) ? $no_result : $this->segments[$n];
-    }
-   
 }
 // END HMVC Class
 
