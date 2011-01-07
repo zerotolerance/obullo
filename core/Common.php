@@ -49,13 +49,22 @@ interface PHP5_Library
 * @version  0.3 renamed base "libraries" folder as "base"
 * @version  0.4 added extend to core libraries support
 * @version  0.5 added $params_or_no_ins instantiate switch FALSE.
+* @version  0.6 added $new_object instance param, added unset object.
 *
 * @return   object  | NULL
 */
-function base_register($Class, $params_or_no_ins = '', $dir = '', $sub_path = '')
+function base_register($Class, $new_object = NULL, $params_or_no_ins = '')
 {
     $registry  = OB_Registry::instance();
 
+    if(is_object($new_object))
+    {
+        $registry->unset_object($Class);
+        $registry->set_object($Class, $new_object);
+        
+        return $new_object;
+    }
+ 
     $path  = BASE .'libraries'. DS;
     $Class = ucfirst($Class);
 

@@ -58,7 +58,7 @@ Class Controller extends App_controller {
         
         log_me('debug', "Controller Class Initialized");
     }
-
+    
     /**
     * this();
     * 
@@ -69,11 +69,16 @@ Class Controller extends App_controller {
     * @version 1.1 get_instance renamed and moved here
     * @return object
     */
-    public static function instance()
-    {       
+    public static function instance($new_instance = '')
+    {   
+        if(is_object($new_instance))
+        {
+            self::$instance = $new_instance;
+        }    
+        
         return self::$instance;
     } 
-
+    
 }
 
 /**
@@ -82,7 +87,15 @@ Class Controller extends App_controller {
 * A Pretty handy function this();
 * We use "this()" function if not available $this anywhere.
 */
-function this() { return Controller::instance(); }
+function this($new_instance = '') 
+{ 
+    if($new_instance != '')
+    {
+        Controller::instance($new_instance);
+    }
+    
+    return Controller::instance(); 
+}
 
 // END Controller Class
 

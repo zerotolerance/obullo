@@ -173,6 +173,12 @@ Class OB_Output {
     */
     public function _display_hmvc($output = '', $URI)
     {        
+        // Set the output data
+        if (empty($output) OR $output == '')
+        {
+            $output =& $this->final_output;   
+        }
+        
         // Do we need to write a HMVC cache file?
         if ($URI->cache_time > 0)
         {
@@ -457,7 +463,7 @@ Class OB_Output {
             if($URI->cache_time == 0) @unlink($filepath);
             
             // Display the cache
-            $this->_display_hmvc(str_replace($match['0'], '', $cache), $URI);
+            return $this->_display_hmvc(str_replace($match['0'], '', $cache), $URI);
             
             log_me('debug', 'HMVC '.str_replace('__HMVC_URI__', '', $URI->uri_string).' uri cache file is current and displayed.');
             

@@ -11,6 +11,8 @@ defined('BASE') or exit('Access Denied!');
  * @category        Front Controller     
  * @author          obullo.com
  * @since           Version 1.0
+ * @version         0.1
+ * @version         0.2 added unset object
  * @filesource
  * @license 
  */
@@ -76,6 +78,20 @@ Class OB_Registry extends Obullo_Registry {
         self::$objs[$key] = $val;
     }
 
+    // --------------------------------------------------------------------
+    
+    /**
+    * Unset object.
+    * 
+    * @access   protected 
+    * @param    string $key
+    * @param    object $val
+    */
+    public static function unset_object($key)
+    {
+        unset(self::$objs[$key]);
+    }
+    
     // --------------------------------------------------------------------
     
     /**

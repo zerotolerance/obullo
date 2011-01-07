@@ -32,20 +32,51 @@ Class OB_URI
     public $segments    = array();
     public $rsegments   = array();
 
+    public $cache_time  = '';  // HMVC library just use this variable.
+    
     /**
-     * Constructor
-     *
-     * Simply globalizes the $RTR object.  The front
-     * loads the Router class early on so it's not available
-     * normally as other classes are.
-     *
-     * @access    public
-     */        
+    * Constructor
+    *
+    * Simply globalizes the $RTR object.  The front
+    * loads the Router class early on so it's not available
+    * normally as other classes are.
+    *
+    * @access    public
+    */        
     public function __construct()
     {
         log_me('debug', "URI Class Initialized");
     }
     
+    
+    // --------------------------------------------------------------------
+
+    /**
+    * When we use HMVC we need to Clean
+    * all data.
+    * 
+    * @return  void
+    */
+    public function clear()
+    {
+        $this->keyval     = array();
+        $this->uri_string = '';
+        $this->segments   = array();
+        $this->rsegments  = array();
+        $this->cache_time = '';
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * We use this function in HMVC library.
+    * 
+    * @param mixed $uri
+    */
+    public function set_uri_string($uri = '')
+    {    
+        $this->uri_string = $uri;
+    }
     
     // --------------------------------------------------------------------
     
@@ -58,6 +89,8 @@ Class OB_URI
      */    
     public function _fetch_uri_string()
     {
+        if($this->uri_string != '') return;
+        
         if (strtoupper(config_item('uri_protocol')) == 'AUTO')
         {
             // If the URL has a question mark then it's simplest to just

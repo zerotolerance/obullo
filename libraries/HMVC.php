@@ -22,38 +22,32 @@ Class HMVCException extends CommonException {}
  *
  * @package     Obullo
  * @subpackage  Libraries
- * @category    HMVC - URI and Routers
+ * @category    HMVC Request Class
  * @author      Ersin Guvenc
  * @version     0.1
+ * @version     0.2  fixed this() bug, copied all this() object and assigned
+ *              to instance using Controller::set_instance(); method.
+ *              Hmvc router and uri libraries merged.
  */
 Class OB_HMVC
-{
-    // URI variables.. 
-    public $keyval       = array();
+{ 
     public $uri_string   = '';
     public $query_string = '';
-    public $segments     = array();
-    public $rsegments    = array();
+    public $clone_this   = NULL;
+    
+    public $uri;     // Clone original URI object
+    public $router;  // Clone original Router object
+    
+    public $response         = '';
+    public $request_method   = 'GET';
+    public $hmvc_connect     = TRUE;
+    public $cache_time       = '';
     
     // Post and Get variables
-    public $request_keys = array();
-    
-    // Router variables.. 
-    public $config;    
-    public $routes              = array();
-    public $error_routes        = array();
-    public $class               = '';
-    public $method              = 'index';
-    public $directory           = '';
-    public $subfolder           = '';
-    public $response            = '';
-    public $hmvc_connect        = TRUE;
-    public $request_method      = 'GET';
-    public $default_controller;
-    
+    public $request_keys     = array();
     public $_GET_BACKUP      = '';
     public $_POST_BACKUP     = '';
-    public $_REQUEST_BACKUP  = '';  
+    public $_REQUEST_BACKUP  = ''; 
     
     public function __construct()
     {
@@ -70,29 +64,36 @@ Class OB_HMVC
     * @param     $cache_time integer
     * @return    void                           
     */    
-    public function hmvc_request($hmvc_uri = '', $cache_time = 0)
+    public function hmvc_request($hmvc_uri = '', $cache_time = '')
     {
+        // We need create backup of main controller $this object
+        // becuse of it will change foreach HMVC requests.
+
+        $this->clone_this = this();
+        
         if($hmvc_uri != '')
-        {
-            $uri = base_register('URI');
+        {          
+            $URI    = base_register('URI');
+            $Router = base_register('Router');
+            
+            $this->uri    = clone $URI;     // Create copy of original URI class.
+            $this->router = clone $Router;  // Create copy of original Router class.
+            
+            $URI->clear();           // Reset uri objects we will use it for hmvc.
+            $Router->clear();        // Reset router objects we will use it for hmvc.
             
             $this->cache_time = $cache_time;
-            $this->uri_string = $uri->_filter_uri($hmvc_uri);   // secure URLS
+            $this->uri_string = $URI->_filter_uri($hmvc_uri);   // secure URLS
             
             if(strpos($this->uri_string, '?') > 0)
             {
-                $uri = explode('?', $this->uri_string);
-                $this->uri_string   = $uri[0];
-                $this->query_string = $uri[0] .'?'. $uri[1];
+                $uri_part = explode('?', $this->uri_string);
+                $URI->set_uri_string($uri_part[0]);
+                
+                $this->query_string = $uri_part[0] .'?'. $uri_part[1];
             }
             
-            $routes = get_config('routes');
-            
-            $this->routes = ( ! isset($routes) OR ! is_array($routes)) ? array() : $routes;
-            unset($routes);
-            
-            $this->method = $this->routes['index_method'];
-            $this->hmvc_connect = $this->_set_routing();
+            $Router->_set_routing();
             
             return;
         }
@@ -113,17 +114,15 @@ Class OB_HMVC
         $this->keyval       = array();
         $this->uri_string   = '';
         $this->query_string = '';
-        $this->cache_time   = 0;
-        $this->segments     = array();
-        $this->rsegments    = array();
-        $this->class        = '';
-        $this->method       = 'index';
-        $this->directory    = '';
-        $this->subfolder    = '';
-        $this->request_keys = array();
+        $this->cache_time   = '';        
+
         $this->reponse      = '';
+        $this->clone_this   = '';
+        $this->request_keys = array();
         $this->hmvc_connect = TRUE;
-        $this->default_controller  = ''; 
+        
+        $this->uri          = '';
+        $this->router       = '';
         
         $this->request_method   = 'GET';
         $this->_GET_BACKUP      = '';
@@ -136,8 +135,8 @@ Class OB_HMVC
     /**
     * Set HMVC Request Method
     * 
-    * @param mixed $method
-    * @param array $params
+    * @param    string $method
+    * @param    array $params
     */
     public function set_method($method = 'GET' , $params = array())
     {
@@ -152,14 +151,13 @@ Class OB_HMVC
                 $params = array_merge($query_str_params, $params);
             }
         }
-
-        /* Overload to $_REQUEST variables .. */
-        $this->_GET_BACKUP     = $_GET;
+        
+        $this->_GET_BACKUP     = $_GET;         // Overload to $_REQUEST variables ..
         $this->_POST_BACKUP    = $_POST;
         $this->_REQUEST_BACKUP = $_REQUEST;
         
-        $_POST = $_GET = $_REQUEST = array();
-               
+        $_POST = $_GET = $_REQUEST = array();   // reset global variables
+        
         switch ($method) 
         {
            case 'POST':
@@ -181,7 +179,7 @@ Class OB_HMVC
                 $this->request_keys[$key] = '';
             }
              break;
-        }        
+        }   
     }
     
     // --------------------------------------------------------------------
@@ -230,33 +228,33 @@ Class OB_HMVC
     */
     public function exec()
     {
+        /*
         if($this->hmvc_connect === FALSE) 
         {
             return FALSE;
         } 
-
-        $backup_this = this(); 
-    
-        $GLOBALS['d']   = $this->fetch_directory();   // Get requested directory
-        $GLOBALS['s']   = $this->fetch_subfolder();   // Get requested subfolder
-        $GLOBALS['c']   = $this->fetch_class();       // Get requested controller
-        $GLOBALS['m']   = $this->fetch_method();      // Get requested method
-        
+        */    
+        $URI    = base_register('URI');
+        $router = base_register('Router');
         $config = base_register('Config');
         $output = base_register('Output');
+
+        $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
+        $GLOBALS['s']   = $router->fetch_subfolder();   // Get requested subfolder
+        $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
+        $GLOBALS['m']   = $router->fetch_method();      // Get requested method
     
-        $URI = new stdClass();          // Create fake URI class.
-        $URI->uri_string = '__HMVC_URI__'.$this->uri_string;
-        $URI->cache_time = $this->cache_time;
+        // a Hmvc uri must be unique otherwise may collission with standart uri.
+        $URI->uri_string = '__HMVC_URI__'. $URI->uri_string;
+        $URI->cache_time = $this->cache_time ;
         
-        ob_start();    
-    
-        if($output->_display_cache($config, $URI, TRUE) == TRUE) // Check request uri if there is a HMVC cached file exist.
+        $display_cache = $output->_display_cache($config, $URI, TRUE);
+        
+        if($display_cache != '' AND $display_cache !== FALSE) // Check request uri if there is a HMVC cached file exist.
         {
-            $response = ob_get_contents();
-            @ob_end_clean();
+            $this->_set_response($display_cache);
             
-            $this->_set_response($response);
+            $this->_reset_router();
             
             return TRUE;
         }
@@ -304,7 +302,8 @@ Class OB_HMVC
         
         if ( ! class_exists($GLOBALS['c']) OR $GLOBALS['m'] == 'controller' 
               OR $GLOBALS['m'] == '_output'       
-              OR $GLOBALS['m'] == '_hmvc_output' 
+              OR $GLOBALS['m'] == '_hmvc_output'
+              OR $GLOBALS['m'] == 'instance'
               OR in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods('Controller')))
             )
         {
@@ -327,11 +326,13 @@ Class OB_HMVC
             
             return FALSE;
         }
+    
+        ob_start();
         
         // Call the requested method.                1       2       3
         // Any URI segments present (besides the directory/class/method) 
         // will be passed to the method for convenience
-        call_user_func_array(array($OB, $GLOBALS['m']), array_slice($this->rsegments, $arg_slice)); 
+        call_user_func_array(array($OB, $GLOBALS['m']), array_slice($URI->rsegments, $arg_slice)); 
          
         $content = ob_get_contents();
         
@@ -340,23 +341,11 @@ Class OB_HMVC
         
         @ob_end_clean();
         
+        $this->_set_response($content);
+            
         //---------------------- Reset Variables ------------------//
         $this->_reset_router();
-        
-        $this->_set_response($content);
-        
-        // Delete called hmvc object objects ..
-        foreach(array_keys(get_object_vars(this())) as $key)
-        {
-            unset(this()->{$key});   
-        }
-        
-        // Assign this() object objects we backed up before ..
-        foreach(array_keys(get_object_vars($backup_this)) as $key)
-        {
-            this()->{$key} = $backup_this->$key;
-        }
-          
+            
         return TRUE;
     }
     
@@ -373,16 +362,21 @@ Class OB_HMVC
         while (@ob_end_clean());  // close all buffers
         
         $_POST = $_GET = $_REQUEST = array();
-        $_GET     = $this->_GET_BACKUP;
+        $_GET     = $this->_GET_BACKUP;           // Assign global variables we copied before ..
         $_POST    = $this->_POST_BACKUP;
         $_REQUEST = $this->_REQUEST_BACKUP;
         
-        $router = base_register('Router');
-        $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
-        $GLOBALS['s']   = $router->fetch_subfolder();   // Get requested subfolder
-        $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
-        $GLOBALS['m']   = $router->fetch_method();      // Get requested method
+        // Set original objects foreach HMVC requests we backup before  ..
         
+        $this->clone_this->uri    = base_register('URI', $this->uri);
+        $this->clone_this->router = base_register('Router', $this->router);
+        
+        this($this->clone_this);    // set instance to original $this that we backup before
+                         
+        $GLOBALS['d']   = $this->router->fetch_directory();   // Assign Original Router methods we copied before
+        $GLOBALS['s']   = $this->router->fetch_subfolder();   
+        $GLOBALS['c']   = $this->router->fetch_class();       
+        $GLOBALS['m']   = $this->router->fetch_method();
         
         $this->clear();  // reset all variables.
                          // reset $GLOBALS
@@ -413,445 +407,7 @@ Class OB_HMVC
         return $this->response;
     }
 
-    // --------------------------------------------------------------------
-    
-    /**
-    * Set the route mapping
-    *
-    * This function determines what should be served based on the URI request,
-    * as well as any "routes" that have been set in the routing config file.
-    *
-    * @access    private
-    * @author    Ersin Guvenc
-    * @version   0.1
-    * @return    void
-    */
-    public function _set_routing()
-    {
-        // there is a loop when query strings on in HMVC we don' t need it !!!
-        
-        // Set the default controller so we can display it in the event
-        // the URI doesn't correlated to a valid controller.
-        $this->default_controller = ( ! isset($this->routes['default_controller']) OR $this->routes['default_controller'] == '') ? FALSE : strtolower($this->routes['default_controller']);    
-        
-    
-        // Is there a URI string? If not, the default controller specified in the "routes" file will be shown.
-        if ($this->uri_string == '')
-        {
-            if ($this->default_controller === FALSE)
-            {
-                $this->_set_response('HMVC Unable to determine what should be displayed. A default route has not been specified in the routing file.');
-            
-                return FALSE;
-            }
 
-            // Turn the default route into an array.  We explode it in the event that
-            // the controller is located in a subfolder
-            $segments = $this->_validate_request(explode('/', $this->default_controller)); 
-        
-            if($segments == FALSE) 
-            {
-                return FALSE;
-            }
-        
-            // Set the class and method
-            $this->set_class($segments[1]);
-            $this->set_router_method($this->routes['index_method']);  // index
-    
-            // Assign the segments to the URI class
-            $this->rsegments = $segments;
-            
-            // re-index the routed segments array so it starts with 1 rather than 0
-            $this->_reindex_segments();
-            
-            log_me('debug', "No URI present. Default controller set.");
-            return;
-        }
-        unset($this->routes['default_controller']);
-        
-        // Do we need to remove the URL suffix?
-        $this->_remove_url_suffix();
-        
-        // Compile the segments into an array
-        $this->_explode_segments();
-
-        // Parse any custom routing that may exist
-        $this->_parse_routes();        
-        
-        // Re-index the segment array so that it starts with 1 rather than 0
-        $this->_reindex_segments();
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Validates the supplied segments.  Attempts to determine the path to
-    * the controller.
-    *
-    * @author   Ersin Guvenc
-    * @access   private
-    * @param    array
-    * @version  Changed segments[0] as segments[1]
-    *           added directory set to segments[0]
-    * @return   array
-    */    
-    public function _validate_request($segments)
-    {
-        // $segments[0] = directory
-        // $segments[1] = controller name
-
-        if( ! isset($segments[0]) ) $segments[0] = '';
-        if( ! isset($segments[1]) ) $segments[1] = '';
-
-        // Check directory
-        if (is_dir(DIR . $segments[0]))
-        {
-            $this->set_directory($segments[0]);
-
-            if( ! empty($segments[1]))
-            {
-                //----------- SUB FOLDER SUPPORT ----------//
-
-                if(is_dir(DIR . $segments[0] . DS .'controllers'. DS .$segments[1]))   // If there is a subfolder ?
-                {
-                    //       0      1           2
-                    // module / controller /  method  /
-                    //       0      1           2           3
-                    // module / subfolder / controller /  method  /
-                    
-                    $this->set_subfolder($segments[1]);
-
-                    if( ! isset($segments[2])) return $segments;
-
-                    if (is_dir(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]))
-                    {
-                        if( file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[1]. EXT)
-                            AND ! file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT)) 
-                        {
-                            array_unshift($segments, $segments[0]);
-                        }
-                                                  
-                         $segments[1] = $segments[2];     // change class
-
-                         if(isset($segments[3]))          // change method
-                         {
-                            $segments[2] = $segments[3];  
-                         }
-
-                        return $segments;
-                    }
-
-                //----------- SUB FOLDER SUPPORT END ----------//
-
-                }
-                else
-                {
-                    if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. EXT))
-                    return $segments;
-                }
-
-            }
-
-            /**
-            * Merge Segments
-            *
-            * If you use a controller with the same name sd the folder
-            * it will make that the route.
-            * So instead of modulename/modulename/index it will be modulename/index
-            *
-            * @author CJ Lazell
-            */
-            if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[0]. EXT))
-            {
-                array_unshift($segments, $segments[0]);
-
-                if( empty($segments[2]) )
-                {
-                    $segments[2] = $this->routes['index_method'];
-                }
-
-                return $segments;
-            }
-
-        }
-
-        $this->_set_response('HMVC uri not found: '. $segments[0].' / '.$segments[1]);
-        return FALSE;
-    }
-
-    // --------------------------------------------------------------------
-
-    /**
-    * Parse Routes
-    *
-    * This function matches any routes that may exist in
-    * the config/routes.php file against the URI to
-    * determine if the class/method need to be remapped.
-    *
-    * @access    private
-    * @return    void
-    */
-    public function _parse_routes()
-    {
-        // Do we even have any custom routing to deal with?
-        // There is a default scaffolding trigger, so we'll look just for 1
-        if (count($this->routes) == 1)
-        {             
-            $this->_set_request($this->segments);
-            return;
-        }
-
-        // Turn the segment array into a URI string
-        $uri = implode('/', $this->segments);
-
-        // Is there a literal match?  If so we're done
-        if (isset($this->routes[$uri]))
-        {
-            $this->_set_request(explode('/', $this->routes[$uri]));        
-            return;
-        }
-                
-        // Loop through the route array looking for wild-cards
-        foreach ($this->routes as $key => $val)
-        {                        
-            // Convert wild-cards to RegEx
-            $key = str_replace(':any', '.+', str_replace(':num', '[0-9]+', $key));
-            
-            // Does the RegEx match?
-            if (preg_match('#^'.$key.'$#', $uri))
-            {            
-                // Do we have a back-reference?
-                if (strpos($val, '$') !== FALSE AND strpos($key, '(') !== FALSE)
-                {
-                    $val = preg_replace('#^'.$key.'$#', $val, $uri);
-                }
-            
-                $this->_set_request(explode('/', $val));        
-                return;
-            }
-        }
-        
-        // If we got this far it means we didn't encounter a
-        // matching route so we'll set the site default route
-        $this->_set_request($this->segments);
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Set the Route
-    *
-    * This function takes an array of URI segments as
-    * input, and sets the current class/method
-    *
-    * @access   private
-    * @author   Ersin Guvenc
-    * @param    array
-    * @param    bool
-    * @version  0.1
-    * @version  0.2 Changed $segments[0] as $segments[1]  and 
-    *           $segments[1] as $segments[2]
-    * @return   void
-    */
-    public function _set_request($segments = array())
-    {   
-        $segments = $this->_validate_request($segments);
-        
-        if (count($segments) == 0)
-        return;
-                        
-        $this->set_class($segments[1]);
-        
-        if (isset($segments[2]))
-        {
-                // A standard method request
-                $this->set_router_method($segments[2]);   
-        }
-        else
-        {
-            // This lets the "routed" segment array identify that the default
-            // index method is being used.
-            $segments[2] = $this->routes['index_method'];
-        }
-        
-        // Update our "routed" segment array to contain the segments.
-        // Note: If there is no custom routing, this array will be
-        // identical to $this->uri->segments
-        $this->rsegments = $segments;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Set the class name
-    *
-    * @access    public
-    * @param     string
-    * @return    void
-    */    
-    public function set_class($class)
-    {
-        $this->class = $class;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Fetch the current class
-    *
-    * @access    public
-    * @return    string
-    */    
-    public function fetch_class()
-    {
-        return $this->class;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    *  Set the method name
-    *
-    * @access    public
-    * @param     string
-    * @return    void
-    */    
-    public function set_router_method($method)
-    {
-        $this->method = $method;
-    }
-
-    // --------------------------------------------------------------------
-    
-    /**
-    *  Fetch the current method
-    *
-    * @access    public
-    * @return    string
-    */    
-    public function fetch_method()
-    {
-        if ($this->method == $this->fetch_class())
-        {
-            return $this->routes['index_method'];
-        }
-
-        return $this->method;
-    }
-
-    // --------------------------------------------------------------------
-    
-    /**
-    *  Set the directory name
-    *
-    * @access   public
-    * @param    string
-    * @return   void
-    */    
-    public function set_directory($dir)
-    {
-        $this->directory = $dir.'';  // Obullo changes..
-    }
-
-    /**
-    *  Set the subfolder name
-    *
-    * @access   public
-    * @param    string
-    * @return   void
-    */
-    public function set_subfolder($dir)
-    {
-        $this->subfolder = $dir.'';  // Obullo changes..
-    }
-
-    // --------------------------------------------------------------------
-    
-    /**
-    *  Fetch the sub-directory (if any) that contains the requested controller class
-    *
-    * @access    public
-    * @return    string
-    */    
-    public function fetch_directory()
-    {
-        return $this->directory;
-    }
-
-    /**
-    *  Fetch the sub-directory (if any) that contains the requested controller class
-    *
-    * @access    public
-    * @return    string
-    */
-    public function fetch_subfolder()
-    {
-        return $this->subfolder;
-    }
-    
-    // ------------------------ URI FUNCTIONS -----------------------------
-    // --------------------------------------------------------------------
-
-    /**
-    * Remove the suffix from the URL if needed
-    *
-    * @access    private
-    * @return    void
-    */    
-    public function _remove_url_suffix()
-    {
-        if  (config_item('url_suffix') != "")
-        {
-            $this->uri_string = preg_replace("|".preg_quote(config_item('url_suffix'))."$|", "", $this->uri_string);
-        }
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-     * Explode the URI Segments. The individual segments will
-     * be stored in the $this->segments array.    
-     *
-     * @access    private
-     * @return    void
-     */        
-    public function _explode_segments()
-    {
-        $OB = this();
-        
-        foreach(explode("/", preg_replace("|/*(.+?)/*$|", "\\1", $this->uri_string)) as $val)
-        {
-            // Filter segments for security
-            $val = trim($OB->uri->_filter_uri($val));
-            
-            if ($val != '')
-            {
-                $this->segments[] = $val;
-            }
-        }
-    }
-    
-    // --------------------------------------------------------------------
-      
-    /**
-     * Re-index Segments
-     *
-     * This function re-indexes the $this->segment array so that it
-     * starts at 1 rather than 0.  Doing so makes it simpler to
-     * use functions like $this->uri->segment(n) since there is
-     * a 1:1 relationship between the segment array and the actual segments.
-     *
-     * @access    private
-     * @return    void
-     */    
-    public function _reindex_segments()
-    {
-        array_unshift($this->segments, NULL);
-        array_unshift($this->rsegments, NULL);
-        unset($this->segments[0]);
-        unset($this->rsegments[0]);
-    }    
-    
 }
 // END HMVC Class
 

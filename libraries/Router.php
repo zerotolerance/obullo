@@ -31,6 +31,7 @@ Class RouterException extends CommonException {}
  */
 Class OB_Router {
 
+    public $uri;
     public $config;
     public $routes              = array();
     public $error_routes        = array();
@@ -62,7 +63,42 @@ Class OB_Router {
 
         log_me('debug', "Router Class Initialized");
     }
-
+    
+    // --------------------------------------------------------------------
+        
+    /**
+    * When we use HMVC we need to Clean
+    * all data.
+    * 
+    * @return  void
+    */
+    public function clear()
+    {
+        $this->uri                 = base_register('URI');   // reset cloned URI object.
+        $this->config              = '';
+        // $this->routes           // route config shouln't be reset there cause some isset errors
+        $this->error_routes        = array();
+        $this->class               = '';
+        $this->method              = 'index';
+        $this->directory           = '';
+        $this->subfolder           = '';
+        $this->uri_protocol        = 'auto';
+        $this->default_controller  = '';
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Clone URI object for HMVC Requests, When we
+    * use HMVC we use $this->uri = clone base_register('URI');
+    * that means we say to Router class when Clone word used in HMVC library 
+    * use cloned URI object instead of orginal ( ersin ).
+    */
+    public function __clone()
+    {
+        $this->uri = clone $this->uri;
+    }
+    
     // --------------------------------------------------------------------
 
     /**
