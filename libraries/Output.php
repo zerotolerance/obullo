@@ -185,10 +185,10 @@ Class OB_Output {
             $this->_write_cache($output, $URI);
         }
         
-            // Does the controller contain a function named _output()?
-            // If so send the output there.  Otherwise, echo it.
-            $OB = this();
-            
+        // Does the controller contain a function named _hmvc_output() ?
+        // If so send the output there.
+        $OB = this();
+    
             if (method_exists($OB, '_hmvc_output'))
             {
                 $OB->_hmvc_output($output);
@@ -199,18 +199,14 @@ Class OB_Output {
 
                 // Parse out the elapsed time and memory usage,
                 // then swap the pseudo-variables with the data
-                
-                $elapsed = benchmark_elapsed_time('total_execution_time_start', 'total_execution_time_end');        
-                $output  = str_replace('{elapsed_time}', $elapsed, $output);
-                        
+
                 if ($this->parse_exec_vars === TRUE)
                 {
                     $memory = ( ! function_exists('memory_get_usage')) ? '0' : round(memory_get_usage()/1024/1024, 2).'MB';
-                    $output = str_replace('{elapsed_time}', $elapsed, $output);
                     $output = str_replace('{memory_usage}', $memory, $output);
                 }       
                 
-                return $output;
+                echo $output;
             }
         
         log_me('debug', 'HMVC '.str_replace('__HMVC_URI__', '', $URI->uri_string).' uri output sent to browser');  
@@ -463,7 +459,7 @@ Class OB_Output {
             if($URI->cache_time == 0) @unlink($filepath);
             
             // Display the cache
-            return $this->_display_hmvc(str_replace($match['0'], '', $cache), $URI);
+            $this->_display_hmvc(str_replace($match['0'], '', $cache), $URI);
             
             log_me('debug', 'HMVC '.str_replace('__HMVC_URI__', '', $URI->uri_string).' uri cache file is current and displayed.');
             

@@ -138,7 +138,8 @@ if( ! function_exists('ob_system_run'))
         
         if ( ! class_exists($GLOBALS['c']) OR $GLOBALS['m'] == 'controller' 
               OR $GLOBALS['m'] == '_output'       // security fix.
-              OR $GLOBALS['m'] == '_hmvc_output'  
+              OR $GLOBALS['m'] == '_hmvc_output'
+              OR $GLOBALS['m'] == '_instance'
               OR in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods('Controller')))
             )
         {

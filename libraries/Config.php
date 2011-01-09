@@ -86,7 +86,8 @@ Class OB_Config
                 return FALSE;
             }
             
-            throw new ConfigException('Your '.$file. EXT.' file does not appear to contain a valid configuration array.');
+            throw new ConfigException('Your '.$file. EXT.' file does not appear to contain a valid configuration array. Please create 
+            $config variables in your ' . $file. EXT);
         }
 
         if ($use_sections === TRUE)

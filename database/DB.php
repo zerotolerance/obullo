@@ -19,18 +19,11 @@ defined('BASE') or exit('Access Denied!');
 
 Class DBException extends CommonException {}
 
-function ob_query_timer_start()
+function ob_query_timer($mark = '')
 {
     list($sm, $ss) = explode(' ', microtime());
 
     return ($sm + $ss);
-}
-
-function ob_query_timer_end()
-{
-    list($em, $es) = explode(' ', microtime());
-
-    return ($em + $es);
 }
 
 /**
@@ -146,13 +139,13 @@ Class OB_DB extends OB_DBAc_sw {
         }
 
         //------------------------------------
-        $start_time = ob_query_timer_start();
+        $start_time = ob_query_timer('start');
 
         $this->Stmt = $this->_conn->query($sql);
 
         $this->queries[] = $sql;   // Save the  query for debugging
 
-        $end_time   = ob_query_timer_end();
+        $end_time   = ob_query_timer('end');
         //------------------------------------
 
         $this->benchmark +=    $end_time - $start_time;
@@ -238,13 +231,13 @@ Class OB_DB extends OB_DBAc_sw {
         }
 
         //------------------------------------
-        $start_time = ob_query_timer_start();
+        $start_time = ob_query_timer('start');
 
         $this->Stmt->execute($array);
 
         $this->cached_queries[] = end($this->prep_queries);   // Save the "cached" query for debugging
 
-        $end_time   = ob_query_timer_end();
+        $end_time   = ob_query_timer('end');
         //------------------------------------
 
         $this->benchmark += $end_time - $start_time;
@@ -298,13 +291,13 @@ Class OB_DB extends OB_DBAc_sw {
         $this->last_sql = $sql;
 
         //------------------------------------
-        $start_time = ob_query_timer_start();
+        $start_time = ob_query_timer('start');
 
         $this->queries[] = $sql;    // Save the  query for debugging
 
         $affected_rows = $this->_conn->exec($sql);
 
-        $end_time   = ob_query_timer_end();
+        $end_time   = ob_query_timer('end');
         //------------------------------------
 
         $this->benchmark +=    $end_time - $start_time;

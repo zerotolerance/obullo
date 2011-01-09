@@ -52,5 +52,19 @@ if( ! function_exists('hmvc_process') )
 
 }
 
+if( ! function_exists('hmvc_request') )
+{
+    function hmvc_request($method = 'GET', $request_uri= '', $params = array(), $cache_time = 0)
+    {
+        $hmvc = base_register('HMVC');
+        $hmvc->clear();                 // clear variables for each request.
+        $hmvc->hmvc_request($request_uri, $cache_time);
+        $hmvc->set_method($method, $params);
+
+        return $hmvc;   // return hmvc_object
+    }
+
+}
+
 /* End of file hmvc.php */
 /* Location: ./obullo/helpers/hmvc.php */

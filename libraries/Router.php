@@ -33,6 +33,8 @@ Class OB_Router {
 
     public $uri;
     public $config;
+    public $hmvc                = FALSE;
+    public $hmvc_response       = '';
     public $routes              = array();
     public $error_routes        = array();
     public $class               = '';
@@ -59,8 +61,9 @@ Class OB_Router {
 
         $this->method = $this->routes['index_method'];
         $this->uri    = base_register('URI');
+        
         $this->_set_routing();
-
+        
         log_me('debug', "Router Class Initialized");
     }
     
@@ -76,6 +79,8 @@ Class OB_Router {
     {
         $this->uri                 = base_register('URI');   // reset cloned URI object.
         $this->config              = '';
+        $this->hmvc                = FALSE;
+        $this->hmvc_response       = '';
         // $this->routes           // route config shouln't be reset there cause some isset errors
         $this->error_routes        = array();
         $this->class               = '';
@@ -114,28 +119,31 @@ Class OB_Router {
     */
     public function _set_routing()
     {
-        // Are query strings enabled in the config file?
-        // If so, we're done since segment based URIs are not used with query strings.
-        if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('controller_trigger')]))
+        if($this->hmvc == FALSE)    // GET request valid for standart router requests not HMVC.
         {
-            $this->set_directory(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
-            
-            if(isset($_GET[config_item('subfolder_trigger')]))
+            // Are query strings enabled in the config file?
+            // If so, we're done since segment based URIs are not used with query strings.
+            if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('controller_trigger')]))
             {
-                // ( Obullo sub folder support )
-                $this->set_subfolder(trim($this->uri->_filter_uri($_GET[config_item('subfolder_trigger')])));
-            }
-            
-            $this->set_class(trim($this->uri->_filter_uri($_GET[config_item('controller_trigger')])));
+                $this->set_directory(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
+                
+                if(isset($_GET[config_item('subfolder_trigger')]))
+                {
+                    // ( Obullo sub folder support )
+                    $this->set_subfolder(trim($this->uri->_filter_uri($_GET[config_item('subfolder_trigger')])));
+                }
+                
+                $this->set_class(trim($this->uri->_filter_uri($_GET[config_item('controller_trigger')])));
 
-            if (isset($_GET[config_item('function_trigger')]))
-            {
-                $this->set_method(trim($this->uri->_filter_uri($_GET[config_item('function_trigger')])));
-            }
+                if (isset($_GET[config_item('function_trigger')]))
+                {
+                    $this->set_method(trim($this->uri->_filter_uri($_GET[config_item('function_trigger')])));
+                }
 
-            return;
+                return;
+            }
         }
-
+        
         // Set the default controller so we can display it in the event
         // the URI doesn't correlated to a valid controller.
         $this->default_controller = ( ! isset($this->routes['default_controller']) OR $this->routes['default_controller'] == '') ? FALSE : strtolower($this->routes['default_controller']);
@@ -148,7 +156,15 @@ Class OB_Router {
         {
             if ($this->default_controller === FALSE)
             {
-                throw new RouterException("Unable to determine what should be displayed. A default route has not been specified in the routing file.");
+                if($this->hmvc)
+                {
+                    $this->hmvc_response = 'Hmvc unable to determine what should be displayed. A default route has not been specified in the routing file';
+                    return FALSE;
+                } 
+                else 
+                {
+                    throw new RouterException('Unable to determine what should be displayed. A default route has not been specified in the routing file.');
+                }
             }
 
             // Turn the default route into an array.  We explode it in the event that
@@ -156,6 +172,14 @@ Class OB_Router {
             //$segments = $this->_validate_request(explode('/', $this->default_controller));
             $segments = $this->_validate_request(explode('/', $this->default_controller));
 
+            if($this->hmvc)
+            {
+                if($segments === FALSE)
+                {
+                    return FALSE;
+                }
+            }
+            
             $this->set_class($segments[1]);            
             $this->set_method($this->routes['index_method']);  // index
 
@@ -232,6 +256,14 @@ Class OB_Router {
     * Validates the supplied segments.  Attempts to determine the path to
     * the controller.
     *
+    * $segments[0] = directory
+    * $segments[1] = controller name
+    * 
+    *       0      1           2
+    * module / controller /  method  /
+    *       0      1           2           3
+    * module / subfolder / controller /  method  /
+    * 
     * @author   Ersin Guvenc
     * @author   CJ Lazell
     * @access   private
@@ -242,11 +274,7 @@ Class OB_Router {
     */
     public function _validate_request($segments)
     {
-        // $segments[0] = directory
-        // $segments[1] = controller name
-
-        if( ! isset($segments[0]) ) $segments[0] = '';
-        if( ! isset($segments[1]) ) $segments[1] = '';
+        if( ! isset($segments[0]) ) return $segments;
 
         // Check directory
         if (is_dir(DIR . $segments[0]))
@@ -257,25 +285,19 @@ Class OB_Router {
             {
                 //----------- SUB FOLDER SUPPORT ----------//
 
-                if(is_dir(DIR . $segments[0] . DS .'controllers'. DS .$segments[1]))   // If there is a subfolder ?
-                {
-                    //       0      1           2
-                    // module / controller /  method  /
-                    //       0      1           2           3
-                    // module / subfolder / controller /  method  /
-                    
+                if(is_dir(DIR . $this->fetch_directory() . DS .'controllers'. DS .$segments[1]))   // If there is a subfolder ?
+                {   
                     $this->set_subfolder($segments[1]);
 
                     if( ! isset($segments[2])) return $segments;
 
-                    if (is_dir(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]))
+                    if (is_dir(DIR .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_subfolder()))
                     {
                         
-                        if( file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[1]. EXT)
-                            AND ! file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. DS .$segments[2]. EXT)) 
+                        if( file_exists(DIR .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_subfolder(). DS .$this->fetch_subfolder(). EXT)
+                            AND ! file_exists(DIR .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_subfolder(). DS .$segments[2]. EXT))
                         {
-                            array_unshift($segments, $segments[0]);
-                            
+                            array_unshift($segments, $this->fetch_directory());                     
                         }
                         
                          $segments[1] = $segments[2];     // change class
@@ -288,31 +310,21 @@ Class OB_Router {
                         return $segments;
                     }
                     
-                
-
                 //----------- SUB FOLDER SUPPORT END ----------//
 
                 }
                 else
                 {
-                    if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[1]. EXT))
+                    if (file_exists(DIR .$this->fetch_directory(). DS .'controllers'. DS .$segments[1]. EXT))
                     return $segments;
                 }
 
             }
 
-            /**
-            * Merge Segments
-            *
-            * If you use a controller with the same name sd the folder
-            * it will make that the route.
-            * So instead of modulename/modulename/index it will be modulename/index
-            *
-            * @author CJ Lazell
-            */
-            if (file_exists(DIR .$segments[0]. DS .'controllers'. DS .$segments[0]. EXT))
+            // Merge Segments
+            if (file_exists(DIR .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_directory(). EXT))
             {
-                array_unshift($segments, $segments[0]);
+                array_unshift($segments, $this->fetch_directory());
 
                 if( empty($segments[2]) )
                 {
@@ -324,7 +336,16 @@ Class OB_Router {
 
         }
         
-        show_404(); // security fix.
+        if($this->hmvc)
+        {
+            $this->hmvc_response = 'Hmvc request not found.';
+            
+            return FALSE;
+        } 
+        else 
+        {
+            show_404(); // security fix.
+        }
     }
 
     // --------------------------------------------------------------------

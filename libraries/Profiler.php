@@ -88,6 +88,46 @@ Class OB_Profiler {
      }
      
     // --------------------------------------------------------------------
+    
+    public function _compile_hmvc_requests()
+    {
+        $hmvc = base_register('HMVC');
+        $output = '';
+        
+        // Let's determine which databases are currently connected to         
+        if ($hmvc->request_count > 0)
+        {    
+            $output  = '<div id="hmvc">';       
+            $output .= "<table class=\"tableborder\">";
+            $output .= "<tr><th>".lang('profiler_hmvc_requests')."</th></tr>";
+            
+            foreach ($hmvc->request_times as $key => $val)
+            {   
+                $time = '';
+                if(isset($hmvc->request_times[$key])) 
+                {
+                    $time = number_format($hmvc->request_times[$key], 4);
+                }
+                
+                $uri = str_replace(array('__HMVC_URI__', '_', '-'), '', $key);
+                if(strpos($uri, '/') > 0)
+                { 
+                    $uri = explode('/', $uri);
+                    $uri = implode(' / ', $uri);
+                }
+                
+                $output .= "<tr><td valign='top' class=\"td\"><span class='label'>";
+                $output .= 'Execution Time ( '.ucwords($uri).' )'."</span>&nbsp;&nbsp;</td><td class=\"td_val\">".$time."</td></tr>";
+            }
+            
+            $output .= "</table>";
+            $output .= "</div>";
+        }
+    
+        return $output;
+    }
+        
+    // --------------------------------------------------------------------
 
     /**
      * Compile Queries
@@ -541,6 +581,7 @@ Class OB_Profiler {
         $output .= $this->_compile_controller_info();
         $output .= $this->_compile_memory_usage();
         $output .= $this->_compile_benchmarks();
+        $output .= $this->_compile_hmvc_requests();
         $output .= $this->_compile_get();
         $output .= $this->_compile_post();
         $output .= $this->_compile_loaded_files();
