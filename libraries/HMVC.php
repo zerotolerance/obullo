@@ -49,21 +49,25 @@ Class OB_HMVC
     public $uri;                   // Clone original URI object
     public $router;                // Clone original Router object
     public $config;                // Clone original Config object
-    public $_this        = NULL;   // Clone original this(); ( Controller instance)
+    public $_this         = NULL;   // Clone original this(); ( Controller instance)
     
     public $response         = '';
     public $request_keys     = array();
     public $request_method   = 'GET';
     public $hmvc_connect     = TRUE;
+    public $no_loop          = FALSE;
     public $cache_time       = '';
     
     // Global variables
-
     public $_GET_BACKUP      = '';
     public $_POST_BACKUP     = '';
     public $_REQUEST_BACKUP  = ''; 
     public $_SERVER_BACKUP   = ''; 
     public $_PUT             = ''; 
+    
+    // Cache and Connection
+    private $_conn_string    = '';       // Unique HMVC connection string that we need to convert it to conn_id.
+    private static $_conn_id = array();  // Static HMVC Connection ids.
     
     public function __construct()
     {
@@ -82,7 +86,9 @@ Class OB_HMVC
     */    
     public function hmvc_request($hmvc_uri = '', $cache_time = '')
     {
-        $this->_this = this();       // We need create backup $this object of main controller 
+        $this->_set_conn_string($hmvc_uri);
+        
+        $this->_this = clone this();       // We need create backup $this object of main controller 
                                      // becuse of it will change foreach HMVC requests.
         if($hmvc_uri != '')
         {          
@@ -104,9 +110,13 @@ Class OB_HMVC
             if(strpos($this->uri_string, '?') > 0)
             {
                 $uri_part = explode('?', $this->uri_string);
-                $URI->set_uri_string($uri_part[0]);
-                
                 $this->query_string = $uri_part[0] .'?'. $uri_part[1];
+                
+                $URI->set_uri_string($uri_part[0]);
+            }
+            else 
+            {
+                $URI->set_uri_string($this->uri_string);
             }
             
             $this->hmvc_connect = $Router->_set_routing();
@@ -127,13 +137,15 @@ Class OB_HMVC
     */
     public function clear()
     {
+        $this->_conn_string = '';
         $this->uri_string   = '';
         $this->query_string = '';
-        $this->cache_time   = '';        
+        $this->cache_time   = '';       
 
         $this->reponse      = '';
         $this->request_keys = array();
         $this->hmvc_connect = TRUE;
+        $this->no_loop      = FALSE;
         
         // Clone objects
         $this->uri          = '';
@@ -153,6 +165,15 @@ Class OB_HMVC
     
     // --------------------------------------------------------------------
     
+    public function no_loop()
+    {
+        $this->no_loop = TRUE;
+        
+        return $this;
+    }
+    
+    // --------------------------------------------------------------------
+    
     /**
     * Set HMVC Request Method
     * 
@@ -162,6 +183,10 @@ Class OB_HMVC
     public function set_method($method = 'GET' , $params = array())
     {
         $method = strtoupper($method);
+        
+        $this->_set_conn_string($method);
+        $this->_set_conn_string(serialize($params));
+        
         $this->request_method = $method;
         
         if($this->query_string != '')
@@ -202,8 +227,10 @@ Class OB_HMVC
             }
              break;
              
-            case 'PUT':
-                $this->_PUT['data'] = $params;
+           case 'PUT':
+            // Methods besides GET and POST do not properly parse the form-encoded
+            // query string into the $_POST array, so we overload it manually.
+            // parse_str(file_get_contents('php://input'), $_POST);
              break;
         }
     
@@ -235,11 +262,11 @@ Class OB_HMVC
         foreach($query_string as $val)
         {
             $words = explode('=', $val);
-             
-             if(isset($words[0]) AND isset($words[1]))
-             {
-                 $arr[$words[0]] = $words[1];
-             }
+            
+            if(isset($words[0]) AND isset($words[1]))
+            {
+                $arr[$words[0]] = $words[1];
+            }
         }
         
         unset($val, $words, $query_string);
@@ -255,7 +282,16 @@ Class OB_HMVC
     * @return   string
     */
     public function exec()
-    {            
+    {           
+        $conn_id = $this->_get_id();
+        
+        if( isset(self::$_conn_id[$conn_id]) )   // We need that function to prevent HMVC loops if someone use hmvc request
+        {                   
+            return $this;
+        }         
+    
+        self::$_conn_id[$conn_id] = $conn_id;    // store connection id.   
+        
         $URI    = base_register('URI');
         $router = base_register('Router');
         $config = base_register('Config');
@@ -266,28 +302,16 @@ Class OB_HMVC
             $this->_set_response($router->hmvc_response);
             $this->_reset_router();
             
-            return FALSE;
+            return $this;
         } 
-        
-        $current_uri = $GLOBALS['d'].'/'.$GLOBALS['s'].'/'.$GLOBALS['c'].'/'.$GLOBALS['m'];
         
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
         $GLOBALS['s']   = $router->fetch_subfolder();   // Get requested subfolder
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
-    
-        $request_uri = $GLOBALS['d'].'/'.$GLOBALS['s'].'/'.$GLOBALS['c'].'/'.$GLOBALS['m'];
-    
-        if($request_uri == $current_uri)  // If user call again same method in current controller
-        {                                 // this loop may cause server crashes !!
-            $this->_set_response('Hmvc: Calling same method in current controller may cause to critical server errors.');
-            $this->_reset_router();
-            
-            return FALSE;
-        }
-    
+
         // a Hmvc uri must be unique otherwise may collission with standart uri.
-        $URI->uri_string = '__HMVC_URI__'. $URI->uri_string;
+        $URI->uri_string = '__HMVC_URI__'. $URI->uri_string; // .'/ID/'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
         
         ob_start();
@@ -299,7 +323,7 @@ Class OB_HMVC
             
             $this->_reset_router();
             
-            return TRUE;
+            return $this;
         }
         
         @ob_end_clean();
@@ -315,7 +339,7 @@ Class OB_HMVC
 
                 $this->_reset_router();
                 
-                return FALSE;
+                return $this;
             }
             
             $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;   
@@ -335,7 +359,7 @@ Class OB_HMVC
 
                 $this->_reset_router();
                 
-                return FALSE;
+                return $this;
             }
             
             $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
@@ -359,7 +383,7 @@ Class OB_HMVC
 
             $this->_reset_router();
             
-            return FALSE;
+            return $this;
         }
         
         // If Everyting ok Declare Called Controller !
@@ -372,7 +396,7 @@ Class OB_HMVC
 
             $this->_reset_router();
             
-            return FALSE;
+            return $this;
         }
     
         ob_start();
@@ -428,7 +452,7 @@ Class OB_HMVC
         $this->_this->router = base_register('Router', $this->router);
         $this->_this->config = base_register('Config', $this->config);
         
-        this($this->_this);    // set instance to original $this that we backup before
+        this($this->_this);    // Set original $this to instance that we backup before
         
         $GLOBALS['d']   = $this->router->fetch_directory();   // Assign Original Router methods we copied before
         $GLOBALS['s']   = $this->router->fetch_subfolder();   
@@ -437,7 +461,7 @@ Class OB_HMVC
         
         $this->clear();  // reset all HMVC variables.
         
-        ++$this->request_count;
+        ++$this->request_count;     // Profiler 
     
         $end_time = ob_request_timer('end');
         
@@ -446,6 +470,7 @@ Class OB_HMVC
     }
     
     // --------------------------------------------------------------------
+    
     /**
     * Set $_SERVER vars foreach hmvc
     * requests.
@@ -456,6 +481,8 @@ Class OB_HMVC
     public function set_server($key, $val)
     {
         $_SERVER[$key] = $val;
+        
+        $this->_set_conn_string($key.$val);
     }
     
     // --------------------------------------------------------------------
@@ -476,13 +503,38 @@ Class OB_HMVC
     /**
     * Get final hmvc output.
     * 
-    * @return  string
+    * @return   string
     */
     public function response()
     {
         return $this->response;
     }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Create HMVC connection string next 
+    * we will convert it to connection id.
+    * 
+    * @param    mixed $id
+    */
+    private function _set_conn_string($id)
+    {
+        $this->_conn_string .= $id;
+    }
 
+    // --------------------------------------------------------------------
+    
+    /**
+    * Convert connection string to HMVC
+    * connection id.
+    * 
+    * @return   string
+    */
+    private function _get_id()
+    {
+        return md5(trim($this->_conn_string));
+    }
 
 }
 // END HMVC Class

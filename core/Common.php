@@ -50,13 +50,19 @@ interface PHP5_Library
 * @version  0.4 added extend to core libraries support
 * @version  0.5 added $params_or_no_ins instantiate switch FALSE.
 * @version  0.6 added $new_object instance param, added unset object.
+* @version  0.7 added new instance support ( added $new_objects variable).
 *
 * @return   object  | NULL
 */
-function base_register($Class, $new_object = NULL, $params_or_no_ins = '')
+function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
 {
-    $registry  = OB_Registry::instance();
-
+    static $new_objects = array();
+    
+    $Class    = ucfirst($realname);
+    $registry = OB_Registry::instance();
+    
+    // if we need to reset any registered object .. 
+    // --------------------------------------------------------------------
     if(is_object($new_object))
     {
         $registry->unset_object($Class);
@@ -64,19 +70,20 @@ function base_register($Class, $new_object = NULL, $params_or_no_ins = '')
         
         return $new_object;
     }
- 
-    $path  = BASE .'libraries'. DS;
-    $Class = ucfirst($Class);
 
     $getObject = $registry->get_object($Class);
 
     if ($getObject !== NULL)
     return $getObject;
 
-    if(file_exists($path . $Class. EXT))
+    if(file_exists(BASE .'libraries'. DS . $Class. EXT))
     {
-        require($path . $Class. EXT);
-        $classname = $Class;
+        if( ! isset($new_objects[$Class]) )  // check new object instance
+        {
+            require(BASE .'libraries'. DS . $Class. EXT);
+        }
+        
+        $classname = $Class;    // prepare classname
 
         if($params_or_no_ins === FALSE)
         {
@@ -89,7 +96,11 @@ function base_register($Class, $new_object = NULL, $params_or_no_ins = '')
 
         if(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))
         {
-            require(APP .'libraries'. DS .$prefix. $Class. EXT);
+            if( ! isset($new_objects[$Class]) )  // check new object instance
+            {
+                require(APP .'libraries'. DS .$prefix. $Class. EXT);
+            }
+            
             $classname = $prefix. $Class;
 
             profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
@@ -97,19 +108,36 @@ function base_register($Class, $new_object = NULL, $params_or_no_ins = '')
 
         // __construct params support.
         // --------------------------------------------------------------------
-        if(is_array($params_or_no_ins)) // construct support.
+        if($new_object == TRUE)
         {
-            $registry->set_object($Class, new $classname($params_or_no_ins));
+            if(is_array($params_or_no_ins))  // construct support.
+            {
+                $Object = new $classname($params_or_no_ins);
 
-        } else
+            } else
+            {
+                $Object = new $classname();
+            }
+            
+            $new_objects[$Class] = $Class;  // set new instance to static variable
+        } 
+        else 
         {
-            $registry->set_object($Class, new $classname());
+            if(is_array($params_or_no_ins)) // construct support.
+            {
+                $registry->set_object($Class, new $classname($params_or_no_ins));
+
+            } else
+            {
+                $registry->set_object($Class, new $classname());
+            }
+
+            $Object = $registry->get_object($Class);
         }
 
         // return to singleton object.
         // --------------------------------------------------------------------
-        $Object = $registry->get_object($Class);
-
+        
         if(is_object($Object))
         return $Object;
 
