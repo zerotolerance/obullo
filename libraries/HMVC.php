@@ -88,7 +88,8 @@ Class OB_HMVC
     {
         $this->_set_conn_string($hmvc_uri);
         
-        $this->_this = clone this();       // We need create backup $this object of main controller 
+        // Don't clone this() just backup.
+        $this->_this = this();       // We need create backup $this object of main controller 
                                      // becuse of it will change foreach HMVC requests.
         if($hmvc_uri != '')
         {          
@@ -283,14 +284,19 @@ Class OB_HMVC
     */
     public function exec()
     {           
-        $conn_id = $this->_get_id();
+        if($this->no_loop)
+        {
+            $conn_id = $this->_get_id();
+            
+            if( isset(self::$_conn_id[$conn_id]) )   // We need that function to prevent HMVC loops if someone use hmvc request
+            {                
+                $this->_reset_router();
+               
+                return $this;
+            }         
         
-        if( isset(self::$_conn_id[$conn_id]) )   // We need that function to prevent HMVC loops if someone use hmvc request
-        {                   
-            return $this;
-        }         
-    
-        self::$_conn_id[$conn_id] = $conn_id;    // store connection id.   
+            self::$_conn_id[$conn_id] = $conn_id;    // store connection id.
+        }
         
         $URI    = base_register('URI');
         $router = base_register('Router');
@@ -311,7 +317,7 @@ Class OB_HMVC
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
         // a Hmvc uri must be unique otherwise may collission with standart uri.
-        $URI->uri_string = '__HMVC_URI__'. $URI->uri_string; // .'/ID/'. $this->_get_id();
+        $URI->uri_string = '__HMVC_URI__'. $URI->uri_string.'/ID/'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
         
         ob_start();
@@ -458,6 +464,8 @@ Class OB_HMVC
         $GLOBALS['s']   = $this->router->fetch_subfolder();   
         $GLOBALS['c']   = $this->router->fetch_class();       
         $GLOBALS['m']   = $this->router->fetch_method();
+        
+        $GLOBALS['segments'] = $this->uri->rsegments;
         
         $this->clear();  // reset all HMVC variables.
         

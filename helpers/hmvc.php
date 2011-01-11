@@ -41,7 +41,7 @@ if( ! function_exists('hmvc_request') )
 {
     function hmvc_request($method = 'GET', $request_uri= '', $params = array(), $cache_time = 0)
     {
-        $hmvc = base_register('HMVC');  // Every hmvc request must create new instance
+        $hmvc = base_register('HMVC', true);  // Every hmvc request must create new instance
         $hmvc->clear();                       // clear variables for each request.
         $hmvc->hmvc_request($request_uri, $cache_time);
         $hmvc->set_method($method, $params);
