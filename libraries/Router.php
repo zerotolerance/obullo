@@ -61,18 +61,18 @@ Class OB_Router {
 
         $this->method = $this->routes['index_method'];
         $this->uri    = base_register('URI');
-        
+
         $this->_set_routing();
-        
+
         log_me('debug', "Router Class Initialized");
     }
-    
+
     // --------------------------------------------------------------------
-        
+
     /**
     * When we use HMVC we need to Clean
     * all data.
-    * 
+    *
     * @return  void
     */
     public function clear()
@@ -90,20 +90,20 @@ Class OB_Router {
         $this->uri_protocol        = 'auto';
         $this->default_controller  = '';
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
     * Clone URI object for HMVC Requests, When we
     * use HMVC we use $this->uri = clone base_register('URI');
-    * that means we say to Router class when Clone word used in HMVC library 
+    * that means we say to Router class when Clone word used in HMVC library
     * use cloned URI object instead of orginal ( ersin ).
     */
     public function __clone()
     {
         $this->uri = clone $this->uri;
     }
-    
+
     // --------------------------------------------------------------------
 
     /**
@@ -126,13 +126,13 @@ Class OB_Router {
             if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('controller_trigger')]))
             {
                 $this->set_directory(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
-                
+
                 if(isset($_GET[config_item('subfolder_trigger')]))
                 {
                     // ( Obullo sub folder support )
                     $this->set_subfolder(trim($this->uri->_filter_uri($_GET[config_item('subfolder_trigger')])));
                 }
-                
+
                 $this->set_class(trim($this->uri->_filter_uri($_GET[config_item('controller_trigger')])));
 
                 if (isset($_GET[config_item('function_trigger')]))
@@ -143,7 +143,7 @@ Class OB_Router {
                 return;
             }
         }
-        
+
         // Set the default controller so we can display it in the event
         // the URI doesn't correlated to a valid controller.
         $this->default_controller = ( ! isset($this->routes['default_controller']) OR $this->routes['default_controller'] == '') ? FALSE : strtolower($this->routes['default_controller']);
@@ -160,8 +160,8 @@ Class OB_Router {
                 {
                     $this->hmvc_response = 'Hmvc unable to determine what should be displayed. A default route has not been specified in the routing file';
                     return FALSE;
-                } 
-                else 
+                }
+                else
                 {
                     throw new RouterException('Unable to determine what should be displayed. A default route has not been specified in the routing file.');
                 }
@@ -179,8 +179,8 @@ Class OB_Router {
                     return FALSE;
                 }
             }
-            
-            $this->set_class($segments[1]);            
+
+            $this->set_class($segments[1]);
             $this->set_method($this->routes['index_method']);  // index
 
             // Assign the segments to the URI class
@@ -227,16 +227,16 @@ Class OB_Router {
     public function _set_request($segments = array())
     {
         $segments = $this->_validate_request($segments);
-        
+
         if (count($segments) == 0)
         return;
-                        
+
         $this->set_class($segments[1]);
-        
+
         if (isset($segments[2]))
         {
                 // A standard method request
-                $this->set_method($segments[2]);   
+                $this->set_method($segments[2]);
         }
         else
         {
@@ -258,12 +258,12 @@ Class OB_Router {
     *
     * $segments[0] = directory
     * $segments[1] = controller name
-    * 
+    *
     *       0      1           2
     * module / controller /  method  /
     *       0      1           2           3
     * module / subfolder / controller /  method  /
-    * 
+    *
     * @author   Ersin Guvenc
     * @author   CJ Lazell
     * @access   private
@@ -286,30 +286,30 @@ Class OB_Router {
                 //----------- SUB FOLDER SUPPORT ----------//
 
                 if(is_dir(DIR . $this->fetch_directory() . DS .'controllers'. DS .$segments[1]))   // If there is a subfolder ?
-                {   
+                {
                     $this->set_subfolder($segments[1]);
 
                     if( ! isset($segments[2])) return $segments;
 
                     if (is_dir(DIR .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_subfolder()))
                     {
-                        
+
                         if( file_exists(DIR .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_subfolder(). DS .$this->fetch_subfolder(). EXT)
                             AND ! file_exists(DIR .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_subfolder(). DS .$segments[2]. EXT))
                         {
-                            array_unshift($segments, $this->fetch_directory());                     
+                            array_unshift($segments, $this->fetch_directory());
                         }
-                        
+
                          $segments[1] = $segments[2];     // change class
 
                          if(isset($segments[3]))          // change method
                          {
-                            $segments[2] = $segments[3];  
+                            $segments[2] = $segments[3];
                          }
-                         
+
                         return $segments;
                     }
-                    
+
                 //----------- SUB FOLDER SUPPORT END ----------//
 
                 }
@@ -335,14 +335,14 @@ Class OB_Router {
             }
 
         }
-        
+
         if($this->hmvc)
         {
             $this->hmvc_response = 'Hmvc request not found.';
-            
+
             return FALSE;
-        } 
-        else 
+        }
+        else
         {
             show_404(); // security fix.
         }
@@ -394,7 +394,7 @@ Class OB_Router {
                 {
                     $val = preg_replace('#^'.$key.'$#', $val, $uri);
                 }
-                
+
                 $this->_set_request(explode('/', $val));
                 return;
             }
