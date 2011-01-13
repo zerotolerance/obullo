@@ -162,15 +162,22 @@ Class OB_HMVC
         $this->_GET_BACKUP      = '';
         $this->_POST_BACKUP     = '';
         $this->_REQUEST_BACKUP  = '';   
-        $this->_SERVER_BACKUP   = '';   
-        $this->_PUT             = '';   
+        $this->_SERVER_BACKUP   = '';     
     }
     
     // --------------------------------------------------------------------
     
-    public function no_loop()
+    /**
+    * Warning !!!
+    * When we use HMVC in Global Controllers (e.g. App_Controller)
+    * HMVC request will be in a unlimited loop, no_loop() function
+    * will prevent this loop and any possible http server crashes (ersin).
+    * 
+    * @param mixed $default
+    */
+    public function no_loop($default = TRUE)
     {
-        $this->no_loop = TRUE;
+        $this->no_loop = $default;
         
         return $this;
     }
@@ -186,7 +193,8 @@ Class OB_HMVC
     public function set_method($method = 'GET' , $params_or_data = '')
     {
         $method = strtoupper($method);
-        $this->_set_conn_string($method);
+    
+        $this->_set_conn_string($method);        // Set Unique connection string foreach HMVC request
         $this->_set_conn_string(serialize($params_or_data));
         
         $this->request_method = $method;
@@ -198,7 +206,9 @@ Class OB_HMVC
             if(count($query_str_params) > 0 AND ($method == 'GET' || $method == 'DELETE')) 
             {
                 if(is_array($params_or_data))
-                $params_or_data = array_merge($query_str_params, $params_or_data);
+                {
+                    $params_or_data = array_merge($query_str_params, $params_or_data);
+                }
             }
         }
         $this->_GET_BACKUP     = $_GET;         // Overload to $_REQUEST variables ..
@@ -242,9 +252,10 @@ Class OB_HMVC
     // --------------------------------------------------------------------
     
     /**
-    * Parse Url
+    * Parse Url if there is any possible query string like this
+    * hmvc_request('welcome/test/index?foo=im_foo&bar=im_bar');
     * 
-    * @param array $arr
+    * @param string $query_string
     */
     public function parse_query($query_string = '')
     {
@@ -290,7 +301,7 @@ Class OB_HMVC
             $conn_id = $this->_get_id();
             
             if( isset(self::$_conn_id[$conn_id]) )   // We need that function to prevent HMVC loops if someone use hmvc request
-            {                
+            {                                        // in Global Controllers.
                 $this->_reset_router(TRUE);
                
                 return $this;
@@ -445,7 +456,7 @@ Class OB_HMVC
     {
         while (@ob_end_clean());  // clean all buffers
         
-        $_SERVER = $_POST = $_GET = $_REQUEST = array();
+        $GLOBALS['PUT'] = $_SERVER = $_POST = $_GET = $_REQUEST = array();
         $_GET     = $this->_GET_BACKUP;           // Assign global variables we copied before ..
         $_POST    = $this->_POST_BACKUP;
         $_SERVER  = $this->_SERVER_BACKUP;

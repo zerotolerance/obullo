@@ -52,7 +52,7 @@ if( ! function_exists('lang_load') )
     {     
         $_ob = base_register('Empty');
         
-        if (in_array($langfile, this()->lang->is_loaded, TRUE))
+        if (in_array($langfile, $_ob->lang->is_loaded, TRUE))
         return;  
         
         if ($idiom == '')

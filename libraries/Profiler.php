@@ -51,15 +51,15 @@ Class OB_Profiler {
      {
          $profile = array();
          
-         $_bench = Ssc::instance();
+         $_ob = base_register('Empty');
           
-         foreach ($_bench->_mark->marker as $key => $val)
+         foreach ($_ob->benchmark->marker as $key => $val)
          {
              // We match the "end" marker so that the list ends
              // up in the order that it was defined
              if (preg_match("/(.+?)_end/i", $key, $match))
              {             
-                 if (isset($_bench->_mark->marker[$match[1].'_end']) AND isset($_bench->_mark->marker[$match[1].'_start']))
+                 if (isset($_ob->benchmark->marker[$match[1].'_end']) AND isset($_ob->benchmark->marker[$match[1].'_start']))
                  {
                      $profile[$match[1]] = benchmark_elapsed_time($match[1].'_start', $key);
                  }
@@ -89,6 +89,12 @@ Class OB_Profiler {
      
     // --------------------------------------------------------------------
     
+    /**
+    * Compile HMVC Requests
+    * 
+    * @access    private
+    * @return    string
+    */
     public function _compile_hmvc_requests()
     {
         $requests = profiler_get('hmvc_requests');
@@ -529,8 +535,8 @@ Class OB_Profiler {
         $local_views  = '';
         foreach(profiler_get('local_views') as $view) { $local_views .= $view .'<br /> '; }
     
-        $app_views  = '';
-        foreach(profiler_get('app_views') as $view) { $app_views .= $view .'<br /> '; }
+        $layouts  = '';
+        foreach(profiler_get('layouts') as $view) { $layouts .= $view .'<br /> '; }
         
         $controllers = '';
         foreach(profiler_get('parents') as $gc) { $controllers .= $gc .'<br /> '; }
@@ -544,6 +550,8 @@ Class OB_Profiler {
         $databases      = (isset($databases{2}))      ? $databases : '-';
         $scripts        = (isset($scripts{2}))        ? $scripts : '-';
         $files          = (isset($files{2}))          ? $files : '-';
+        $local_views    = (isset($local_views{2}))    ? $local_views : '-';
+        $layouts        = (isset($layouts{2}))        ? $layouts : '-';
         
         $output .= "<tr><td class=\"td\">Config Files&nbsp;&nbsp;</td><td class=\"td_val\">".$config_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Lang Files&nbsp;&nbsp;</td><td class=\"td_val\">".$lang_files."</td></tr>";  
@@ -556,7 +564,7 @@ Class OB_Profiler {
         $output .= "<tr><td class=\"td\">Databases&nbsp;&nbsp;</td><td class=\"td_val\">".$databases."</td></tr>";    
         $output .= "<tr><td class=\"td\">Scripts&nbsp;&nbsp;</td><td class=\"td_val\">".$scripts."</td></tr>";    
         $output .= "<tr><td class=\"td\">Local Views&nbsp;&nbsp;</td><td class=\"td_val\">".$local_views."</td></tr>";    
-        $output .= "<tr><td class=\"td\">Application Views&nbsp;&nbsp;</td><td class=\"td_val\">".$app_views."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Layouts&nbsp;&nbsp;</td><td class=\"td_val\">".$layouts."</td></tr>";    
         $output .= "<tr><td class=\"td\">External Files&nbsp;&nbsp;</td><td class=\"td_val\">".$files."</td></tr>";    
         $output .= "<tr><td class=\"td\">Global Controllers&nbsp;&nbsp;</td><td class=\"td_val\">".$controllers."</td></tr>";    
         

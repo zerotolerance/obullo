@@ -39,7 +39,7 @@ defined('BASE') or exit('Access Denied!');
 */
 if( ! function_exists('hmvc_request') )
 {
-    function hmvc_request($method = 'GET', $request_uri= '', $params = array(), $cache_time = 0)
+    function hmvc_request($method = 'GET', $request_uri = '', $params = array(), $cache_time = 0)
     {
         $hmvc = base_register('HMVC', true);  // Every hmvc request must create new instance
         $hmvc->clear();                       // clear variables for each request.

@@ -478,6 +478,8 @@ Class OB_Router {
         $this->directory = $dir.'';  // Obullo changes..
     }
 
+    // --------------------------------------------------------------------
+    
     /**
     *  Set the subfolder name
     *
@@ -502,6 +504,8 @@ Class OB_Router {
     {
         return $this->directory;
     }
+    
+    // --------------------------------------------------------------------
 
     /**
     *  Fetch the sub-directory (if any) that contains the requested controller class
@@ -513,7 +517,34 @@ Class OB_Router {
     {
         return $this->subfolder;
     }
+    
+    // --------------------------------------------------------------------
 
+    /**
+    * A pretty HMVC forward using router class.
+    * Easy to use, just support $_POST, $_GET and $_REQUEST super globals.
+    * default $_GET.
+    * 
+    * $this->router->forward('welcome/test/hello');
+    * 
+    * @author   Ersin Guvenc
+    * @param mixed   $uri     Hmvc uri
+    * @param mixed   $method  Request method
+    * @param boolean $no_loop Prevent hmvc loop in Global Controllers.  
+    */
+    public function forward($uri, $method = 'GET', $no_loop = FALSE)
+    {
+        loader::base_helper('hmvc');
+        
+        $params = $_GET;
+        if($method == 'POST')
+        {
+            $params = $_POST;
+        }
+    
+        return hmvc_request($method, $uri, array_merge($params, $_REQUEST))->no_loop($no_loop)->exec()->response();
+    }
+    
 }
 // END Router Class
 

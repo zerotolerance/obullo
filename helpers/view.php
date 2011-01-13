@@ -37,12 +37,12 @@ if( ! isset($_ob->view))  // Helper Constructror
     $_ob->view = new stdClass();
 
     $_ob->view->view_folder      = DS. '';
-    $_ob->view->app_view_folder  = DS. '';
+    $_ob->view->layout_folder    = DS. '';
     $_ob->view->css_folder       = '/';
     $_ob->view->img_folder       = '/';
 
     $_ob->view->view_var         = array();
-    $_ob->view->view_layout_name = '';
+    $_ob->view->layout_name      = '';
 
     log_me('debug', "View Helper Initialized");
 }
@@ -73,7 +73,7 @@ if ( ! function_exists('view_var'))
 
         if($use_layout)  // include setted layout.
         {
-            view_temp($_ob->view->view_layout_name, $layout_data);
+            view_layout($_ob->view->layout_name, $layout_data);
         }
 
         return;
@@ -102,16 +102,20 @@ if ( ! function_exists('view_array'))
         }
 
         foreach($val as $value)
-          $_ob->view->view_array[$key][] = $value;
+        {
+            $_ob->view->view_array[$key][] = $value;
+        }
 
         if($use_layout)  // include setted layout.
         {
-            view_temp($_ob->view->view_layout_name, $layout_data);
+            view_layout($_ob->view->layout_name, $layout_data);
         }
 
         return;
     }
 }
+
+// ------------------------------------------------------------------------
 
 /**
 * Set layout for all controller
@@ -124,9 +128,12 @@ if ( ! function_exists('view_set'))
     function view_set($layout)
     {
         $_ob = base_register('Empty');
-        $_ob->view->view_layout_name = $layout;
+        
+        $_ob->view->layout_name = $layout;
     }
 }
+
+// ------------------------------------------------------------------------
 
 /**
 * Create your custom folders and
@@ -154,10 +161,10 @@ if ( ! function_exists('view_set_folder'))
              log_me('debug', "View() Function Paths Changed");
              break;
 
-           case 'view_app':
-             $_ob->view->app_view_folder = DS. $folder_path;
+           case 'view_layout':
+             $_ob->view->layout_folder   = DS. $folder_path;
 
-             log_me('debug', "View_temp() Function Paths Changed");
+             log_me('debug', "View_layout() Function Paths Changed");
              break;
 
            case 'css':
@@ -167,7 +174,7 @@ if ( ! function_exists('view_set_folder'))
              break;
 
            case 'js':
-             $_ob->view->js_folder      = $folder;
+             $_ob->view->js_folder       = $folder;
 
              log_me('debug', "Js() Function Paths Changed");
              break;
@@ -182,6 +189,7 @@ if ( ! function_exists('view_set_folder'))
         return TRUE;
     }
 }
+
 // ------------------------------------------------------------------------
 
 /**
@@ -197,9 +205,12 @@ if ( ! function_exists('view'))
     function view($filename, $data = '', $string = TRUE)
     {
         $_ob = base_register('Empty');
+        
         $return = FALSE;
-
-        if(isset($_ob->view->view_folder{1})) { $return = TRUE; }    // if view folder changed don't show errors ..
+        if(isset($_ob->view->view_folder{1})) // if view folder changed don't show errors ..
+        { 
+            $return = TRUE;
+        }    
 
         $path =  DIR .$GLOBALS['d']. DS .'views'. $_ob->view->view_folder;
 
@@ -222,18 +233,21 @@ if ( ! function_exists('view'))
 * @param  boolean $string
 * @return void
 */
-if ( ! function_exists('view_temp'))
+if ( ! function_exists('view_layout'))
 {
-    function view_temp($filename, $data = '', $string = FALSE)
+    function view_layout($filename, $data = '', $string = FALSE)
     {
         $_ob = base_register('Empty');
+        
         $return = FALSE;
+        if(isset($_ob->view->layout_folder{1})) // if view_layout folder changed don't show errors ..
+        { 
+            $return = TRUE;     
+        }  
+        
+        $path = APP .'layouts'. $_ob->view->layout_folder;
 
-        if(isset($_ob->view->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
-
-        $path = APP .'layouts'. $_ob->view->app_view_folder;
-
-        profiler_set('app_views', $filename, $path );
+        profiler_set('layouts', $filename, $path);
 
         return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
     }
@@ -257,10 +271,19 @@ if ( ! function_exists('_set_view_data'))
   function _set_view_data($data = array())
   {
         $_ob = base_register('Empty');
-		if(isset($_ob->view->view_data)) $_ob->view->view_data= array_merge((array)$_ob->view->view_data, (array)$data);
-		else $_ob->view->view_data= $data;
+        
+		if(isset($_ob->view->view_data)) 
+        {
+            $_ob->view->view_data = array_merge((array)$_ob->view->view_data, (array)$data);
+        }
+		else 
+        {
+            $_ob->view->view_data = $data;
+        }
   }
 }
+
+// ------------------------------------------------------------------------
 
 /**
 * Render multiple view files.
@@ -363,21 +386,24 @@ if ( ! function_exists('_load_view'))
     function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
 	    $_ob = base_register('Empty');
-				_set_view_data($data);
-				$data= $_ob->view->view_data;
+		
+        _set_view_data($data);
+        
+		$data = $_ob->view->view_data;
 
-				$module_extra= (strpos($filename, '../') !== 0)?'../'.$GLOBALS['d'].DS:'';
-        $module_filename= substr($module_extra.$filename, 3);
-				$module_path= DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $module_filename);
-				$module_filename= preg_replace('/^(\w+\/)/', '', $module_filename);
+		$module_extra    = (strpos($filename, '../') !== 0)?'../'.$GLOBALS['d'].DS:'';
+        $module_filename = substr($module_extra.$filename, 3);
+		$module_path     = DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $module_filename);
+		$module_filename = preg_replace('/^(\w+\/)/', '', $module_filename);
 
-				$is_module_file= file_exists($module_path . $module_filename . EXT);
-				if($is_module_file)
-				{
-					$path     = $module_path;
-					$filename = $module_filename;
-				}
-				else if ( ! file_exists($path . $filename . EXT) )
+		$is_module_file= file_exists($module_path . $module_filename . EXT);
+        
+		if($is_module_file)
+		{
+			$path     = $module_path;
+			$filename = $module_filename;
+		}
+		elseif ( ! file_exists($path . $filename . EXT) )
         {
             if($return)
             {
@@ -453,7 +479,3 @@ if ( ! function_exists('_ob_object_to_array'))
 
 /* End of file view.php */
 /* Location: ./obullo/helpers/view.php */
-
-
-
-

@@ -548,11 +548,11 @@ function profiler_set($type, $key, $val)
 */
 function profiler_get($type)
 {
-    $empty = base_register('Empty');
+    $_ob = base_register('Empty');
     
-    if( isset($empty->profiler_var[$type]))
+    if( isset($_ob->profiler_var[$type]))
     {
-        return $empty->profiler_var[$type];
+        return $_ob->profiler_var[$type];
     };
 
     return array();

@@ -205,13 +205,12 @@ if( ! function_exists('img') )
             $src = array('src' => $src);
         }
 
-        $vi = Ssc::instance();       // obullo changes ..
+        $_ob = base_register('Empty');       // obullo changes ..
                 
-        // When user use view_set_folder('img');
         $extra_path = '';
-        if( isset($vi->_ew->img_folder{1}) )
+        if( isset($_ob->view->img_folder{1}) )  // When user use view_set_folder('img');
         {
-            $extra_path = '/' . $vi->_ew->img_folder; 
+            $extra_path = '/' . $_ob->view->img_folder; 
         }
         
         $img = '<img';

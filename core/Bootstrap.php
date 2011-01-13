@@ -35,7 +35,6 @@ if( ! function_exists('ob_include_files'))
         require (BASE .'constants'. DS .'db'. EXT);
         require (BASE .'constants'. DS .'file'. EXT);
         require (APP  .'config'. DS .'constants'. EXT);  // Your constants ..
-        require (BASE .'core'. DS .'Ssc'. EXT);
         require (BASE .'core'. DS .'Registry'. EXT);
         require (BASE .'core'. DS .'Common'. EXT);
         require (BASE .'core'. DS .'Errors'. EXT);
