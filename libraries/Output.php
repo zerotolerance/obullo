@@ -185,6 +185,15 @@ Class OB_Output {
             $this->_write_cache($output, $URI);
         }
         
+        // Are there any server headers to send?
+        if (count($this->headers) > 0)
+        {
+            foreach ($this->headers as $header)
+            {
+                @header($header[0], $header[1]);
+            }
+        }  
+        
         // Does the controller contain a function named _hmvc_output() ?
         // If so send the output there.
         $OB = this();

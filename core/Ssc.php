@@ -36,10 +36,15 @@ Class Ssc {
     public $_sion = NULL; // ses_sion
     public $_mark = NULL; // bench_mark
     
-    public $profiler_var = array(); // profiler variable.
-
-    public static function instance()
+    public $profiler_var = array(); // profiler variable
+    
+    public static function instance($new_instance = '')
     {
+        if(is_object($new_instance))
+        {
+            self::$instance = $new_instance; 
+        }
+        
         if( ! isset(self::$instance))
         {
             self::$instance = new self();

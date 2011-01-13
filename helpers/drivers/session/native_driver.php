@@ -17,19 +17,19 @@ if( ! function_exists('_sess_start') )
     {                       
         log_me('debug', "Session Native Driver Initialized"); 
 
-        $ses = Ssc::instance();
+        $_ob = base_register('Empty');
 
         foreach (array('sess_expiration', 'sess_match_ip', 'sess_die_cookie',
         'sess_match_useragent', 'sess_cookie_name', 'cookie_path', 'cookie_domain', 
         'sess_time_to_update', 'time_reference', 'cookie_prefix') as $key)
         {
-            $ses->_sion->$key = (isset($params[$key])) ? $params[$key] : config_item($key);
+            $_ob->session->$key = (isset($params[$key])) ? $params[$key] : config_item($key);
         }
 
         // _unserialize func. use strip_slashes() func. We can add it later if we need it in Native Library. ?
         // loader::base_helper('string');
                 
-        if($ses->_sion->sess_die_cookie)
+        if($_ob->session->sess_die_cookie)
         {
             session_set_cookie_params(0);
             
@@ -38,28 +38,28 @@ if( ! function_exists('_sess_start') )
         } 
         else 
         {
-            session_set_cookie_params($ses->_sion->sess_expiration, $ses->_sion->cookie_path, $ses->_sion->cookie_domain);
+            session_set_cookie_params($_ob->session->sess_expiration, $_ob->session->cookie_path, $_ob->session->cookie_domain);
             
             // Configure garbage collection
             ini_set('session.gc_divisor', 100);
-            ini_set('session.gc_maxlifetime', ($ses->_sion->sess_expiration == 0) ? 7200 : $ses->_sion->sess_expiration);
+            ini_set('session.gc_maxlifetime', ($_ob->session->sess_expiration == 0) ? 7200 : $_ob->session->sess_expiration);
         }
         
-        $ses->_sion->now = _get_time();
+        $_ob->session->now = _get_time();
 
-        session_name($ses->_sion->cookie_prefix . $ses->_sion->sess_cookie_name);
+        session_name($_ob->session->cookie_prefix . $_ob->session->sess_cookie_name);
         
         session_start(); 
 
-        if (is_numeric($ses->_sion->sess_expiration))
+        if (is_numeric($_ob->session->sess_expiration))
         {
-            if ($ses->_sion->sess_expiration > 0)
+            if ($_ob->session->sess_expiration > 0)
             {
-                $ses->_sion->sess_id_ttl = $ses->_sion->sess_expiration;
+                $_ob->session->sess_id_ttl = $_ob->session->sess_expiration;
             }
             else
             {
-                $ses->_sion->sess_id_ttl = (60 * 60 * 24 * 365 * 2);
+                $_ob->session->sess_id_ttl = (60 * 60 * 24 * 365 * 2);
             }
         }
 
@@ -129,13 +129,13 @@ if( ! function_exists('sess_destroy') )
 {
     function sess_destroy()
     {   
-        $ses = Ssc::instance();
+        $_ob = base_register('Empty');
         
         unset($_SESSION);
         
         if ( isset( $_COOKIE[session_name()] ) )
         {
-            setcookie(session_name(), '', (_get_time() - 42000), $ses->_sion->cookie_path, $ses->_sion->cookie_domain);
+            setcookie(session_name(), '', (_get_time() - 42000), $_ob->session->cookie_path, $_ob->session->cookie_domain);
         }
         
         session_destroy();
@@ -162,8 +162,6 @@ if( ! function_exists('sess_get') )
         {
             return ( ! isset($_SESSION[$item])) ? FALSE : $_SESSION[$item];
         }
-        
-        // return ( ! isset($ses->_sion->userdata[$item])) ? FALSE : $ses->_sion->userdata[$item];
     }
 }
 // --------------------------------------------------------------------
@@ -195,9 +193,6 @@ if( ! function_exists('sess_alldata') )
     function sess_alldata()
     {
         return ( ! isset($_SESSION)) ? FALSE : $_SESSION;
-        
-        // $ses = Ssc::instance();
-        // return ( ! isset($ses->_sion->userdata)) ? FALSE : $ses->_sion->userdata;
     }
 }
 // --------------------------------------------------------------------
@@ -265,7 +260,7 @@ if( ! function_exists('_session_id_expired') )
 { 
     function _session_id_expired()
     {
-        $ses = Ssc::instance();
+        $_ob = base_register('Empty');
         
         if ( ! isset( $_SESSION['regenerated'] ) )
         {
@@ -273,7 +268,7 @@ if( ! function_exists('_session_id_expired') )
             return FALSE;
         }
 
-        $expiry_time = time() - $ses->_sion->sess_id_ttl;
+        $expiry_time = time() - $_ob->session->sess_id_ttl;
 
         if ( $_SESSION['regenerated'] <=  $expiry_time )
         {
@@ -297,7 +292,7 @@ if( ! function_exists('sess_set_flash') )
 { 
     function sess_set_flash($newdata = array(), $newval = '')  // ( obullo changes ... )
     {
-        $ses = Ssc::instance();
+        $_ob = base_register('Empty');
         
         if (is_string($newdata))
         {
@@ -308,7 +303,7 @@ if( ! function_exists('sess_set_flash') )
         {
             foreach ($newdata as $key => $val)
             {
-                $flashdata_key = $ses->_sion->flashdata_key.':new:'.$key;
+                $flashdata_key = $_ob->session->flashdata_key.':new:'.$key;
                 sess_set($flashdata_key, $val);
             }
         }
@@ -327,15 +322,16 @@ if( ! function_exists('sess_keep_flash') )
 { 
     function sess_keep_flash($key) // ( obullo changes ...)
     {
-        $ses = Ssc::instance();
+        $_ob = base_register('Empty');
+        
         // 'old' flashdata gets removed.  Here we mark all 
         // flashdata as 'new' to preserve it from _flashdata_sweep()
         // Note the function will return FALSE if the $key 
         // provided cannot be found
-        $old_flashdata_key = $ses->_sion->flashdata_key.':old:'.$key;
+        $old_flashdata_key = $_ob->session->flashdata_key.':old:'.$key;
         $value = sess_get($old_flashdata_key);
 
-        $new_flashdata_key = $ses->_sion->flashdata_key.':new:'.$key;
+        $new_flashdata_key = $_ob->session->flashdata_key.':new:'.$key;
         sess_set($new_flashdata_key, $value);
     }
 }
@@ -358,8 +354,9 @@ if( ! function_exists('sess_get_flash') )
 { 
     function sess_get_flash($key, $prefix = '', $suffix = '')  // obullo changes ...
     {
-        $ses = Ssc::instance();
-        $flashdata_key = $ses->_sion->flashdata_key.':old:'.$key;
+        $_ob = base_register('Empty');
+        
+        $flashdata_key = $_ob->session->flashdata_key.':old:'.$key;
         
         $value = sess_get($flashdata_key);
         
@@ -385,14 +382,15 @@ if( ! function_exists('_flashdata_mark') )
 { 
     function _flashdata_mark()
     {
-        $ses = Ssc::instance();
+        $_ob = base_register('Empty');
+        
         $userdata = sess_alldata();
         foreach ($userdata as $name => $value)
         {
             $parts = explode(':new:', $name);
             if (is_array($parts) && count($parts) === 2)
             {
-                $new_name = $ses->_sion->flashdata_key.':old:'.$parts[1];
+                $new_name = $_ob->session->flashdata_key.':old:'.$parts[1];
                 sess_set($new_name, $value);
                 sess_unset($name);
             }
@@ -433,9 +431,10 @@ if( ! function_exists('_get_time') )
 {
     function _get_time()
     {   
-        $ses  = Ssc::instance();
+        $_ob = base_register('Empty');
+        
         $time = time();
-        if (strtolower($ses->_sion->time_reference) == 'gmt')
+        if (strtolower($_ob->session->time_reference) == 'gmt')
         {
             $now  = time();
             $time = mktime( gmdate("H", $now), 

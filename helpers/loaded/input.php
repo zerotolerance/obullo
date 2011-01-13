@@ -18,22 +18,22 @@ Class InputException extends CommonException {}
 
 // ------------------------------------------------------------------------
 
-if( ! isset($_in->_put)) 
+if( ! isset($_ob->input))   // Helper Constructor
 {
-    $_in = Ssc::instance();
-    $_in->_put = new stdClass();
+    $_ob = base_register('Empty');
+    $_ob->input = new stdClass();
 
-    $_in->_put->use_xss_clean      = FALSE;
-    $_in->_put->ip_address         = FALSE;
-    $_in->_put->user_agent         = FALSE;
-    $_in->_put->allow_get_array    = FALSE;
-                                    
-    log_me('debug', "Input Helper Initialized");
+    $_ob->input->use_xss_clean      = FALSE;
+    $_ob->input->ip_address         = FALSE;
+    $_ob->input->user_agent         = FALSE;
+    $_ob->input->allow_get_array    = FALSE;
 
     $_config = base_register('Config');
 
-    $_in->_put->use_xss_clean   = ($_config->item('global_xss_filtering') === TRUE) ? TRUE : FALSE;
-    $_in->_put->allow_get_array = ($_config->item('enable_query_strings') === TRUE) ? TRUE : FALSE;
+    $_ob->input->use_xss_clean   = ($_config->item('global_xss_filtering') === TRUE) ? TRUE : FALSE;
+    $_ob->input->allow_get_array = ($_config->item('enable_query_strings') === TRUE) ? TRUE : FALSE;
+    
+    log_me('debug', "Input Helper Initialized");
 }
 
 /**
@@ -51,11 +51,10 @@ if( ! function_exists('_sanitize_globals') )
 {
     function _sanitize_globals()
     {
-        $in = Ssc::instance();
+        $_ob = base_register('Empty');
         
         // Would kind of be "wrong" to unset any of these GLOBALS
-        $protected = array('_SERVER', '_GET', '_POST', '_FILES', '_REQUEST', '_SESSION', 
-        '_ENV', '_parents', '_bench', '_log', '_config', '_la', '_in', '_secur', '_ses', '_vi', '_controller', 
+        $protected = array('_SERVER', '_GET', '_POST', '_FILES', '_REQUEST', '_SESSION', '_ENV', '_ob', '_controller', 
         'GLOBALS', 'HTTP_RAW_POST_DATA');
        
         // Unset globals for security. 
@@ -93,7 +92,7 @@ if( ! function_exists('_sanitize_globals') )
         }
 
         // Is $_GET data allowed? If not we'll set the $_GET to an empty array
-        if ($in->_put->allow_get_array == FALSE)
+        if ($_ob->input->allow_get_array == FALSE)
         {
             $_GET = array();
         }
@@ -136,7 +135,7 @@ if( ! function_exists('_clean_input_data') )
 {
     function _clean_input_data($str)
     {
-        $in = Ssc::instance();
+        $_ob = base_register('Empty');
         
         if (is_array($str))
         {
@@ -155,7 +154,7 @@ if( ! function_exists('_clean_input_data') )
         }
 
         // Should we filter the input data?
-        if ($in->_put->use_xss_clean === TRUE)
+        if ($_ob->input->use_xss_clean === TRUE)
         {
             loader::base_helper('security');
             
@@ -221,6 +220,7 @@ if( ! function_exists('_fetch_from_array') )
         if ($xss_clean === TRUE)
         {
             loader::base_helper('security');
+            
             return xss_clean($array[$index]);
         }
 
@@ -348,11 +348,11 @@ if( ! function_exists('i_ip_address') )
 {
     function i_ip_address()
     {
-        $in = Ssc::instance();
+        $_ob = base_register('Empty');
         
-        if ($in->_put->ip_address !== FALSE)
+        if ($_ob->input->ip_address !== FALSE)
         {
-            return $in->_put->ip_address;
+            return $_ob->input->ip_address;
         }
         
         if (config_item('proxy_ips') != '' && i_server('HTTP_X_FORWARDED_FOR') && i_server('REMOTE_ADDR'))
@@ -360,43 +360,43 @@ if( ! function_exists('i_ip_address') )
             $proxies = preg_split('/[\s,]/', config_item('proxy_ips'), -1, PREG_SPLIT_NO_EMPTY);
             $proxies = is_array($proxies) ? $proxies : array($proxies);
 
-            $in->_put->ip_address = in_array($_SERVER['REMOTE_ADDR'], $proxies) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
+            $_ob->input->ip_address = in_array($_SERVER['REMOTE_ADDR'], $proxies) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
         }
         elseif (i_server('REMOTE_ADDR') AND i_server('HTTP_CLIENT_IP'))
         {
-            $in->_put->ip_address = $_SERVER['HTTP_CLIENT_IP'];
+            $_ob->input->ip_address = $_SERVER['HTTP_CLIENT_IP'];
         }
         elseif (i_server('REMOTE_ADDR'))
         {
-            $in->_put->ip_address = $_SERVER['REMOTE_ADDR'];
+            $_ob->input->ip_address = $_SERVER['REMOTE_ADDR'];
         }
         elseif (i_server('HTTP_CLIENT_IP'))
         {
-            $in->_put->ip_address = $_SERVER['HTTP_CLIENT_IP'];
+            $_ob->input->ip_address = $_SERVER['HTTP_CLIENT_IP'];
         }
         elseif (i_server('HTTP_X_FORWARDED_FOR'))
         {
-            $in->_put->ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            $_ob->input->ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
         }
 
-        if ($in->_put->ip_address === FALSE)
+        if ($_ob->input->ip_address === FALSE)
         {
-            $in->_put->ip_address = '0.0.0.0';
-            return $in->_put->ip_address;
+            $_ob->input->ip_address = '0.0.0.0';
+            return $_ob->input->ip_address;
         }
 
-        if (strstr($in->_put->ip_address, ','))
+        if (strstr($_ob->input->ip_address, ','))
         {
-            $x = explode(',', $in->_put->ip_address);
-            $in->_put->ip_address = trim(end($x));
+            $x = explode(',', $_ob->input->ip_address);
+            $_ob->input->ip_address = trim(end($x));
         }
 
-        if ( ! i_valid_ip($in->_put->ip_address))
+        if ( ! i_valid_ip($_ob->input->ip_address))
         {
-            $in->_put->ip_address = '0.0.0.0';
+            $_ob->input->ip_address = '0.0.0.0';
         }
 
-        return $in->_put->ip_address;
+        return $_ob->input->ip_address;
     }
 }
 // --------------------------------------------------------------------
@@ -452,16 +452,16 @@ if( ! function_exists('i_user_agent') )
 {
     function i_user_agent()
     {
-        $in = Ssc::instance();
+        $_ob = base_register('Empty');
         
-        if ($in->_put->user_agent !== FALSE)
+        if ($_ob->input->user_agent !== FALSE)
         {
-            return $in->_put->user_agent;
+            return $_ob->input->user_agent;
         }
 
-        $in->_put->user_agent = ( ! isset($_SERVER['HTTP_USER_AGENT'])) ? FALSE : $_SERVER['HTTP_USER_AGENT'];
+        $_ob->input->user_agent = ( ! isset($_SERVER['HTTP_USER_AGENT'])) ? FALSE : $_SERVER['HTTP_USER_AGENT'];
 
-        return $in->_put->user_agent;
+        return $_ob->input->user_agent;
     }
 }
 // --------------------------------------------------------------------

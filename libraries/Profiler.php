@@ -91,33 +91,33 @@ Class OB_Profiler {
     
     public function _compile_hmvc_requests()
     {
-        $hmvc = base_register('HMVC');
-        $output = '';
+        $requests = profiler_get('hmvc_requests');
         
         // Let's determine which databases are currently connected to         
-        if ($hmvc->request_count > 0)
+        if ($requests['request_time'] > 0)
         {    
+            $request_times = array();
+            foreach($requests['request_time'] as $hmvc_uri => $time)
+            {
+                $explode = explode('__ID__', $hmvc_uri);
+                $request_times[] = array('uri' => $explode[0], 'id' => $explode[1], 'time' => number_format($time, 4));
+            }
+            
             $output  = '<div id="hmvc">';       
             $output .= "<table class=\"tableborder\">";
             $output .= "<tr><th>".lang('profiler_hmvc_requests')."</th></tr>";
             
-            foreach ($hmvc->request_times as $key => $val)
+            foreach ($request_times as $data)
             {   
-                $time = '';
-                if(isset($hmvc->request_times[$key])) 
-                {
-                    $time = number_format($hmvc->request_times[$key], 4);
-                }
-                
-                $uri = str_replace(array('__HMVC_URI__', '_', '-'), '', $key);
-                if(strpos($uri, '/') > 0)
+                if(strpos($data['uri'], '/') > 0)
                 { 
-                    $uri = explode('/', $uri);
-                    $uri = implode(' / ', $uri);
+                    $data['uri'] = explode('/', $data['uri']);
+                    $data['uri'] = implode(' / ', $data['uri']);
                 }
                 
                 $output .= "<tr><td valign='top' class=\"td\"><span class='label'>";
-                $output .= 'Execution Time ( '.ucwords($uri).' )'."</span>&nbsp;&nbsp;</td><td class=\"td_val\">".$time."</td></tr>";
+                $output .= ucwords($data['uri'])."</span>&nbsp;&nbsp;</td><td class=\"td_val\">".'Time: '.$data['time'];
+                $output .= ' | ID: '.$data['id']."</td></tr>";
             }
             
             $output .= "</table>";

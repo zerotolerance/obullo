@@ -37,24 +37,20 @@ function ob_request_timer($mark = '')
  *              Hmvc router and uri libraries merged.
  */
 Class OB_HMVC
-{ 
-    public $uri_string    = ''; 
-    public $query_string  = '';
-    public $benchmark     = '';    // stores benchmark info
-    public $request_times = '';    // request time for profiler
-    public $start_time    = '';    // benchmark start time for profiler
-    public $request_count = 0;     // request count for profiler
-    
+{   
     // Cloned objects
     public $uri;                   // Clone original URI object
     public $router;                // Clone original Router object
     public $config;                // Clone original Config object
-    public $_this         = NULL;   // Clone original this(); ( Controller instance)
+    public $empty;                 // Clone original Empty Class;
+    public $_this         = NULL;  // Clone original this(); ( Controller instance)
     
+    // Request and Response
+    public $uri_string       = ''; 
+    public $query_string     = '';
     public $response         = '';
     public $request_keys     = array();
     public $request_method   = 'GET';
-    public $hmvc_connect     = TRUE;
     public $no_loop          = FALSE;
     public $cache_time       = '';
     
@@ -63,11 +59,16 @@ Class OB_HMVC
     public $_POST_BACKUP     = '';
     public $_REQUEST_BACKUP  = ''; 
     public $_SERVER_BACKUP   = ''; 
-    public $_PUT             = ''; 
     
     // Cache and Connection
+    public $hmvc_connect     = TRUE;
     private $_conn_string    = '';       // Unique HMVC connection string that we need to convert it to conn_id.
     private static $_conn_id = array();  // Static HMVC Connection ids.
+        
+    // Profiler and Benchmark
+    public static $request_times = array();   // request time for profiler
+    public static $start_time    = '';        // benchmark start time for profiler
+    public static $request_count = 0;         // request count for profiler
     
     public function __construct()
     {
@@ -88,17 +89,18 @@ Class OB_HMVC
     {
         $this->_set_conn_string($hmvc_uri);
         
-        // Don't clone this() just backup.
-        $this->_this = this();       // We need create backup $this object of main controller 
+        // Don't clone this(), we just do backup.
+        $this->_this  = this();      // We need create backup $this object of main controller 
                                      // becuse of it will change foreach HMVC requests.
         if($hmvc_uri != '')
         {          
             $URI    = base_register('URI');
             $Router = base_register('Router');
-            
+
             $this->uri    = clone $URI;     // Create copy of original URI class.
             $this->router = clone $Router;  // Create copy of original Router class.
             $this->config = clone base_register('Config');  // Create copy of original Config class.
+            $this->empty  = clone base_register('Empty');
             
             $URI->clear();           // Reset uri objects we will use it for hmvc.
             $Router->clear();        // Reset router objects we will use it for hmvc.
@@ -179,14 +181,13 @@ Class OB_HMVC
     * Set HMVC Request Method
     * 
     * @param    string $method
-    * @param    array $params
+    * @param    mixed  $params_or_data 
     */
-    public function set_method($method = 'GET' , $params = array())
+    public function set_method($method = 'GET' , $params_or_data = '')
     {
         $method = strtoupper($method);
-        
         $this->_set_conn_string($method);
-        $this->_set_conn_string(serialize($params));
+        $this->_set_conn_string(serialize($params_or_data));
         
         $this->request_method = $method;
         
@@ -196,7 +197,8 @@ Class OB_HMVC
             
             if(count($query_str_params) > 0 AND ($method == 'GET' || $method == 'DELETE')) 
             {
-                $params = array_merge($query_str_params, $params);
+                if(is_array($params_or_data))
+                $params_or_data = array_merge($query_str_params, $params_or_data);
             }
         }
         $this->_GET_BACKUP     = $_GET;         // Overload to $_REQUEST variables ..
@@ -204,12 +206,12 @@ Class OB_HMVC
         $this->_SERVER_BACKUP  = $_SERVER;
         $this->_REQUEST_BACKUP = $_REQUEST;
         
-        $_SERVER = $_POST = $_GET = $_REQUEST = array();   // reset global variables
+        $GLOBALS['PUT'] = $_SERVER = $_POST = $_GET = $_REQUEST = array();   // reset global variables
         
         switch ($method) 
         {
            case 'POST':
-            foreach($params as $key => $val)
+            foreach($params_or_data as $key => $val)
             {
                 $_POST[$key]    = $val;
                 $_REQUEST[$key] = $val;
@@ -219,7 +221,7 @@ Class OB_HMVC
              break;
              
            case ($method == 'GET' || $method == 'DELETE'):
-            foreach($params as $key => $val)
+            foreach($params_or_data as $key => $val)
             {
                 $_GET[$key]     = $val;
                 $_REQUEST[$key] = $val;
@@ -229,9 +231,8 @@ Class OB_HMVC
              break;
              
            case 'PUT':
-            // Methods besides GET and POST do not properly parse the form-encoded
-            // query string into the $_POST array, so we overload it manually.
-            // parse_str(file_get_contents('php://input'), $_POST);
+           $_REQUEST['PUT'] = $params_or_data;
+           $GLOBALS['PUT']  = $params_or_data;
              break;
         }
     
@@ -290,7 +291,7 @@ Class OB_HMVC
             
             if( isset(self::$_conn_id[$conn_id]) )   // We need that function to prevent HMVC loops if someone use hmvc request
             {                
-                $this->_reset_router();
+                $this->_reset_router(TRUE);
                
                 return $this;
             }         
@@ -317,7 +318,7 @@ Class OB_HMVC
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
         // a Hmvc uri must be unique otherwise may collission with standart uri.
-        $URI->uri_string = '__HMVC_URI__'. $URI->uri_string.'/ID/'. $this->_get_id();
+        $URI->uri_string = $URI->uri_string.'__ID__'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
         
         ob_start();
@@ -373,7 +374,7 @@ Class OB_HMVC
         }
         
         //------------------------------------
-        $this->start_time = ob_request_timer('start');
+        self::$start_time = ob_request_timer('start');
 
         // Call the controller.
         require_once($controller);
@@ -440,7 +441,7 @@ Class OB_HMVC
     * 
     * @return   void
     */
-    private function _reset_router()
+    private function _reset_router($no_loop = FALSE)
     {
         while (@ob_end_clean());  // clean all buffers
         
@@ -451,30 +452,32 @@ Class OB_HMVC
         $_REQUEST = $this->_REQUEST_BACKUP;
         
         // Set original objects foreach HMVC requests we backup before  ..
-        
         $URI = base_register('URI');
         
         $this->_this->uri    = base_register('URI', $this->uri);
         $this->_this->router = base_register('Router', $this->router);
         $this->_this->config = base_register('Config', $this->config);
+        $this->_this->empty  = base_register('Empty', $this->empty);
         
-        this($this->_this);    // Set original $this to instance that we backup before
+        this($this->_this);         // Set original $this to instance that we backup before
         
         $GLOBALS['d']   = $this->router->fetch_directory();   // Assign Original Router methods we copied before
         $GLOBALS['s']   = $this->router->fetch_subfolder();   
         $GLOBALS['c']   = $this->router->fetch_class();       
         $GLOBALS['m']   = $this->router->fetch_method();
         
-        $GLOBALS['segments'] = $this->uri->rsegments;
-        
         $this->clear();  // reset all HMVC variables.
         
-        ++$this->request_count;     // Profiler 
-    
-        $end_time = ob_request_timer('end');
+        if($no_loop == FALSE)
+        {
+            ++self::$request_count;     
         
-        $this->benchmark += $end_time - $this->start_time;
-        $this->request_times[$URI->uri_string] = $end_time - $this->start_time;
+            $end_time = ob_request_timer('end'); // Profiler 
+
+            self::$request_times[$URI->uri_string] = $end_time - self::$start_time;
+            
+            profiler_set('hmvc_requests', 'request_time', self::$request_times);
+        }
     }
     
     // --------------------------------------------------------------------

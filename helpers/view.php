@@ -31,18 +31,18 @@ Class ViewException extends CommonException {}
  * @link
  */
 
-if( ! isset($_vi->_ew))  // Helper Constructror
+if( ! isset($_ob->view))  // Helper Constructror
 {
-    $_vi = Ssc::instance();
-    $_vi->_ew = new stdClass();
+    $_ob = base_register('Empty');
+    $_ob->view = new stdClass();
 
-    $_vi->_ew->view_folder      = DS. '';
-    $_vi->_ew->app_view_folder  = DS. '';
-    $_vi->_ew->css_folder       = '/';
-    $_vi->_ew->img_folder       = '/';
+    $_ob->view->view_folder      = DS. '';
+    $_ob->view->app_view_folder  = DS. '';
+    $_ob->view->css_folder       = '/';
+    $_ob->view->img_folder       = '/';
 
-    $_vi->_ew->view_var         = array();
-    $_vi->_ew->view_layout_name = '';
+    $_ob->view->view_var         = array();
+    $_ob->view->view_layout_name = '';
 
     log_me('debug', "View Helper Initialized");
 }
@@ -53,14 +53,14 @@ if ( ! function_exists('view_var'))
 {
     function view_var($key, $val = '', $use_layout = FALSE, $layout_data = array())
     {
-        $vi = Ssc::instance();
+        $_ob = base_register('Empty');
 
         if($val == '')
         {
-            if(isset($vi->_ew->view_var[$key]))
+            if(isset($_ob->view->view_var[$key]))
             {
                 $var = '';
-                foreach($vi->_ew->view_var[$key] as $value)
+                foreach($_ob->view->view_var[$key] as $value)
                 {
                     $var .= $value;
                 }
@@ -69,11 +69,11 @@ if ( ! function_exists('view_var'))
             }
         }
 
-        $vi->_ew->view_var[$key][] = $val;
+        $_ob->view->view_var[$key][] = $val;
 
         if($use_layout)  // include setted layout.
         {
-            view_temp($vi->_ew->view_layout_name, $layout_data);
+            view_temp($_ob->view->view_layout_name, $layout_data);
         }
 
         return;
@@ -84,15 +84,15 @@ if ( ! function_exists('view_array'))
 {
     function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
     {
-        $val= (Array)$val;
-        $vi = Ssc::instance();
+        $val= (array)$val;
+        $_ob = base_register('Empty');
 
         if($val == array())
         {
-            if(isset($vi->_ew->view_array[$key]))
+            if(isset($_ob->view->view_array[$key]))
             {
                 $var = array();
-                foreach($vi->_ew->view_array[$key] as $value)
+                foreach($_ob->view->view_array[$key] as $value)
                 {
                     $var[] = $value;
                 }
@@ -101,12 +101,12 @@ if ( ! function_exists('view_array'))
             }
         }
 
-        foreach($val AS $value)
-          $vi->_ew->view_array[$key][] = $value;
+        foreach($val as $value)
+          $_ob->view->view_array[$key][] = $value;
 
         if($use_layout)  // include setted layout.
         {
-            view_temp($vi->_ew->view_layout_name, $layout_data);
+            view_temp($_ob->view->view_layout_name, $layout_data);
         }
 
         return;
@@ -123,8 +123,8 @@ if ( ! function_exists('view_set'))
 {
     function view_set($layout)
     {
-        $vi = Ssc::instance();
-        $vi->_ew->view_layout_name = $layout;
+        $_ob = base_register('Empty');
+        $_ob->view->view_layout_name = $layout;
     }
 }
 
@@ -143,37 +143,37 @@ if ( ! function_exists('view_set_folder'))
 {
     function view_set_folder($func = 'view', $folder = '')
     {
-        $vi = Ssc::instance();
+        $_ob = base_register('Empty');
         $folder_path = empty($folder) ? DS : $folder. DS;
 
         switch ($func)
         {
            case 'view':
-             $vi->_ew->view_folder     = DS. $folder_path;
+             $_ob->view->view_folder     = DS. $folder_path;
 
              log_me('debug', "View() Function Paths Changed");
              break;
 
            case 'view_app':
-             $vi->_ew->app_view_folder = DS. $folder_path;
+             $_ob->view->app_view_folder = DS. $folder_path;
 
              log_me('debug', "View_temp() Function Paths Changed");
              break;
 
            case 'css':
-             $vi->_ew->css_folder      = $folder;
+             $_ob->view->css_folder      = $folder;
 
              log_me('debug', "Css() Function Paths Changed");
              break;
 
            case 'js':
-             $vi->_ew->js_folder      = $folder;
+             $_ob->view->js_folder      = $folder;
 
              log_me('debug', "Js() Function Paths Changed");
              break;
 
            case 'img':
-             $vi->_ew->img_folder      = $folder;
+             $_ob->view->img_folder      = $folder;
 
              log_me('debug', "Img() Function Paths Changed");
              break;
@@ -196,12 +196,12 @@ if ( ! function_exists('view'))
 {
     function view($filename, $data = '', $string = TRUE)
     {
-        $vi = Ssc::instance();
+        $_ob = base_register('Empty');
         $return = FALSE;
 
-        if(isset($vi->_ew->view_folder{1})) { $return = TRUE; }    // if view folder changed don't show errors ..
+        if(isset($_ob->view->view_folder{1})) { $return = TRUE; }    // if view folder changed don't show errors ..
 
-        $path =  DIR .$GLOBALS['d']. DS .'views'. $vi->_ew->view_folder;
+        $path =  DIR .$GLOBALS['d']. DS .'views'. $_ob->view->view_folder;
 
         profiler_set('local_views', $filename, $path . $filename .EXT);
 
@@ -226,12 +226,12 @@ if ( ! function_exists('view_temp'))
 {
     function view_temp($filename, $data = '', $string = FALSE)
     {
-        $vi = Ssc::instance();
+        $_ob = base_register('Empty');
         $return = FALSE;
 
-        if(isset($vi->_ew->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
+        if(isset($_ob->view->app_view_folder{1})) { $return = TRUE; }  // if view folder changed don't show errors ..
 
-        $path = APP .'layouts'. $vi->_ew->app_view_folder;
+        $path = APP .'layouts'. $_ob->view->app_view_folder;
 
         profiler_set('app_views', $filename, $path );
 
@@ -256,9 +256,9 @@ if ( ! function_exists('_set_view_data'))
 {
   function _set_view_data($data = array())
   {
-		$vi = Ssc::instance();
-		if(isset($vi->_ew->view_data)) $vi->_ew->view_data= array_merge((array)$vi->_ew->view_data, (array)$data);
-		else $vi->_ew->view_data= $data;
+        $_ob = base_register('Empty');
+		if(isset($_ob->view->view_data)) $_ob->view->view_data= array_merge((array)$_ob->view->view_data, (array)$data);
+		else $_ob->view->view_data= $data;
   }
 }
 
@@ -272,7 +272,7 @@ if ( ! function_exists('view_render'))
 {
     function view_render($filenames = array(), $data = '')
     {
-        $vi = Ssc::instance();
+        $_ob = base_register('Empty');
 
         $var = '';
         foreach($filenames as $filename)
@@ -362,9 +362,9 @@ if ( ! function_exists('_load_view'))
 {
     function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
-			  $vi = Ssc::instance();
+	    $_ob = base_register('Empty');
 				_set_view_data($data);
-				$data= $vi->_ew->view_data;
+				$data= $_ob->view->view_data;
 
 				$module_extra= (strpos($filename, '../') !== 0)?'../'.$GLOBALS['d'].DS:'';
         $module_filename= substr($module_extra.$filename, 3);

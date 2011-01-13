@@ -11,25 +11,26 @@ defined('BASE') or exit('Access Denied!');
 */
 Class SessionException extends CommonException {}
 
-if( ! isset($_ses->_sion)) 
+if( ! isset($_ob->session)) 
 {
-    $_ses = Ssc::instance();
-    $_ses->_sion = new stdClass();
-    $_ses->_sion->sess_encrypt_cookie  = FALSE;
-    $_ses->_sion->sess_expiration      = '7200';
-    $_ses->_sion->sess_match_ip        = FALSE;
-    $_ses->_sion->sess_match_useragent = TRUE;
-    $_ses->_sion->sess_cookie_name     = 'ob_session';
-    $_ses->_sion->cookie_prefix        = '';
-    $_ses->_sion->cookie_path          = '';
-    $_ses->_sion->cookie_domain        = '';
-    $_ses->_sion->sess_time_to_update  = 300;
-    $_ses->_sion->encryption_key       = '';
-    $_ses->_sion->flashdata_key        = 'flash';
-    $_ses->_sion->time_reference       = 'time';
-    $_ses->_sion->gc_probability       = 5;
-    $_ses->_sion->sess_id_ttl          = '';
-    $_ses->_sion->userdata             = array();
+    $_ob = base_register('Empty');
+    $_ob->session = new stdClass();
+    
+    $_ob->session->sess_encrypt_cookie  = FALSE;
+    $_ob->session->sess_expiration      = '7200';
+    $_ob->session->sess_match_ip        = FALSE;
+    $_ob->session->sess_match_useragent = TRUE;
+    $_ob->session->sess_cookie_name     = 'ob_session';
+    $_ob->session->cookie_prefix        = '';
+    $_ob->session->cookie_path          = '';
+    $_ob->session->cookie_domain        = '';
+    $_ob->session->sess_time_to_update  = 300;
+    $_ob->session->encryption_key       = '';
+    $_ob->session->flashdata_key        = 'flash';
+    $_ob->session->time_reference       = 'time';
+    $_ob->session->gc_probability       = 5;
+    $_ob->session->sess_id_ttl          = '';
+    $_ob->session->userdata             = array();
 }
  
 /**
@@ -70,6 +71,7 @@ if( ! function_exists('sess_start'))
 
             _sess_start($params);
             $session_start = TRUE;
+            
             return TRUE;
         }
         

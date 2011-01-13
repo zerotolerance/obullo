@@ -25,13 +25,13 @@ Class LangException extends CommonException {}
  * @link        
  */
  
-if( ! isset($_lang->_ng)) 
+if( ! isset($_ob->lang)) 
 {
-    $_la = Ssc::instance();
-    $_la->_ng = new stdClass();
+    $_ob = base_register('Empty');
+    $_ob->lang = new stdClass();
 
-    $_la->_ng->language  = array();
-    $_la->_ng->is_loaded = array();
+    $_ob->lang->language  = array();
+    $_ob->lang->is_loaded = array();
 
     log_me('debug', "Language Helper Initialized");
 }
@@ -50,15 +50,14 @@ if( ! function_exists('lang_load') )
 {
     function lang_load($langfile = '', $idiom = '', $dir = 'base', $return = FALSE)
     {     
-        $_la = Ssc::instance();
-        $ob  = this();
+        $_ob = base_register('Empty');
         
-        if (in_array($langfile, $_la->_ng->is_loaded, TRUE))
+        if (in_array($langfile, this()->lang->is_loaded, TRUE))
         return;  
         
         if ($idiom == '')
         {
-            $deft_lang = $ob->config->item('language');
+            $deft_lang = this()->config->item('language');
             $idiom = ($deft_lang == '') ? 'english' : $deft_lang;
         }
         
@@ -91,8 +90,8 @@ if( ! function_exists('lang_load') )
         if ($return)
         return $lang;
 
-        $_la->_ng->is_loaded[] = $langfile;
-        $_la->_ng->language    = array_merge($_la->_ng->language, $lang);
+        $_ob->lang->is_loaded[] = $langfile;
+        $_ob->lang->language    = array_merge($_ob->lang->language, $lang);
         
         profiler_set('lang_files', $langfile, $langfile);
         unset($lang);
@@ -113,9 +112,9 @@ if( ! function_exists('lang') )
 {
     function lang($item = '')
     {
-        $_la = Ssc::instance();
+        $_ob = base_register('Empty');
         
-        $item = ($item == '' OR ! isset($_la->_ng->language[$item])) ? FALSE : $_la->_ng->language[$item];
+        $item = ($item == '' OR ! isset($_ob->lang->language[$item])) ? FALSE : $_ob->lang->language[$item];
         return $item;
     }
 }

@@ -536,7 +536,7 @@ function is_php($version = '5.0.0')
 */
 function profiler_set($type, $key, $val)
 {
-    Ssc::instance()->profiler_var[$type][$key] = $val;
+    base_register('Empty')->profiler_var[$type][$key] = $val;
 }
 
 /**
@@ -548,11 +548,11 @@ function profiler_set($type, $key, $val)
 */
 function profiler_get($type)
 {
-    $ssc = Ssc::instance();
-
-    if( ! empty($ssc->profiler_var[$type]))
+    $empty = base_register('Empty');
+    
+    if( isset($empty->profiler_var[$type]))
     {
-        return $ssc->profiler_var[$type];
+        return $empty->profiler_var[$type];
     };
 
     return array();

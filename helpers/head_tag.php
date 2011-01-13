@@ -52,13 +52,13 @@ if( ! function_exists('css') )
 
         $link = '<link ';
 
-        $vi = Ssc::instance();   // obullo changes ..
+        $_ob = base_register('Empty');   // obullo changes ..
 
         // When user use view_set_folder('css', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';
-        if( isset($vi->_ew->css_folder{1}) )
+        if( isset($_ob->view->css_folder{1}) )
         {
-            $extra_path = $vi->_ew->css_folder;
+            $extra_path = $_ob->view->css_folder;
         }
 
         if (is_array($href))
@@ -157,13 +157,13 @@ if( ! function_exists('js') )
 
         $link = '<script type="'.$type.'" ';
 
-        $vi = Ssc::instance();   // obullo changes ..
+        $_ob = base_register('Empty');   // obullo changes ..
 
         // When user use view_set_folder('js', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';
-        if( isset($vi->_ew->js_folder{1}) )
+        if( isset($_ob->view->js_folder{1}) )
         {
-            $extra_path = $vi->_ew->js_folder;
+            $extra_path = $_ob->view->js_folder;
         }
         
         if (is_array($src))

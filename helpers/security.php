@@ -28,14 +28,15 @@ defined('BASE') or exit('Access Denied!');
  */
 
 // --------------------------------------------------------------------
-if( ! isset($_secur->_ity)) 
+if( ! isset($_ob->security)) 
 {
-    $_secur = Ssc::instance();
-    $_secur->_ity = new stdClass();
-    $_secur->_ity->xss_hash            = ''; 
+    $_ob = base_register('Empty');
+    
+    $_ob->security = new stdClass();
+    $_ob->security->xss_hash            = ''; 
 
     /* never allowed, string replacement */
-    $_secur->_ity->never_allowed_str   = array(
+    $_ob->security->never_allowed_str   = array(
                                         'document.cookie'   => '[removed]',
                                         'document.write'    => '[removed]',
                                         '.parentNode'       => '[removed]',
@@ -48,7 +49,7 @@ if( ! isset($_secur->_ity))
                                         );
                                     
     /* never allowed, regex replacement */
-    $_secur->_ity->never_allowed_regex = array(
+    $_ob->security->never_allowed_regex = array(
                                         "javascript\s*:"            => '[removed]',
                                         "expression\s*(\(|&\#40;)"  => '[removed]', // CSS and IE
                                         "vbscript\s*:"              => '[removed]', // IE, surprise!
@@ -86,7 +87,7 @@ if( ! function_exists('xss_clean') )
 {
     function xss_clean($str, $is_image = FALSE)
     {
-        $secur = Ssc::instance();
+        $_ob = base_register('Empty');
         /*
         * Is the string an array?
         *
@@ -189,12 +190,12 @@ if( ! function_exists('xss_clean') )
         * Not Allowed Under Any Conditions
         */
 
-        foreach ($secur->_ity->never_allowed_str as $key => $val)
+        foreach ($_ob->security->never_allowed_str as $key => $val)
         {
             $str = str_replace($key, $val, $str);   
         }
 
-        foreach ($secur->_ity->never_allowed_regex as $key => $val)
+        foreach ($_ob->security->never_allowed_regex as $key => $val)
         {
             $str = preg_replace("#".$key."#i", $val, $str);   
         }
@@ -326,12 +327,12 @@ if( ! function_exists('xss_clean') )
         * something got through the above filters
         *
         */
-        foreach ($secur->_ity->never_allowed_str as $key => $val)
+        foreach ($_ob->security->never_allowed_str as $key => $val)
         {
             $str = str_replace($key, $val, $str);   
         }
 
-        foreach ($secur->_ity->never_allowed_regex as $key => $val)
+        foreach ($_ob->security->never_allowed_regex as $key => $val)
         {
             $str = preg_replace("#".$key."#i", $val, $str);
         }
@@ -374,16 +375,16 @@ if( ! function_exists('xss_hash') )
 {
     function xss_hash()
     {
-        $secur = Ssc::instance();
+        $_ob = base_register('Empty');
         
-        if ($secur->_ity->xss_hash == '')
+        if ($_ob->security->xss_hash == '')
         {
             mt_srand();
             
-            $secur->_ity->xss_hash = md5(time() + mt_rand(0, 1999999999));
+            $_ob->security->xss_hash = md5(time() + mt_rand(0, 1999999999));
         }
 
-        return $secur->_ity->xss_hash;
+        return $_ob->security->xss_hash;
     }
 }
 // --------------------------------------------------------------------

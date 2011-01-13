@@ -28,11 +28,12 @@ defined('BASE') or exit('Access Denied!');
  * @link          
  */
  
-if( ! isset($_bench->_mark)) 
+if( ! isset($_ob->benchmark))  // Helper Constructor
 {
-    $_bench = Ssc::instance();
-    $_bench->_mark = new stdClass();
-    $_bench->_mark->marker = array();
+    $_ob = base_register('Empty');
+    
+    $_ob->benchmark = new stdClass();
+    $_ob->benchmark->marker = array();
 
     log_me('debug', "Benchmark Helper Initialized");
 }
@@ -52,9 +53,9 @@ if( ! function_exists('benchmark_mark') )
 {
     function benchmark_mark($name)
     {
-        $_bench = Ssc::instance(); 
+        $_ob = base_register('Empty'); 
         
-        $_bench->_mark->marker[$name] = microtime();
+        $_ob->benchmark->marker[$name] = microtime();
     }
 }
 
@@ -73,25 +74,25 @@ if( ! function_exists('benchmark_elapsed_time') )
 {
     function benchmark_elapsed_time($point1 = '', $point2 = '', $decimals = 4)
     {
-        $_bench = Ssc::instance(); 
+        $_ob = base_register('Empty'); 
         
         if ($point1 == '')
         {
             return '{elapsed_time}';
         }
 
-        if ( ! isset($_bench->_mark->marker[$point1]))
+        if ( ! isset($_ob->benchmark->marker[$point1]))
         {
             return '';
         }
 
-        if ( ! isset($_bench->_mark->marker[$point2]))
+        if ( ! isset($_ob->benchmark->marker[$point2]))
         {
-            $_bench->_mark->marker[$point2] = microtime();
+            $_ob->benchmark->marker[$point2] = microtime();
         }
 
-        list($sm, $ss) = explode(' ', $_bench->_mark->marker[$point1]);
-        list($em, $es) = explode(' ', $_bench->_mark->marker[$point2]);
+        list($sm, $ss) = explode(' ', $_ob->benchmark->marker[$point1]);
+        list($em, $es) = explode(' ', $_ob->benchmark->marker[$point2]);
 
         return number_format(($em + $es) - ($sm + $ss), $decimals);
     }
