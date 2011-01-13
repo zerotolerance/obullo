@@ -1,4 +1,4 @@
-<?php  
+<?php
 defined('BASE') or exit('Access Denied!');
 
 /**
@@ -6,14 +6,14 @@ defined('BASE') or exit('Access Denied!');
  *
  * PHP5 MVC Based Minimalist Software.
  *
- * @package         obullo       
+ * @package         obullo
  * @author          obullo.com
  * @copyright       Ersin Guvenc (c) 2009.
  * @filesource
  * @license
  */
 
-Class UriException extends CommonException {} 
+Class UriException extends CommonException {}
 
  /**
  * URI Class
@@ -23,7 +23,7 @@ Class UriException extends CommonException {}
  * @subpackage  Libraries
  * @category    URI
  * @author      Ersin Guvenc
- * @link        
+ * @link
  */
 Class OB_URI
 {
@@ -33,7 +33,7 @@ Class OB_URI
     public $rsegments   = array();
 
     public $cache_time  = '';  // HMVC library just use this variable.
-    
+
     /**
     * Constructor
     *
@@ -42,19 +42,19 @@ Class OB_URI
     * normally as other classes are.
     *
     * @access    public
-    */        
+    */
     public function __construct()
     {
         log_me('debug', "URI Class Initialized");
     }
-    
-    
+
+
     // --------------------------------------------------------------------
 
     /**
     * When we use HMVC we need to Clean
     * all data.
-    * 
+    *
     * @return  void
     */
     public function clear()
@@ -65,32 +65,32 @@ Class OB_URI
         $this->rsegments  = array();
         $this->cache_time = '';
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
     * We use this function in HMVC library.
-    * 
+    *
     * @param mixed $uri
     */
     public function set_uri_string($uri = '')
-    {    
+    {
         $this->uri_string = $uri;
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
      * Get the URI String
      *
      * @access    private
      * @param     $hvmc  boolean
-     * @return    string                            
-     */    
+     * @return    string
+     */
     public function _fetch_uri_string()
     {
         if($this->uri_string != '') return;
-        
+
         if (strtoupper(config_item('uri_protocol')) == 'AUTO')
         {
             // If the URL has a question mark then it's simplest to just
@@ -102,26 +102,26 @@ Class OB_URI
                 $this->uri_string = key($_GET);
                 return;
             }
-        
+
             // Is there a PATH_INFO variable?
-            // Note: some servers seem to have trouble with getenv() so we'll test it two ways        
-            $path = (isset($_SERVER['PATH_INFO'])) ? $_SERVER['PATH_INFO'] : @getenv('PATH_INFO');            
+            // Note: some servers seem to have trouble with getenv() so we'll test it two ways
+            $path = (isset($_SERVER['PATH_INFO'])) ? $_SERVER['PATH_INFO'] : @getenv('PATH_INFO');
             if (trim($path, '/') != '' && $path != "/".SELF)
             {
                 $this->uri_string = $path;
                 return;
             }
-                    
+
             // No PATH_INFO?... What about QUERY_STRING?
-            $path =  (isset($_SERVER['QUERY_STRING'])) ? $_SERVER['QUERY_STRING'] : @getenv('QUERY_STRING');    
+            $path =  (isset($_SERVER['QUERY_STRING'])) ? $_SERVER['QUERY_STRING'] : @getenv('QUERY_STRING');
             if (trim($path, '/') != '')
             {
                 $this->uri_string = $path;
                 return;
             }
-            
+
             // No QUERY_STRING?... Maybe the ORIG_PATH_INFO variable exists?
-            $path = (isset($_SERVER['ORIG_PATH_INFO'])) ? $_SERVER['ORIG_PATH_INFO'] : @getenv('ORIG_PATH_INFO');    
+            $path = (isset($_SERVER['ORIG_PATH_INFO'])) ? $_SERVER['ORIG_PATH_INFO'] : @getenv('ORIG_PATH_INFO');
             if (trim($path, '/') != '' && $path != "/".SELF)
             {
                 // remove path and script information so we have good URI data
@@ -135,25 +135,25 @@ Class OB_URI
         else
         {
             $uri = strtoupper(config_item('uri_protocol'));
-            
+
             if ($uri == 'REQUEST_URI')
             {
                 $this->uri_string = $this->_parse_request_uri();
                 return;
             }
-            
+
             $this->uri_string = (isset($_SERVER[$uri])) ? $_SERVER[$uri] : @getenv($uri);
         }
-        
+
         // If the URI contains only a slash we'll kill it
         if ($this->uri_string == '/')
         {
             $this->uri_string = '';
-        }        
+        }
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Parse the REQUEST_URI
      *
@@ -163,29 +163,29 @@ Class OB_URI
      *
      * @access    private
      * @return    string
-     */    
+     */
     public function _parse_request_uri()
     {
         if ( ! isset($_SERVER['REQUEST_URI']) OR $_SERVER['REQUEST_URI'] == '')
         {
             return '';
         }
-        
+
         $request_uri = preg_replace("|/(.*)|", "\\1", str_replace("\\", "/", $_SERVER['REQUEST_URI']));
 
         if ($request_uri == '' OR $request_uri == SELF)
         {
             return '';
         }
-        
-        $fc_path = FCPATH.SELF;        
+
+        $fc_path = FCPATH.SELF;
         if (strpos($request_uri, '?') !== FALSE)
         {
             $fc_path .= '?';
         }
-        
+
         $parsed_uri = explode("/", $request_uri);
-                
+
         $i = 0;
         foreach(explode("/", $fc_path) as $segment)
         {
@@ -194,9 +194,9 @@ Class OB_URI
                 $i++;
             }
         }
-        
+
         $parsed_uri = implode("/", array_slice($parsed_uri, $i));
-        
+
         if ($parsed_uri != '')
         {
             $parsed_uri = '/'.$parsed_uri;
@@ -206,28 +206,28 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Filter segments for malicious characters
      *
      * @access   private
      * @param    string
      * @return   string
-     */    
+     */
     public function _filter_uri($str)
     {
         if ($str != '' && config_item('permitted_uri_chars') != '' && config_item('enable_query_strings') == FALSE)
         {
-            // preg_quote() in PHP 5.3 escapes -, so the str_replace() and 
+            // preg_quote() in PHP 5.3 escapes -, so the str_replace() and
             // addition of - to preg_quote() is to maintain backwards
-            // compatibility as many are unaware of how characters in the permitted_uri_chars 
+            // compatibility as many are unaware of how characters in the permitted_uri_chars
             // will be parsed as a regex pattern
             if ( ! preg_match("|^[".str_replace(array('\\-', '\-'), '-', preg_quote(config_item('permitted_uri_chars'), '-'))."]+$|i", $str))
             {
                 show_error('The URI you submitted has disallowed characters.', 400);
             }
         }
-        
+
         // Convert programatic characters to entities
         $bad    = array('$',         '(',         ')',       '%28',    '%29');
         $good   = array('&#36;',    '&#40;',    '&#41;',    '&#40;',   '&#41;');
@@ -236,13 +236,13 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Remove the suffix from the URL if needed
      *
      * @access    private
      * @return    void
-     */    
+     */
     public function _remove_url_suffix()
     {
         if  (config_item('url_suffix') != "")
@@ -250,31 +250,31 @@ Class OB_URI
             $this->uri_string = preg_replace("|".preg_quote(config_item('url_suffix'))."$|", "", $this->uri_string);
         }
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
      * Explode the URI Segments. The individual segments will
-     * be stored in the $this->segments array.    
+     * be stored in the $this->segments array.
      *
      * @access    private
      * @return    void
-     */        
+     */
     public function _explode_segments()
     {
         foreach(explode("/", preg_replace("|/*(.+?)/*$|", "\\1", $this->uri_string)) as $val)
         {
             // Filter segments for security
             $val = trim($this->_filter_uri($val));
-            
+
             if ($val != '')
             {
                 $this->segments[] = $val;
             }
         }
     }
-    
-    // --------------------------------------------------------------------    
+
+    // --------------------------------------------------------------------
     /**
      * Re-index Segments
      *
@@ -285,17 +285,24 @@ Class OB_URI
      *
      * @access    private
      * @return    void
-     */    
+     */
     public function _reindex_segments()
     {
-        array_unshift($this->segments, NULL);
-        array_unshift($this->rsegments, NULL);
-        unset($this->segments[0]);
-        unset($this->rsegments[0]);
-    }    
-    
+      /////////////
+      //
+      // THIS SEEMS TO BREAK A LOT OF STUFF
+      // I REMOVED IT AND EVERYTHING WORKS MUCH BETTER
+      // IN ROUTES.
+      //
+      ////////////
+        // array_unshift($this->segments, NULL);
+        // array_unshift($this->rsegments, NULL);
+        // unset($this->segments[0]);
+        // unset($this->rsegments[0]);
+    }
+
     // --------------------------------------------------------------------
-    
+
     /**
      * Fetch a URI Segment
      *
@@ -312,7 +319,7 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Fetch a URI "routed" Segment
      *
@@ -331,7 +338,7 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Generate a key value pair from the URI string
      *
@@ -357,7 +364,7 @@ Class OB_URI
     {
          return $this->_uri_to_assoc($n, $default, 'segment');
     }
-    
+
     /**
      * Identical to above only it uses the re-routed segment array
      *
@@ -368,7 +375,7 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Generate a key value pair from the URI string or Re-routed URI string
      *
@@ -390,29 +397,29 @@ Class OB_URI
             $total_segments = 'total_rsegments';
             $segment_array = 'rsegment_array';
         }
-        
+
         if ( ! is_numeric($n))
         {
             return $default;
         }
-    
+
         if (isset($this->keyval[$n]))
         {
             return $this->keyval[$n];
         }
-    
+
         if ($this->$total_segments() < $n)
         {
             if (count($default) == 0)
             {
                 return array();
             }
-            
+
             $retval = array();
             foreach ($default as $val)
             {
                 $retval[$val] = FALSE;
-            }        
+            }
             return $retval;
         }
 
@@ -432,7 +439,7 @@ Class OB_URI
                 $retval[$seg] = FALSE;
                 $lastval = $seg;
             }
-        
+
             $i++;
         }
 
@@ -461,21 +468,21 @@ Class OB_URI
      * @access   public
      * @param    array    an associative array of key/values
      * @return   array
-     */    
+     */
     public function assoc_to_uri($array)
-    {    
+    {
         $temp = array();
         foreach ((array)$array as $key => $val)
         {
             $temp[] = $key;
             $temp[] = $val;
         }
-        
+
         return implode('/', $temp);
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Fetch a URI Segment and add a trailing slash
      *
@@ -490,7 +497,7 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Fetch a URI Segment and add a trailing slash
      *
@@ -503,9 +510,9 @@ Class OB_URI
     {
         return $this->_slash_segment($n, $where, 'rsegment');
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
      * Fetch a URI Segment and add a trailing slash - helper function
      *
@@ -516,7 +523,7 @@ Class OB_URI
      * @return   string
      */
     public function _slash_segment($n, $where = 'trailing', $which = 'segment')
-    {    
+    {
         if ($where == 'trailing')
         {
             $trailing    = '/';
@@ -534,9 +541,9 @@ Class OB_URI
         }
         return $leading.$this->$which($n).$trailing;
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
      * Segment Array
      *
@@ -549,7 +556,7 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Routed Segment Array
      *
@@ -560,9 +567,9 @@ Class OB_URI
     {
         return $this->rsegments;
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
      * Total number of segments
      *
@@ -575,7 +582,7 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Total number of routed segments
      *
@@ -586,9 +593,9 @@ Class OB_URI
     {
         return count($this->rsegments);
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
      * Fetch the entire URI string
      *
@@ -600,9 +607,9 @@ Class OB_URI
         return $this->uri_string;
     }
 
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
      * Fetch the entire Re-routed URI string
      *
