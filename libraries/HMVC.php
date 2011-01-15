@@ -85,7 +85,7 @@ Class OB_HMVC
     * @param     $cache_time integer
     * @return    void                           
     */    
-    public function hmvc_request($hmvc_uri = '', $cache_time = '')
+    public function hmvc_request($hmvc_uri = '', $cache_time = 0)
     {
         $this->_set_conn_string($hmvc_uri);
         

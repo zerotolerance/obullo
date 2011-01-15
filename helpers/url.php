@@ -100,23 +100,17 @@ if ( ! function_exists('current_url'))
 // ------------------------------------------------------------------------
 
 /**
-* Get current directory
+* Get current module name
 * 
 * @access   public
 * @param    string uri
 * @return   string
 */
-if ( ! function_exists('this_dir'))
+if ( ! function_exists('module'))
 {
-    function this_dir($uri = '')
-    {
-        $separator = '';
-        if($uri != '')
-        {
-            $separator = ($uri{0} == '/') ? '' : '/';
-        }
-        
-        return (string)$GLOBALS['d']. $separator . $uri;
+    function module($uri = '')
+    {        
+        return (string)$GLOBALS['d'] .'/'. ltrim($uri, '/');
     }
 }
 // ------------------------------------------------------------------------ 
@@ -170,7 +164,7 @@ if ( ! function_exists('anchor'))
             $attributes = _parse_attributes($attributes);
         }
         
-        if($sharp)
+        if($sharp == TRUE AND isset($sharp_uri[1]))
         {
             $site_url = $site_url.'#'.$sharp_uri[1];  // Obullo changes..
         }
@@ -539,7 +533,7 @@ if ( ! function_exists('redirect'))
             
             $uri = this()->config->site_url($uri, $suffix);
             
-            if($sharp) 
+            if($sharp == TRUE AND isset($sharp_uri[1])) 
             {
                 $uri = $uri.'#'.$sharp_uri[1];  // Obullo changes..
             }   

@@ -542,7 +542,7 @@ Class OB_Router {
             $params = $_POST;
         }
     
-        return hmvc_request($method, $uri, array_merge($params, $_REQUEST))->no_loop($no_loop)->exec()->response();
+        return hmvc_request($method, $uri, $params)->no_loop($no_loop)->exec()->response();
     }
     
 }

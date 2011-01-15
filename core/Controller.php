@@ -40,7 +40,7 @@ define('OBULLO_VERSION', '1.0.1');
  * @version         0.1
  * @version         0.2 added extends App_controller
  */
-Class Controller extends App_controller {
+Class Controller extends App_Controller {
 
     private static $instance;
     

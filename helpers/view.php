@@ -211,8 +211,16 @@ if ( ! function_exists('view'))
         { 
             $return = TRUE;
         }    
-
-        $path =  DIR .$GLOBALS['d']. DS .'views'. $_ob->view->view_folder;
+        
+        $module_path = DIR .$GLOBALS['d']. DS .'views'. $_ob->view->view_folder;
+        $app_path    = APP .'views'. $_ob->view->view_folder;
+        
+        $path = $module_path;
+        
+        if(file_exists($app_path. $path . $filename .EXT))
+        {
+            $path = $app_path;
+        }
 
         profiler_set('local_views', $filename, $path . $filename .EXT);
 
@@ -223,8 +231,8 @@ if ( ! function_exists('view'))
 // ------------------------------------------------------------------------
 
 /**
-* Load global view temp check if it exist
-* in modules/views otherwise load it from
+* Load layouts file check if it exist
+* in modules/layouts otherwise load it from
 * application/layouts directory.
 *
 * @author CJ Lazell
@@ -245,9 +253,17 @@ if ( ! function_exists('view_layout'))
             $return = TRUE;     
         }  
         
-        $path = APP .'layouts'. $_ob->view->layout_folder;
-
-        profiler_set('layouts', $filename, $path);
+        $module_path = DIR .$GLOBALS['d']. DS .'layouts'. $_ob->view->layout_folder;
+        $app_path    = APP .'layouts'. $_ob->view->layout_folder;
+        
+        $path = $app_path;
+        
+        if(file_exists($module_path. $path . $filename .EXT))
+        {
+            $path = $module_path;
+        }
+        
+        profiler_set('layouts', $filename, $path . $filename .EXT);
 
         return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
     }
@@ -356,7 +372,7 @@ if ( ! function_exists('_load_script'))
 
         log_me('debug', 'Script file loaded: '.$path . $filename . EXT);
 
-        profiler_set('scripts', $filename, $filename);
+        profiler_set('scripts', $filename, $path . $filename . EXT);
 
         return "\n".$content;
     }
@@ -391,12 +407,12 @@ if ( ! function_exists('_load_view'))
         
 		$data = $_ob->view->view_data;
 
-		$module_extra    = (strpos($filename, '../') !== 0)?'../'.$GLOBALS['d'].DS:'';
+		$module_extra    = (strpos($filename, '../') !== 0) ? '../'.$GLOBALS['d']. DS : '';
         $module_filename = substr($module_extra.$filename, 3);
 		$module_path     = DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $module_filename);
 		$module_filename = preg_replace('/^(\w+\/)/', '', $module_filename);
 
-		$is_module_file= file_exists($module_path . $module_filename . EXT);
+		$is_module_file = file_exists($module_path . $module_filename . EXT);
         
 		if($is_module_file)
 		{
@@ -458,6 +474,47 @@ if ( ! function_exists('_load_view'))
     }
 }
 
+/*
+
+function _view_load_file($file_url, $folder = 'views')
+{
+    $file_url = strtolower($file_url);
+            
+    if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
+    {
+        $paths      = explode('/', substr($file_url, 3));
+        $filename   = array_pop($paths);          // get file name
+        $modulename = array_shift($paths);        // get module name
+    }
+    else    // if current modulename/file
+    {
+        $filename = $file_url;          
+        $paths    = array();
+        if( strpos($filename, '/') !== FALSE)
+        {
+            $paths      = explode('/', $filename);
+            $filename   = array_pop($paths);
+        }
+
+        $modulename = $GLOBALS['d'];
+    }
+
+    $sub_path   = '';
+    if( count($paths) > 0)
+    {
+        $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
+    }
+
+    if($extra_path != '')
+    {
+        $extra_path = trim($extra_path, '/').'/';
+    }
+
+    $public_url    = $ob->config->public_url('', true) .str_replace(DS, '/', trim(DIR, DS)). '/';
+    $public_folder = trim($ob->config->item('public_folder'), '/');
+}
+
+*/
 // ------------------------------------------------------------------------
 
 /**

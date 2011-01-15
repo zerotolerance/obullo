@@ -579,6 +579,90 @@ if( ! function_exists('_get_public_path') )
     function _get_public_path($file_url, $extra_path = '')
     {
         $ob = this();
+        $file_url = strtolower($file_url);
+        
+        // if ../modulename/public folder request
+
+        if(strpos($file_url, '../') === 0)
+        {
+            $paths      = explode('/', substr($file_url, 3));
+            $filename   = array_pop($paths);          // get file name
+            $modulename = array_shift($paths);        // get module name
+        }
+        else    // if current modulename/public request
+        {
+            $filename = $file_url;          
+            $paths    = array();
+            if( strpos($filename, '/') !== FALSE)
+            {
+                $paths      = explode('/', $filename);
+                $filename   = array_pop($paths);
+            }
+
+            $modulename = $GLOBALS['d'];
+        }
+
+        $sub_path   = '';
+        if( count($paths) > 0)
+        {
+            $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
+        }
+
+        $extension = substr(strrchr($filename, '.'), 1);
+        if($extension == FALSE) 
+        {
+            return FALSE;
+        }
+
+        $folder = $extension . '/';
+        
+        if($extra_path != '')
+        {
+            $extra_path = trim($extra_path, '/').'/';
+            $folder = '';
+        }
+
+        $public_url    = $ob->config->public_url('', true) .str_replace(DS, '/', trim(DIR, DS)). '/';
+        $public_folder = trim($ob->config->item('public_folder'), '/');
+
+        // if config public_folder = 'public/site' just grab the 'public' word
+        // so when managing multi applications user don't need to divide public folder files.
+
+        if( strpos($public_folder, '/') !== FALSE)
+        {
+            $public_folder = current(explode('/', $public_folder));
+        }
+
+        // example
+        // .site/modules/welcome/public/css/welcome.css    (public/{site removed}/css/welcome.css)
+        // .admin/modules/welcome/public/css/welcome.css
+
+        $pure_path  = $modulename . '/'. $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+        $full_path  = $public_url . $pure_path;
+
+        // if file located in another server fetch it from outside /public folder.
+        if(strpos($ob->config->public_url(), '://') !== FALSE)
+        {
+            return $ob->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+        }
+        
+        // if file not exists in current module folder fetch it from outside /public folder. 
+        if( ! file_exists(DIR . str_replace('/', DS, trim($pure_path, '/'))) )
+        {
+            return $ob->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+        }
+        
+        return $full_path;
+    }
+}
+
+
+/* BACKUP !!!!!!!!!!
+if( ! function_exists('_get_public_path') )
+{
+    function _get_public_path($file_url, $extra_path = '')
+    {
+        $ob = this();
 
         $extra_path = ( $extra_path == '') ? '' : $extra_path . '/';
 
@@ -658,7 +742,7 @@ if( ! function_exists('_get_public_path') )
     }
 
 }
-
+*/
 // END Common.php File
 
 /* End of file Common.php */

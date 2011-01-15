@@ -99,6 +99,8 @@ Class OB_Profiler {
     {
         $requests = profiler_get('hmvc_requests');
         
+        if( ! isset($requests['request_time'])) return FALSE;
+        
         // Let's determine which databases are currently connected to         
         if ($requests['request_time'] > 0)
         {    
@@ -585,6 +587,7 @@ Class OB_Profiler {
     public function run()
     {
         $output  = "<div id=\"obullo_profiler\">";
+        $output .= $this->_compile_queries();
         $output .= $this->_compile_uri_string();
         $output .= $this->_compile_controller_info();
         $output .= $this->_compile_memory_usage();
@@ -593,7 +596,6 @@ Class OB_Profiler {
         $output .= $this->_compile_get();
         $output .= $this->_compile_post();
         $output .= $this->_compile_loaded_files();
-        $output .= $this->_compile_queries();
         $output .= '</div>';
 
         return $output;
