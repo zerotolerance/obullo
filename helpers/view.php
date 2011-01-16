@@ -266,7 +266,7 @@ if ( ! function_exists('view_layout'))
             $return = TRUE;     
         }  
         
-        $file_info = _view_load_file($file_url, 'layouts', $extra_path);
+        $file_info = _view_load_file($file_url, 'views', $extra_path);
         
         profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
