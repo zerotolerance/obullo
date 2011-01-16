@@ -526,8 +526,8 @@ if( ! function_exists('_view_load_file'))
             $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
         }
         
-        $path        = APP .$folder. DS .$extra_path;
-        $module_path = DIR .$modulename. DS .$folder. DS .$extra_path;
+        $path        = APP .$folder. DS .$sub_path .$extra_path;
+        $module_path = DIR .$modulename. DS .$folder. DS .$sub_path. $extra_path;
         
         if(file_exists($module_path. $filename. EXT))  // first check module path
         {
