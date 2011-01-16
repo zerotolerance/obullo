@@ -66,8 +66,15 @@ Class OB_Config
         {
             return TRUE;
         }
+        
+        $path = APP .'config'. DS .$file. EXT;
+        
+        if(file_exists(DIR. $GLOBALS['d']. DS .'config'. DS .$file. EXT))  // module support ..
+        {
+            $path = DIR. $GLOBALS['d']. DS .'config'. DS .$file. EXT;
+        }
 
-        if ( ! file_exists(APP .'config'. DS .$file. EXT))
+        if ( ! file_exists($path))
         {
             if ($fail_gracefully === TRUE)
             {
@@ -77,7 +84,7 @@ Class OB_Config
             throw new ConfigException('The configuration file '.$file. EXT .' does not exist.');
         }
     
-        include(APP .'config'. DS .$file. EXT);
+        include($path);
 
         if ( ! isset($config) OR ! is_array($config))
         {

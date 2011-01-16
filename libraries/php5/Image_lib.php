@@ -1514,7 +1514,7 @@ Class image_lib_CORE implements PHP5_Library {
      */
     public function set_error($msg)
     {
-        lang_load('imglib');
+        lang_load('imglib', '', 'base');
 
         if (is_array($msg))
         {

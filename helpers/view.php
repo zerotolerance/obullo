@@ -36,10 +36,11 @@ if( ! isset($_ob->view))  // Helper Constructror
     $_ob = base_register('Empty');
     $_ob->view = new stdClass();
 
-    $_ob->view->view_folder      = DS. '';
-    $_ob->view->layout_folder    = DS. '';
+    $_ob->view->view_folder      = DS .'';
+    $_ob->view->layout_folder    = DS .'';
     $_ob->view->css_folder       = '/';
     $_ob->view->img_folder       = '/';
+    $_ob->view->script_folder    = DS .'';
 
     $_ob->view->view_var         = array();
     $_ob->view->layout_name      = '';
@@ -49,6 +50,15 @@ if( ! isset($_ob->view))  // Helper Constructror
 
 // ------------------------------------------------------------------------
 
+/**
+* Create view variables for layouts
+* 
+* @param string $key
+* @param string $val
+* @param boolean $use_layout
+* @param array $layout_data
+* @return  string | NULL
+*/
 if ( ! function_exists('view_var'))
 {
     function view_var($key, $val = '', $use_layout = FALSE, $layout_data = array())
@@ -79,6 +89,8 @@ if ( ! function_exists('view_var'))
         return;
     }
 }
+
+// ------------------------------------------------------------------------
 
 if ( ! function_exists('view_array'))
 {
@@ -151,18 +163,17 @@ if ( ! function_exists('view_set_folder'))
     function view_set_folder($func = 'view', $folder = '')
     {
         $_ob = base_register('Empty');
-        $folder_path = empty($folder) ? DS : $folder. DS;
 
         switch ($func)
         {
            case 'view':
-             $_ob->view->view_folder     = DS. $folder_path;
+             $_ob->view->view_folder     = $folder;
 
              log_me('debug', "View() Function Paths Changed");
              break;
 
            case 'view_layout':
-             $_ob->view->layout_folder   = DS. $folder_path;
+             $_ob->view->layout_folder   = $folder;
 
              log_me('debug', "View_layout() Function Paths Changed");
              break;
@@ -184,8 +195,14 @@ if ( ! function_exists('view_set_folder'))
 
              log_me('debug', "Img() Function Paths Changed");
              break;
-        }
+             
+           case 'script':
+             $_ob->view->script_folder   = $folder;
 
+             log_me('debug', "Script() Function Paths Changed");
+             break;
+        }
+        
         return TRUE;
     }
 }
@@ -202,29 +219,23 @@ if ( ! function_exists('view_set_folder'))
 */
 if ( ! function_exists('view'))
 {
-    function view($filename, $data = '', $string = TRUE)
+    function view($file_url, $data = '', $string = TRUE)
     {
         $_ob = base_register('Empty');
         
-        $return = FALSE;
+        $return     = FALSE;
+        $extra_path = '';
         if(isset($_ob->view->view_folder{1})) // if view folder changed don't show errors ..
         { 
             $return = TRUE;
+            $extra_path = $_ob->view->view_folder;
         }    
-        
-        $module_path = DIR .$GLOBALS['d']. DS .'views'. $_ob->view->view_folder;
-        $app_path    = APP .'views'. $_ob->view->view_folder;
-        
-        $path = $module_path;
-        
-        if(file_exists($app_path. $path . $filename .EXT))
-        {
-            $path = $app_path;
-        }
 
-        profiler_set('local_views', $filename, $path . $filename .EXT);
+        $file_info = _view_load_file($file_url, 'views', $extra_path);
+        
+        profiler_set('views', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
+        return _load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
     }
 }
 
@@ -243,44 +254,38 @@ if ( ! function_exists('view'))
 */
 if ( ! function_exists('view_layout'))
 {
-    function view_layout($filename, $data = '', $string = FALSE)
+    function view_layout($file_url, $data = '', $string = FALSE)
     {
         $_ob = base_register('Empty');
         
-        $return = FALSE;
-        if(isset($_ob->view->layout_folder{1})) // if view_layout folder changed don't show errors ..
+        $return     = FALSE;
+        $extra_path = '';
+        if(isset($_ob->view->layout_folder{1}))  // if view_layout folder changed don't show errors ..
         { 
+            $extra_path = $_ob->view->layout_folder;
             $return = TRUE;     
         }  
         
-        $module_path = DIR .$GLOBALS['d']. DS .'layouts'. $_ob->view->layout_folder;
-        $app_path    = APP .'layouts'. $_ob->view->layout_folder;
+        $file_info = _view_load_file($file_url, 'layouts', $extra_path);
         
-        $path = $app_path;
-        
-        if(file_exists($module_path. $path . $filename .EXT))
-        {
-            $path = $module_path;
-        }
-        
-        profiler_set('layouts', $filename, $path . $filename .EXT);
+        profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return _load_view($path, $filename, $data, $string, $return, __FUNCTION__);
+        return _load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
     }
 }
 
 // ------------------------------------------------------------------------
 
 /**
- * _set_view_data
- *
- * Enables you to set data that is persistent in all views
- *
- * @author CJ Lazell
- * @param array $data
- * @access public
- * @return void
- */
+* _set_view_data
+*
+* Enables you to set data that is persistent in all views
+*
+* @author CJ Lazell
+* @param array $data
+* @access public
+* @return void
+*/
 
 if ( ! function_exists('_set_view_data'))
 {
@@ -326,55 +331,62 @@ if ( ! function_exists('view_render'))
 // ------------------------------------------------------------------------
 
 /**
-* Load Java script files externally
-* like fetch view files as string
+* Load inline script file.
 *
-* @author   Ersin Guvenc
-* @access   private
-* @param    string  $path
-* @param    string  $filename
-* @param    array   $data
-* @version  0.1
-* @version  0.2 added empty $data
-* @version  0.3 added short_open_tag support
-* @param    array  $data
+* @param string $file_url
+* @param array  $data
 */
-if ( ! function_exists('_load_script'))
+if( ! function_exists('script') )
 {
-    function _load_script($path, $filename, $data = '')
+    function script($file_url = '', $data = '')
     {
-        if( empty($data) ) $data = array();
+        $_ob = base_register('Empty');
+        
+        $return     = FALSE;
+        $extra_path = '';
+        if(isset($_ob->view->script_folder{1}))  
+        { 
+            $extra_path = $_ob->view->script_folder;
+            $return = TRUE;
+        }  
+        
+        $file_info = _view_load_file($file_url, 'scripts', $extra_path);
+        
+        profiler_set('scripts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        if ( ! file_exists($path . $filename . EXT) )
-        {
-            throw new ViewException('Unable locate the script file: '. $path . $filename . EXT);
-        }
+        return _load_view($file_info['path'], $file_info['filename'], $data, TRUE, $return, __FUNCTION__);
+    }
+}
+// ------------------------------------------------------------------------
 
-        $data = _ob_object_to_array($data);
+/**
+* @deprecated !!!
+*/
+if( ! function_exists('script_app') )
+{
+    function script_app($filename = '', $data = '')
+    {
+        return script($filename, $data);
+    }
+}
+// ------------------------------------------------------------------------
 
-        if(sizeof($data) > 0) { extract($data, EXTR_SKIP); }
+/**
+* Load inline script file from
+* base folder.
+*
+* @param string $filename
+* @param array  $data
+*/
+if( ! function_exists('script_base') )
+{
+    function script_base($filename = '', $data = '')
+    {
+        $file_info = _view_load_file($filename, 'scripts', '', TRUE);
 
-        ob_start();
+        profiler_set('scripts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        // Short open tag support.
-        if ((bool) @ini_get('short_open_tag') === FALSE AND config_item('rewrite_short_tags') == TRUE)
-        {
-            echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($path.$filename.EXT))));
-        }
-        else
-        {
-            include($path . $filename . EXT);
-        }
-
-        $content = ob_get_contents();
-
-        ob_end_clean();
-
-        log_me('debug', 'Script file loaded: '.$path . $filename . EXT);
-
-        profiler_set('scripts', $filename, $path . $filename . EXT);
-
-        return "\n".$content;
+        return _load_view($file_info['path'], $file_info['filename'], $data, TRUE, FALSE, 'script');
     }
 }
 
@@ -407,19 +419,174 @@ if ( ! function_exists('_load_view'))
         
 		$data = $_ob->view->view_data;
 
-		$module_extra    = (strpos($filename, '../') !== 0) ? '../'.$GLOBALS['d']. DS : '';
-        $module_filename = substr($module_extra.$filename, 3);
-		$module_path     = DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $module_filename);
-		$module_filename = preg_replace('/^(\w+\/)/', '', $module_filename);
+        if ( ! file_exists($path . $filename . EXT) )
+        {
+            if($return)
+            {
+                log_me('debug', ucfirst($func).' file failed gracefully: '. $path . $filename . EXT);
 
-		$is_module_file = file_exists($module_path . $module_filename . EXT);
+                return;     // fail gracefully for different interfaces ..
+                            // iphone, blackberry etc..
+            }
+
+            throw new ViewException('Unable locate the '.$func.' file: '. $filename . EXT);
+        }
+				
+        if( empty($data) ) $data = array();
+
+
+        $data = _ob_object_to_array($data);
+
+        if(sizeof($data) > 0) { extract($data, EXTR_SKIP); }
+
+        ob_start();
+
+        // If the PHP installation does not support short tags we'll
+        // do a little string replacement, changing the short tags
+        // to standard PHP echo statements.
+
+        if ((bool) @ini_get('short_open_tag') === FALSE AND config_item('rewrite_short_tags') == TRUE)
+        {
+            echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($path.$filename. EXT))));
+        }
+        else
+        {
+            include($path . $filename . EXT);
+        }
+
+        log_me('debug', ucfirst($func).' file loaded: '.$path . $filename . EXT);
+
+        if($string === TRUE)
+        {
+            $content = ob_get_contents();
+            @ob_end_clean();
+
+            return $content;
+        }
+
+        // Set Global views inside to Output Class for caching functionality..
+        base_register('Output')->append_output(ob_get_contents());
+
+        @ob_end_clean();
+
+        return;
+
+    }
+}
+
+// ------------------------------------------------------------------------
+
+/**
+ * Common file loader for all view files.
+ * 
+ * @access  private
+ * @param   string $file_url
+ * @param   string $folder
+ * @param   string $extra_path
+ * @return  array
+ */
+if( ! function_exists('_view_load_file')) 
+{
+    function _view_load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE)
+    {
+        if($base)  // if  /obullo/scripts
+        {
+            return array('filename' => $file_url, 'path' => BASE .$folder. DS);
+        }
         
-		if($is_module_file)
-		{
-			$path     = $module_path;
-			$filename = $module_filename;
-		}
-		elseif ( ! file_exists($path . $filename . EXT) )
+        $file_url = strtolower($file_url);
+
+        if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
+        {
+            $paths      = explode('/', substr($file_url, 3));
+            $filename   = array_pop($paths);          // get file name
+            $modulename = array_shift($paths);        // get module name
+        }
+        else    // if current modulename/file
+        {
+            $filename = $file_url;          
+            $paths    = array();
+            if( strpos($filename, '/') !== FALSE)
+            {
+                $paths      = explode('/', $filename);
+                $filename   = array_pop($paths);
+            }
+
+            $modulename = $GLOBALS['d'];
+        }
+
+        $sub_path   = '';
+        if( count($paths) > 0)
+        {
+            $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
+        }
+
+        if($extra_path != '')
+        {
+            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
+        }
+        
+        $path        = APP .$folder. DS .$extra_path;
+        $module_path = DIR .$modulename. DS .$folder. DS .$extra_path;
+        
+        if(file_exists($module_path. $filename. EXT))  // first check module path
+        {
+            $path = $module_path;
+        }
+      
+        return array('filename' => $filename, 'path' => $path);
+    }
+
+}
+
+// ------------------------------------------------------------------------
+
+/**
+* Object to Array
+*
+* Takes an object as input and converts the class variables to array key/vals
+*
+* @access   private
+* @param    object
+* @return   array
+*/
+if ( ! function_exists('_ob_object_to_array'))
+{
+    function _ob_object_to_array($object)
+    {
+        return (is_object($object)) ? get_object_vars($object) : $object;
+    }
+}
+
+/* End of file view.php */
+/* Location: ./obullo/helpers/view.php */
+
+/**
+*  
+* BACKUP !!!
+* 
+* 
+*    function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
+    {
+        $_ob = base_register('Empty');
+        
+        _set_view_data($data);
+        
+        $data = $_ob->view->view_data;
+
+        $module_extra    = (strpos($filename, '../') !== 0) ? '../'.$GLOBALS['d']. DS : '';
+        $module_filename = substr($module_extra.$filename, 3);
+        $module_path     = DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $module_filename);
+        $module_filename = preg_replace('/^(\w+\/)/', '', $module_filename);
+
+        $is_module_file = file_exists($module_path . $module_filename . EXT);
+        
+        if($is_module_file)
+        {
+            $path     = $module_path;
+            $filename = $module_filename;
+        }
+        elseif ( ! file_exists($path . $filename . EXT) )
         {
             if($return)
             {
@@ -431,7 +598,7 @@ if ( ! function_exists('_load_view'))
 
             throw new ViewException('Unable locate the view file: '. $filename . EXT);
         }
-				
+                
         if( empty($data) ) $data = array();
 
 
@@ -472,67 +639,4 @@ if ( ! function_exists('_load_view'))
         return;
 
     }
-}
-
-/*
-
-function _view_load_file($file_url, $folder = 'views')
-{
-    $file_url = strtolower($file_url);
-            
-    if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
-    {
-        $paths      = explode('/', substr($file_url, 3));
-        $filename   = array_pop($paths);          // get file name
-        $modulename = array_shift($paths);        // get module name
-    }
-    else    // if current modulename/file
-    {
-        $filename = $file_url;          
-        $paths    = array();
-        if( strpos($filename, '/') !== FALSE)
-        {
-            $paths      = explode('/', $filename);
-            $filename   = array_pop($paths);
-        }
-
-        $modulename = $GLOBALS['d'];
-    }
-
-    $sub_path   = '';
-    if( count($paths) > 0)
-    {
-        $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
-    }
-
-    if($extra_path != '')
-    {
-        $extra_path = trim($extra_path, '/').'/';
-    }
-
-    $public_url    = $ob->config->public_url('', true) .str_replace(DS, '/', trim(DIR, DS)). '/';
-    $public_folder = trim($ob->config->item('public_folder'), '/');
-}
-
 */
-// ------------------------------------------------------------------------
-
-/**
-* Object to Array
-*
-* Takes an object as input and converts the class variables to array key/vals
-*
-* @access   private
-* @param    object
-* @return   array
-*/
-if ( ! function_exists('_ob_object_to_array'))
-{
-    function _ob_object_to_array($object)
-    {
-        return (is_object($object)) ? get_object_vars($object) : $object;
-    }
-}
-
-/* End of file view.php */
-/* Location: ./obullo/helpers/view.php */

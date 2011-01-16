@@ -872,7 +872,7 @@ Class upload_CORE implements PHP5_Library {
      */    
     public function set_error($msg)
     {  
-        lang_load('upload');
+        lang_load('upload', '', 'base');
         
         if (is_array($msg))
         {

@@ -144,8 +144,6 @@ Class loader {
 
         $class_var = '';
 
-        // print_r($data); exit;
-
         if( file_exists($data['file']))
         {
             require_once($data['file']);
@@ -352,6 +350,11 @@ Class loader {
     // --------------------------------------------------------------------
 
     /**
+    * About App_ prefix we need to use it because of 
+    * it prevent filename collisions in some loader functions.
+    */
+    
+    /**
     * loader::app_helper();
     *
     * loader::app_helper('subfolder/helper_name')  local sub folder load
@@ -490,26 +493,31 @@ Class loader {
 
     // --------------------------------------------------------------------
 
-    public static function lang($file, $return = FALSE)
+    public static function lang($file, $folder = '', $return = FALSE)
     {
-        lang_load($file, '', 'local', $return);
+        lang_load($file, $folder, NULL, $return);
     }
 
     // --------------------------------------------------------------------
 
-
+    /**
+    * @deprecated !!
+    */
+    /*
     public static function app_lang($file = '', $folder = '', $return = FALSE)
     {
         lang_load($file, $folder, 'global', $return);
     }
+    */
 
     // ------------------------------------------------------------------
-
 
     public static function base_lang($file = '', $folder = '', $return = FALSE)
     {
         lang_load($file, $folder, 'base' ,$return);
     }
+    
+    // ------------------------------------------------------------------
 
     public static function ob_lang($file = '', $folder = '', $return = FALSE)
     {
@@ -603,7 +611,7 @@ Class loader {
             $sub_path   = '';
             if( count($paths) > 0)
             {
-                $sub_path   = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
+                $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
 
             $file = DIR . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;

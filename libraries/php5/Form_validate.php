@@ -324,7 +324,7 @@ Class form_validate_CORE implements PHP5_Library {
         }
     
         // Load the language file containing error messages
-        lang_load('form_validate');
+        lang_load('form_validate', '', 'base');
                             
         // Cycle through the rules for each field, match the 
         // corresponding $_POST item and test for errors

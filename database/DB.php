@@ -91,7 +91,7 @@ Class OB_DB extends OB_DBAc_sw {
     */
     public function pdo_connect($dsn, $user = NULL, $pass = NULL, $options = NULL)
     {
-        lang_load('db');
+        lang_load('db', '', 'base');
 
         $this->_conn = new PDO($dsn, $user, $pass, $options);
 

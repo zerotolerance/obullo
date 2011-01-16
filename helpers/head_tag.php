@@ -218,55 +218,6 @@ if( ! function_exists('js') )
 // ------------------------------------------------------------------------
 
 /**
-* Load inline script file from
-* local folder.
-*
-* @param string $filename
-* @param array  $data
-*/
-if( ! function_exists('script') )
-{
-    function script($filename = '', $data = '')
-    {
-        return _load_script(DIR .$GLOBALS['d']. DS .'scripts'. DS, $filename, $data);
-    }
-}
-// ------------------------------------------------------------------------
-
-/**
-* Load inline script file from
-* application folder.
-*
-* @param string $filename
-* @param array  $data
-*/
-if( ! function_exists('script_app') )
-{
-    function script_app($filename = '', $data = '')
-    {
-        return _load_script(APP .'scripts'. DS, $filename, $data);
-    }
-}
-// ------------------------------------------------------------------------
-
-/**
-* Load inline script file from
-* base folder.
-*
-* @param string $filename
-* @param array  $data
-*/
-if( ! function_exists('script_base') )
-{
-    function script_base($filename = '', $data = '')
-    {
-        return _load_script(BASE .'scripts'. DS, $filename, $data);
-    }
-}
-
-// ------------------------------------------------------------------------
-
-/**
 * Generates meta tags from an array of key/values
 *
 * @access   public

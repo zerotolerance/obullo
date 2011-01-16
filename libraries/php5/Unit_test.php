@@ -126,7 +126,7 @@ Class unit_test_CORE implements PHP5_Library {
             $result = $this->result();
         }
         
-        lang_load('unit_test');
+        lang_load('unit_test', '', 'base');
 
         $this->_parse_template();
 

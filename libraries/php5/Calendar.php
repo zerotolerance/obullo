@@ -60,11 +60,11 @@ Class calendar_CORE implements PHP5_Library {
      */
     public function init($config = array())
     {        
-        $la = Ssc::instance();
+        $_ob = base_register('Empty');
         
-        if ( ! in_array('calendar_lang'.EXT, $la->_ng->is_loaded, TRUE))
+        if ( ! in_array('calendar_lang', $_ob->lang->is_loaded, TRUE))
         {
-            lang_load('calendar');
+            lang_load('calendar', '', 'base');
         }
 
         $this->local_time = time();

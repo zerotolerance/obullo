@@ -69,7 +69,7 @@ if( ! function_exists('smiley_js') )
 		    
 			    $data['m'] = '{'.implode(',', $m).'}';      
                 
-                $r .= _load_script(BASE .'scripts'. DS, 'smiley', $data);    // Obullo Changes ...
+                $r .= script_base('smiley', $data);    // Obullo Changes ...
 	    }
 	    else
 	    {

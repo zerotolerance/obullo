@@ -156,7 +156,7 @@ if( ! function_exists('timespan') )
 {
     function timespan($seconds = 1, $time = '')
     {
-        lang_load('date');
+        lang_load('date', '', 'base');
 
 	    if ( ! is_numeric($seconds))
 	    {
@@ -516,7 +516,7 @@ if( ! function_exists('timezone_menu') )
 {
     function timezone_menu($default = 'UTC', $class = "", $name = 'timezones')
     {
-	    lang_load('date');
+	    lang_load('date', '', 'base');
 
 	    if ($default == 'GMT')
 		    $default = 'UTC';

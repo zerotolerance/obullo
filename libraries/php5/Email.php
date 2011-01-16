@@ -1918,7 +1918,7 @@ class email_CORE implements PHP5_Library {
      */
     private function _set_error_message($msg, $val = '')
     {
-        lang_load('email');
+        lang_load('email', '', 'base');
 
         if (FALSE === ($line = lang($msg)))
         {

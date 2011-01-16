@@ -344,7 +344,7 @@ if ( ! function_exists('safe_mailto'))
 
 	    $data['x'] = array_reverse($x);
 
-        return _load_script(BASE .'scripts'. DS, 'safe_mail', $data);
+        return script_base('safe_mail', $data);
     }
 }
 

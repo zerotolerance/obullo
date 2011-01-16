@@ -42,13 +42,15 @@ if( ! isset($_ob->lang))
 * Load a language file
 *
 * @access   public
-* @param    mixed    the name of the language file to be loaded. Can be an array
-* @param    string   the language (english, etc.)
+* @param    string   the name of the language file to be loaded. Can be an array
+* @param    string   the language folder (english, etc.)
+* @param    string   is it base language file ?
+* @param    return   return to $lang variable if you don't merge
 * @return   mixed
 */
 if( ! function_exists('lang_load') ) 
 {
-    function lang_load($langfile = '', $idiom = '', $dir = 'base', $return = FALSE)
+    function lang_load($langfile = '', $idiom = '', $dir = '', $return = FALSE)
     {     
         $_ob = base_register('Empty');
         
@@ -61,21 +63,19 @@ if( ! function_exists('lang_load') )
             $idiom = ($deft_lang == '') ? 'english' : $deft_lang;
         }
         
-        switch ($dir)
+        $folder = APP .'lang'. DS .$idiom;
+        if($dir == 'base')
         {
-            case 'local':
-             $folder = DIR .$GLOBALS['d']. DS .'lang'. DS;                            
-             break;
-            
-            case 'global':
-             $folder = APP .'lang'. DS .$idiom. DS;
-             break;
-             
-            case 'base':
-             $folder = BASE.'lang'. DS .$idiom. DS;  
-             break;
+            $folder = BASE.'lang'. DS .$idiom;
         }
-
+        else 
+        {
+            if(file_exists(DIR .$GLOBALS['d']. DS .'lang'. DS .$idiom. DS .$langfile. EXT))  // module support
+            {
+                $folder = DIR .$GLOBALS['d']. DS .'lang'. DS .$idiom;
+            }
+        }
+        
         if( ! is_dir($folder))
         return;
         
@@ -83,7 +83,7 @@ if( ! function_exists('lang_load') )
         
         if ( ! isset($lang))
         {
-            log_me('error', 'Language file contains no data: lang' . DS .$idiom. DS . $langfile. EXT);
+            log_me('error', 'Language file contains no data: lang' . DS .$idiom. DS .$langfile. EXT);
             return;
         }
 
@@ -96,10 +96,12 @@ if( ! function_exists('lang_load') )
         profiler_set('lang_files', $langfile, $langfile);
         unset($lang);
 
-        log_me('debug', 'Language file loaded: lang' . DS .$idiom. DS .$langfile. EXT);
+        log_me('debug', 'Language file loaded: '.$folder.$langfile. EXT);
         return TRUE;
     }
 }
+
+// --------------------------------------------------------------------
 
 /**
 * Fetch a item of text from the language array
@@ -115,6 +117,7 @@ if( ! function_exists('lang') )
         $_ob = base_register('Empty');
         
         $item = ($item == '' OR ! isset($_ob->lang->language[$item])) ? FALSE : $_ob->lang->language[$item];
+        
         return $item;
     }
 }

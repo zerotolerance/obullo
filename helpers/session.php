@@ -35,8 +35,7 @@ if( ! isset($_ob->session))
  
 /**
 * Be carefull you shouldn't declare sess_start
-* function more than one time, this is important
-* for your application performance. But don't worry
+* function more than one time, but don't worry
 * it will return to false automatically !!
 * 
 * @see Chapter / Helpers / Session Helper
@@ -66,7 +65,7 @@ if( ! function_exists('sess_start'))
                 loader::$_base_helpers[$prefix . $driver.'_driver'] = $prefix . $driver.'_driver';
             }
             
-            loader::file('helpers'. DS .'drivers'. DS .'session'. DS .$driver.'_driver'. EXT, false, BASE);
+            require(BASE .'helpers'. DS .'drivers'. DS .'session'. DS .$driver.'_driver'. EXT);
             loader::$_base_helpers[$driver.'_driver'] = $driver.'_driver';
 
             _sess_start($params);

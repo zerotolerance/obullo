@@ -30,7 +30,7 @@ Class OB_Profiler {
     
      public function __construct()
      {
-         lang_load('profiler');
+         lang_load('profiler', '', 'base');
          loader::base_helper('view');
      }
      
@@ -485,7 +485,7 @@ Class OB_Profiler {
             } 
             else 
             {
-                $base_helpers .= $base_helper .'<br />';
+                $base_helpers .= $base_helper .', ';
             }
         }
         
@@ -498,7 +498,7 @@ Class OB_Profiler {
             } 
             else 
             {
-                $loaded_helpers .= $loaded_helper .'<br />';
+                $loaded_helpers .= $loaded_helper .', ';
             }
         }
                     
@@ -534,11 +534,11 @@ Class OB_Profiler {
         $files  = '';              
         foreach(profiler_get('files') as $file) { $files .= $file .'<br />'; }
         
-        $local_views  = '';
-        foreach(profiler_get('local_views') as $view) { $local_views .= $view .'<br /> '; }
+        $views  = '';
+        foreach(profiler_get('views') as $view) { $views .= $view .'<br /> '; }
     
         $layouts  = '';
-        foreach(profiler_get('layouts') as $view) { $layouts .= $view .'<br /> '; }
+        foreach(profiler_get('layouts') as $layout) { $layouts .= $layout .'<br /> '; }
         
         $controllers = '';
         foreach(profiler_get('parents') as $gc) { $controllers .= $gc .'<br /> '; }
@@ -552,7 +552,7 @@ Class OB_Profiler {
         $databases      = (isset($databases{2}))      ? $databases : '-';
         $scripts        = (isset($scripts{2}))        ? $scripts : '-';
         $files          = (isset($files{2}))          ? $files : '-';
-        $local_views    = (isset($local_views{2}))    ? $local_views : '-';
+        $views          = (isset($views{2}))          ? $views : '-';
         $layouts        = (isset($layouts{2}))        ? $layouts : '-';
         
         $output .= "<tr><td class=\"td\">Config Files&nbsp;&nbsp;</td><td class=\"td_val\">".$config_files."</td></tr>";  
@@ -560,12 +560,12 @@ Class OB_Profiler {
         $output .= "<tr><td class=\"td\">Base Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$base_helpers."</td></tr>";  
         $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>";    
         $output .= "<tr><td class=\"td\">Loaded Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$loaded_helpers."</td></tr>";    
-        $output .= "<tr><td class=\"td\">Local Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$helpers."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$helpers."</td></tr>";    
         $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";    
         $output .= "<tr><td class=\"td\">Models&nbsp;&nbsp;</td><td class=\"td_val\">".$models."</td></tr>";    
         $output .= "<tr><td class=\"td\">Databases&nbsp;&nbsp;</td><td class=\"td_val\">".$databases."</td></tr>";    
         $output .= "<tr><td class=\"td\">Scripts&nbsp;&nbsp;</td><td class=\"td_val\">".$scripts."</td></tr>";    
-        $output .= "<tr><td class=\"td\">Local Views&nbsp;&nbsp;</td><td class=\"td_val\">".$local_views."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Views&nbsp;&nbsp;</td><td class=\"td_val\">".$views."</td></tr>";    
         $output .= "<tr><td class=\"td\">Layouts&nbsp;&nbsp;</td><td class=\"td_val\">".$layouts."</td></tr>";    
         $output .= "<tr><td class=\"td\">External Files&nbsp;&nbsp;</td><td class=\"td_val\">".$files."</td></tr>";    
         $output .= "<tr><td class=\"td\">Global Controllers&nbsp;&nbsp;</td><td class=\"td_val\">".$controllers."</td></tr>";    
