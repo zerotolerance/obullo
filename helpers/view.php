@@ -533,7 +533,7 @@ if( ! function_exists('_view_load_file'))
         {
             $path = $module_path;
         }
-      
+
         return array('filename' => $filename, 'path' => $path);
     }
 
@@ -560,83 +560,3 @@ if ( ! function_exists('_ob_object_to_array'))
 
 /* End of file view.php */
 /* Location: ./obullo/helpers/view.php */
-
-/**
-*  
-* BACKUP !!!
-* 
-* 
-*    function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
-    {
-        $_ob = base_register('Empty');
-        
-        _set_view_data($data);
-        
-        $data = $_ob->view->view_data;
-
-        $module_extra    = (strpos($filename, '../') !== 0) ? '../'.$GLOBALS['d']. DS : '';
-        $module_filename = substr($module_extra.$filename, 3);
-        $module_path     = DIR . preg_replace('/(\w+)\/(.+)/i', '$1/views/', $module_filename);
-        $module_filename = preg_replace('/^(\w+\/)/', '', $module_filename);
-
-        $is_module_file = file_exists($module_path . $module_filename . EXT);
-        
-        if($is_module_file)
-        {
-            $path     = $module_path;
-            $filename = $module_filename;
-        }
-        elseif ( ! file_exists($path . $filename . EXT) )
-        {
-            if($return)
-            {
-                log_me('debug', 'View file failed gracefully: '. $path . $filename . EXT);
-
-                return;     // fail gracefully for different interfaces ..
-                            // iphone, blackberry etc..
-            }
-
-            throw new ViewException('Unable locate the view file: '. $filename . EXT);
-        }
-                
-        if( empty($data) ) $data = array();
-
-
-        $data = _ob_object_to_array($data);
-
-        if(sizeof($data) > 0) { extract($data, EXTR_SKIP); }
-
-        ob_start();
-
-        // If the PHP installation does not support short tags we'll
-        // do a little string replacement, changing the short tags
-        // to standard PHP echo statements.
-
-        if ((bool) @ini_get('short_open_tag') === FALSE AND config_item('rewrite_short_tags') == TRUE)
-        {
-            echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($path.$filename.EXT))));
-        }
-        else
-        {
-            include($path . $filename . EXT);
-        }
-
-        log_me('debug', 'View file loaded: '.$path . $filename . EXT);
-
-        if($string === TRUE)
-        {
-            $content = ob_get_contents();
-            @ob_end_clean();
-
-            return $content;
-        }
-
-        // Set Global views inside to Output Class for caching functionality..
-        base_register('Output')->append_output(ob_get_contents());
-
-        @ob_end_clean();
-
-        return;
-
-    }
-*/

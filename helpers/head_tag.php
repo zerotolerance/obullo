@@ -33,10 +33,11 @@ defined('BASE') or exit('Access Denied!');
 * css('subfolder/welcome.css')
 * css('../module/welcome.css');  from /modules dir
 * css(array('welcome.css', 'hello.css'));
+* css('#main {display: block; color: red;}', 'embed');
 *
 * @author   Ersin Guvenc
 * @param    mixed   $filename array or string
-* @param    string  $title
+* @param    string  $title_or_embed
 * @param    string  $media  'all' or 'print' etc..
 * @version  0.1
 * @version  0.2 added $path variable
@@ -46,10 +47,22 @@ defined('BASE') or exit('Access Denied!');
 */
 if( ! function_exists('css') )
 {
-    function css($href, $title = '', $media = '', $rel = 'stylesheet', $index_page = FALSE)
+    function css($href, $title_or_embed = '', $media = '', $rel = 'stylesheet', $index_page = FALSE)
     {
         $ob = this();
-
+        
+        if($title_or_embed == 'embed')
+        {
+            $css = '<style type="text/css" ';
+            $css.= ($media != '') ? 'media="'.$media.'" ' : '';
+            $css.= '>';
+            $css.= $href;
+            $css.= "</style>\n";
+            
+            return $css;
+        }
+            
+        $title = $title_or_embed;
         $link = '<link ';
 
         $_ob = base_register('Empty');   // obullo changes ..

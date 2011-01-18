@@ -315,6 +315,9 @@ Class OB_HMVC
         $config = base_register('Config');
         $output = base_register('Output');
 
+        //------------------------------------
+        self::$start_time = ob_request_timer('start');
+        
         if($this->hmvc_connect === FALSE) 
         {
             $this->_set_response($router->hmvc_response);
@@ -340,7 +343,7 @@ Class OB_HMVC
             $this->_set_response($cache_content);
             
             $this->_reset_router();
-            
+
             return $this;
         }
         
@@ -383,9 +386,6 @@ Class OB_HMVC
             $controller = DIR .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
             $arg_slice  = 3;
         }
-        
-        //------------------------------------
-        self::$start_time = ob_request_timer('start');
 
         // Call the controller.
         require_once($controller);
