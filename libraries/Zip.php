@@ -32,7 +32,7 @@ Class ZipException extends CommonException {}
  * @author        Ersin Guvenc
  * @link          
  */
-Class zip_CORE implements PHP5_Library {
+Class OB_Zip {
 
     public $zipdata     = '';
     public $directory   = '';
@@ -40,29 +40,11 @@ Class zip_CORE implements PHP5_Library {
     public $file_num    = 0;
     public $offset      = 0;
     public $now;
-
-    private static $instance;
     
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    public function init()
+    public function __construct()
     {
         log_me('debug', "Zip Compression Class Initialized");
-        
-        return self::instance();
     }
-
-    // --------------------------------------------------------------------
 
     // --------------------------------------------------------------------
 
@@ -433,4 +415,4 @@ Class zip_CORE implements PHP5_Library {
     
 }
 /* End of file Zip.php */
-/* Location: ./obullo/libraries/php5/Zip.php */
+/* Location: ./obullo/libraries/Zip.php */

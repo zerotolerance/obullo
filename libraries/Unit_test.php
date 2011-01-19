@@ -28,33 +28,17 @@ Class UnitTestException extends CommonException {}
  * @author        Ersin Guvenc
  * @link          
  */
-Class unit_test_CORE implements PHP5_Library {
+Class OB_Unit_test {
 
     public $active            = TRUE;
     public $results           = array();
     public $strict            = FALSE;
     public $_template         = NULL;
     public $_template_rows    = NULL;
-
-    private static $instance;
     
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    public function init()
+    public function __construct()
     {
         log_me('debug', "Unit Testing Class Initialized");
-        
-        return self::instance();
     }    
 
     // --------------------------------------------------------------------
@@ -206,7 +190,7 @@ Class unit_test_CORE implements PHP5_Library {
      */
     public function result($results = array())
     {    
-        loader::base_lang('unit_test');
+        lang_load('unit_test', '', 'base');
         
         if (count($results) == 0)
         {
@@ -361,4 +345,4 @@ function is_false($test)
 
 
 /* End of file Unit_test.php */
-/* Location: ./obullo/libraries/php5/Unit_test.php */
+/* Location: ./obullo/libraries/Unit_test.php */

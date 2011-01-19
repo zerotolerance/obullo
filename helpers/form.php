@@ -969,12 +969,12 @@ if( ! function_exists('_get_validation_object') )
 { 
     function _get_validation_object()
     {
-        if ( ! class_exists('form_validate'))
+        if ( ! class_exists('OB_Form_validate'))
         {
             return FALSE;
         }
         
-        return form_validate::instance();
+        return base_register('Form_validate');
     }
 }
 

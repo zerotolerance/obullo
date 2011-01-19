@@ -112,9 +112,7 @@ if( ! function_exists('sess_read') )
         // Decrypt the cookie data
         if ($_ob->session->sess_encrypt_cookie == TRUE)
         {
-            $encrypt = encrypt::instance();
-            $encrypt->init();
-            
+            $encrypt = base_register('Encrypt');
             $session = $encrypt->decode($session);
         }
         else
@@ -709,9 +707,7 @@ if( ! function_exists('_set_cookie') )
         
         if ($_ob->session->sess_encrypt_cookie == TRUE)
         {
-            $encrypt = encrypt::instance();
-            $encrypt->init();
-        
+            $encrypt = base_register('Encrypt');
             $cookie_data = $encrypt->encode($cookie_data);
         }
         else

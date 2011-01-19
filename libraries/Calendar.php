@@ -26,7 +26,7 @@ defined('BASE') or exit('Access Denied!');
  * @author        Ersin Guvenc
  * @link          
  */
-Class calendar_CORE implements PHP5_Library {
+Class OB_Calendar {
     
     public $lang;
     public $local_time;
@@ -36,29 +36,17 @@ Class calendar_CORE implements PHP5_Library {
     public $day_type        = 'abr';
     public $show_next_prev  = FALSE;
     public $next_prev_url   = '';
-
-    private static $instance;
-    
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
     
     // --------------------------------------------------------------------
     
     /**
-     * Constructor
-     *
-     * Loads the calendar language file and sets the default time reference
-     *
-     * @access    public
-     */
-    public function init($config = array())
+    * Constructor
+    *
+    * Loads the calendar language file and sets the default time reference
+    *
+    * @access    public
+    */
+    public function __construct($config = array())
     {        
         $_ob = base_register('Empty');
         
@@ -71,18 +59,32 @@ Class calendar_CORE implements PHP5_Library {
         
         if (count($config) > 0)
         {
-            foreach ($config as $key => $val)
-            {
-                if (isset($this->$key))
-                {
-                    $this->$key = $val;
-                }
-            }
+            $this->init($config);
         }
         
         log_me('debug', "Calendar Class Initialized");
-        
-        return self::instance();
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Initialize the user preferences
+    *
+    * Accepts an associative array as input, containing display preferences
+    *
+    * @access   public
+    * @param    array    config preferences
+    * @return   void
+    */    
+    public function init($config = array())
+    {
+        foreach ($config as $key => $val)
+        {
+            if (isset($this->$key))
+            {
+                $this->$key = $val;
+            }
+        }
     }
     
     // --------------------------------------------------------------------
@@ -473,4 +475,4 @@ Class calendar_CORE implements PHP5_Library {
 // END calendar class
 
 /* End of file Calendar.php */
-/* Location: ./obullo/libraries/php5/Calendar.php */
+/* Location: ./obullo/libraries/Calendar.php */

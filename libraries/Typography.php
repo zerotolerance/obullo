@@ -27,7 +27,7 @@ Class TypoException extends CommonException {}
  * @link        
  */
  
-Class typography_CORE implements PHP5_Library {
+Class OB_Typography {
 
     // Block level elements that should not be wrapped inside <p> tags
     public $block_elements = 'address|blockquote|div|dl|fieldset|form|h\d|hr|noscript|object|ol|p|pre|script|table|ul';
@@ -47,29 +47,13 @@ Class typography_CORE implements PHP5_Library {
     // whether or not to protect quotes within { curly braces }
     public $protect_braced_quotes = FALSE;
     
-    private static $instance;
-    
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
-    
-    // --------------------------------------------------------------------
-    
     /**
      * Nothing to do here...
      *
      */
-    public function init() 
+    public function __construct() 
     {
         log_me('debug', "Typography Class Initialized");
-        
-        return self::instance();
     }
 
     /**
@@ -423,4 +407,4 @@ Class typography_CORE implements PHP5_Library {
 // END Typography Class
 
 /* End of file Typography.php */
-/* Location: ./obullo/libraries/php5/Typography.php */
+/* Location: ./obullo/libraries/Typography.php */

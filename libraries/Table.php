@@ -24,7 +24,7 @@ Class TableException extends CommonException {}
  * @author      Ersin Guvenc
  * @link        
  */
-Class table_CORE implements PHP5_Library {
+Class OB_Table {
 
     public $rows               = array();
     public $heading            = array();
@@ -33,26 +33,10 @@ Class table_CORE implements PHP5_Library {
     public $template           = NULL;
     public $newline            = "\n";
     public $empty_cells        = "";
-
-    private static $instance;
     
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    public function init()
+    public function __construct()
     {
         log_me('debug', "Table Class Initialized");
-        
-        return self::instance();
     }
 
     // --------------------------------------------------------------------
@@ -447,4 +431,4 @@ Class table_CORE implements PHP5_Library {
 
 
 /* End of file Table.php */
-/* Location: ./obullo/libraries/php5/Table.php */
+/* Location: ./obullo/libraries/Table.php */

@@ -30,7 +30,7 @@ Class PagerException extends CommonException {}
  * @link          
  */
 
-Class Pager_common
+Class OB_Pager_common
 {
     public $_total_items;               // integer number of items
     public $_per_page       = 10;       // integer number of items per page
@@ -1241,4 +1241,4 @@ Class Pager_common
 // END Pager_common Class
 
 /* End of file Pager_common.php */
-/* Location: ./obullo/libraries/php5/drivers/pager/Pager_common.php */
+/* Location: ./obullo/libraries/php5/pager/OB_Pager_common.php */

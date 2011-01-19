@@ -14,8 +14,6 @@ defined('BASE') or exit('Access Denied!');
  */
 
 // ------------------------------------------------------------------------
- 
-require_once 'Pager_common.php';
 
 /**
  * Obullo Pager Sliding Driver
@@ -30,7 +28,7 @@ require_once 'Pager_common.php';
  * @link          
  */
 
-Class Pager_sliding extends Pager_common
+Class OB_Pager_sliding extends OB_Pager_common
 {
 
     /**
@@ -315,5 +313,5 @@ Class Pager_sliding extends Pager_common
 
 // END Pager_sliding Class
 
-/* End of file Pager_sliding.php */
-/* Location: ./obullo/libraries/php5/drivers/pager/Pager_sliding.php */
+/* End of file OB_Pager_sliding.php */
+/* Location: ./obullo/libraries/drivers/pager/OB_Pager_sliding.php */

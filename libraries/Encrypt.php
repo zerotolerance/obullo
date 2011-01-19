@@ -29,27 +29,13 @@ Class EncryptException extends CommonException {}
  * @author      Ersin Guvenc
  * @link        
  */
-Class encrypt_CORE implements PHP5_Library {
+Class OB_Encrypt {
 
     public $encryption_key    = '';
     public $_hash_type        = 'sha1';
     public $_mcrypt_exists    = FALSE;
     public $_mcrypt_cipher;
     public $_mcrypt_mode;
-
-    private static $instance;
-    
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
-    
-    // --------------------------------------------------------------------
     
     /**
     * Constructor
@@ -57,13 +43,11 @@ Class encrypt_CORE implements PHP5_Library {
     * Simply determines whether the mcrypt library exists.
     *
     */
-    public function init()
+    public function __construct()
     {
         $this->_mcrypt_exists = ( ! function_exists('mcrypt_encrypt')) ? FALSE : TRUE;
         
         log_me('debug', "Encrypt Class Initialized");
-        
-        return self::instance();
     }
 
     // --------------------------------------------------------------------

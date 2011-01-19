@@ -27,28 +27,25 @@ defined('BASE') or exit('Access Denied!');
  * @see           Original package http://pear.php.net/package/Pager
  * @link          
  */
-Class pager_CORE implements PHP5_Library
-{
-    
-    public static function instance()
-    {
-        return new self();
-    }
-    
+Class OB_Pager
+{   
     /**
-     * Return a pager based on $mode and $options
-     *
-     * @param array $options Optional parameters for the storage class
-     *
-     * @return object Storage object
-     * @static
-     * @access public
-     */
-    public static function init($options = array())
+    * Return a pager based on $mode and $options
+    *
+    * @param array $options Optional parameters for the storage class
+    *
+    * @return object Storage object
+    * @static
+    * @access public
+    */
+    public function __construct($options = array())
     {
         $mode = (isset($options['mode']) ? strtolower($options['mode']) : 'jumping');
+        
+        require_once 'OB_Pager_common.php';
+        
         $classname = 'Pager_'.$mode;
-        $classfile = 'drivers'. DS .'pager'. DS .'Pager_'. $mode. EXT;
+        $classfile = 'drivers'. DS .'pager'. DS .'OB_Pager_'. $mode. EXT;
 
         if ( ! class_exists($classname)) 
         {
@@ -70,4 +67,4 @@ Class pager_CORE implements PHP5_Library
 // END Pager Class
 
 /* End of file Pager.php */
-/* Location: ./obullo/libraries/php5/Pager.php */
+/* Location: ./obullo/libraries/Pager.php */

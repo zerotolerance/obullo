@@ -27,7 +27,7 @@ Class EmailException extends CommonException {}
  * @author        Ersin Guvenc
  * @link          
  */
-class email_CORE implements PHP5_Library {
+class OB_Email {
 
     public    $useragent       = "Obullo";
     public    $mailpath        = "/usr/sbin/sendmail";    // Sendmail path
@@ -74,50 +74,19 @@ class email_CORE implements PHP5_Library {
     public    $_attach_disp      = array();
     public    $_protocols        = array('mail', 'sendmail', 'smtp');
     public    $_base_charsets    = array('us-ascii', 'iso-2022-');    // 7-bit charsets (excluding language suffix)
-    public    $_bit_depths    = array('7bit', '8bit');
-    public    $_priorities    = array('1 (Highest)', '2 (High)', '3 (Normal)', '4 (Low)', '5 (Lowest)');
-
-    private static $instance;
-    
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
+    public    $_bit_depths       = array('7bit', '8bit');
+    public    $_priorities       = array('1 (Highest)', '2 (High)', '3 (Normal)', '4 (Low)', '5 (Lowest)');
     
     /**
     * Constructor - Sets Email Preferences
     *
     * The constructor can be passed an array of config values
     */
-    public function init($config = array())
+    function __construct($config = array())
     {
         if (count($config) > 0)
         {
-            $this->clear();
-            foreach ($config as $key => $val)
-            {
-                if (isset($this->$key))
-                {
-                    $method = 'set_'.$key;
-
-                    if (method_exists($this, $method))
-                    {
-                        $this->$method($val);
-                    }
-                    else
-                    {
-                        $this->$key = $val;
-                    }
-                }
-            }
-
-            $this->_smtp_auth = ($this->smtp_user == '' AND $this->smtp_pass == '') ? FALSE : TRUE;
-            $this->_safe_mode = ((boolean)@ini_get("safe_mode") === FALSE) ? FALSE : TRUE;
+            $this->init($config);
         }
         else
         {
@@ -126,8 +95,38 @@ class email_CORE implements PHP5_Library {
         }
 
         log_me('debug', "Email Class Initialized");
+    }
+    
+    
+    /**
+    * Constructor - Sets Email Preferences
+    *
+    * The constructor can be passed an array of config values
+    */
+    public function init($config = array())
+    {
+        $this->clear();
+        foreach ($config as $key => $val)
+        {
+            if (isset($this->$key))
+            {
+                $method = 'set_'.$key;
+
+                if (method_exists($this, $method))
+                {
+                    $this->$method($val);
+                }
+                else
+                {
+                    $this->$key = $val;
+                }
+            }
+        }
+
+        $this->_smtp_auth = ($this->smtp_user == '' AND $this->smtp_pass == '') ? FALSE : TRUE;
+        $this->_safe_mode = ((boolean)@ini_get("safe_mode") === FALSE) ? FALSE : TRUE;
         
-        return self::instance();
+        return $this;
     }
       
     // --------------------------------------------------------------------
@@ -2037,4 +2036,4 @@ class email_CORE implements PHP5_Library {
 // END email class
 
 /* End of file Email.php */
-/* Location: ./obullo/libraries/php5/Email.php */
+/* Location: ./obullo/libraries/Email.php */

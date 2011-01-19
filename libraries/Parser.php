@@ -26,31 +26,17 @@ Class ParserException extends CommonException {}
  * @author        Ersin Guvenc
  * @link          
  */
-Class parser_CORE implements PHP5_Library {
+Class OB_Parser {
 
     public $l_delim = '{';
     public $r_delim = '}';
     public $object;
        
-    private static $instance;
-    
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
-    
     // --------------------------------------------------------------------
         
-    public function init() 
+    public function __construct() 
     {     
         log_me('debug', "Parser Class Initialized");
-        
-        return self::instance(); 
     }
         
     /**
@@ -67,7 +53,6 @@ Class parser_CORE implements PHP5_Library {
     */
     public function parse($template, $data, $return = FALSE)
     {
-        $OB = this();
         $template = view($template, $data);
         
         if ($template == '')
@@ -89,7 +74,7 @@ Class parser_CORE implements PHP5_Library {
         
         if ($return == FALSE)
         {
-            $OB->output->append_output($template);
+            this()->output->append_output($template);
         }
         
         return $template;
@@ -254,4 +239,4 @@ Class parser_CORE implements PHP5_Library {
 // END Parser Class
 
 /* End of file Parser.php */
-/* Location: ./obullo/libraries/php5/Parser.php */
+/* Location: ./obullo/libraries/Parser.php */

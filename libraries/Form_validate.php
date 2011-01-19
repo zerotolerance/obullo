@@ -26,7 +26,7 @@ Class FormException extends CommonException {}
  * @author        Ersin Guvenc
  * @link        
  */
-Class form_validate_CORE implements PHP5_Library {
+Class OB_Form_validate {
     
     public $_field_data         = array();    
     public $_config_rules       = array();
@@ -37,22 +37,7 @@ Class form_validate_CORE implements PHP5_Library {
     public $error_string        = '';
     public $_safe_form_data     = FALSE;
     
-    private static $instance;
-    
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    
-    public function init($rules = array())
+    public function __construct($rules = array())
     {    
         // Validation rules can be stored in a config file.
         $this->_config_rules = $rules;
@@ -67,8 +52,6 @@ Class form_validate_CORE implements PHP5_Library {
         }
     
         log_me('debug', "Form Validation Class Initialized");
-        
-        return self::instance();
     }
     
     // --------------------------------------------------------------------
@@ -1275,4 +1258,4 @@ Class form_validate_CORE implements PHP5_Library {
 // END Form Validation Class
 
 /* End of file Form_validate.php */
-/* Location: ./obullo/libraries/php5/Form_validate.php */
+/* Location: ./obullo/libraries/Form_validate.php */

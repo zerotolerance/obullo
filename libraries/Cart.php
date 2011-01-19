@@ -26,7 +26,7 @@ Class CartException extends CommonException {}
  * @author        Ersin Guvenc
  * @link
  */
-Class cart_CORE implements PHP5_Library {
+Class OB_Cart {
 
     // These are the regular expression rules that we use to validate the product ID and product name
     public $product_id_rules    = '\.a-z0-9_-'; // alpha-numeric, dashes, underscores, or periods
@@ -34,26 +34,12 @@ Class cart_CORE implements PHP5_Library {
     
     public $_cart_contents    = array();
 
-    private static $instance;
-    
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
-    
-    // --------------------------------------------------------------------
-    
     /**
-     * Shopping Class Constructor
-     *
-     * The constructor loads the Session class, used to store the shopping cart contents.
-     */        
-    public function init($params = array())
+    * Shopping Class Constructor
+    *
+    * The constructor loads the Session class, used to store the shopping cart contents.
+    */        
+    public function __construct($params = array())
     {    
         // Are any config settings being passed manually?  If so, set them
         $config = array();
@@ -82,8 +68,6 @@ Class cart_CORE implements PHP5_Library {
         }
     
         log_me('debug', "Cart Class Initialized");
-        
-        return self::instance();
     }
 
     // --------------------------------------------------------------------
@@ -560,4 +544,4 @@ Class cart_CORE implements PHP5_Library {
 // END Cart Class
 
 /* End of file Cart.php */
-/* Location: ./obullo/libraries/php5/Cart.php */
+/* Location: ./obullo/libraries/Cart.php */

@@ -25,7 +25,7 @@ Class UploadException extends CommonException {}
  * @author        Obullo
  * @link          
  */
-Class upload_CORE implements PHP5_Library {
+Class OB_Upload {
     
     public $max_size         = 0;
     public $max_width        = 0;
@@ -51,20 +51,17 @@ Class upload_CORE implements PHP5_Library {
     public $remove_spaces    = TRUE;
     public $xss_clean        = FALSE;
     public $temp_prefix      = "temp_file_";
-       
-    private static $instance;
-    
-    public static function instance()
+        
+    public function __construct($props = array())
     {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
+        if (count($props) > 0)
+        {
+            $this->init($props);
+        }
+        
+        log_me('debug', "Upload Class Initialized");
     }
-    
-    // --------------------------------------------------------------------
+        
         
     /**
      * Constructor
@@ -73,60 +70,53 @@ Class upload_CORE implements PHP5_Library {
      */
     public function init($config = array())
     {
-        if (count($config) > 0)
+        $defaults = array(
+                            'max_size'          => 0,
+                            'max_width'         => 0,
+                            'max_height'        => 0,
+                            'max_filename'      => 0,
+                            'allowed_types'     => "",
+                            'file_temp'         => "",
+                            'file_name'         => "",
+                            'orig_name'         => "",
+                            'file_type'         => "",
+                            'file_size'         => "",
+                            'file_ext'          => "",
+                            'upload_path'       => "",
+                            'overwrite'         => FALSE,
+                            'encrypt_name'      => FALSE,
+                            'is_image'          => FALSE,
+                            'image_width'       => '',
+                            'image_height'      => '',
+                            'image_type'        => '',
+                            'image_size_str'    => '',
+                            'error_msg'         => array(),
+                            'mimes'             => array(),
+                            'remove_spaces'     => TRUE,
+                            'xss_clean'         => FALSE,
+                            'temp_prefix'       => "temp_file_"
+                        );    
+    
+    
+        foreach ($defaults as $key => $val)
         {
-            $defaults = array(
-                    'max_size'          => 0,
-                    'max_width'         => 0,
-                    'max_height'        => 0,
-                    'max_filename'      => 0,
-                    'allowed_types'     => "",
-                    'file_temp'         => "",
-                    'file_name'         => "",
-                    'orig_name'         => "",
-                    'file_type'         => "",
-                    'file_size'         => "",
-                    'file_ext'          => "",
-                    'upload_path'       => "",
-                    'overwrite'         => FALSE,
-                    'encrypt_name'      => FALSE,
-                    'is_image'          => FALSE,
-                    'image_width'       => '',
-                    'image_height'      => '',
-                    'image_type'        => '',
-                    'image_size_str'    => '',
-                    'error_msg'         => array(),
-                    'mimes'             => array(),
-                    'remove_spaces'     => TRUE,
-                    'xss_clean'         => FALSE,
-                    'temp_prefix'       => "temp_file_"
-                );    
-        
-        
-            foreach ($defaults as $key => $val)
+            if (isset($config[$key]))
             {
-                if (isset($config[$key]))
+                $method = 'set_'.$key;
+                if (method_exists($this, $method))
                 {
-                    $method = 'set_'.$key;
-                    if (method_exists($this, $method))
-                    {
-                        $this->$method($config[$key]);
-                    }
-                    else
-                    {
-                        $this->$key = $config[$key];
-                    }            
+                    $this->$method($config[$key]);
                 }
                 else
                 {
-                    $this->$key = $val;
-                }
+                    $this->$key = $config[$key];
+                }            
             }
-        } // end if.
-        
-        log_me('debug', "Upload Class Initialized");
-        
-        return self::instance();
+            else
+            {
+                $this->$key = $val;
+            }
+        }
     }
         
     // --------------------------------------------------------------------
@@ -167,10 +157,10 @@ Class upload_CORE implements PHP5_Library {
                     $this->set_error('upload_file_exceeds_form_limit');
                     break;
                 case 3: // UPLOAD_ERR_PARTIAL
-                   $this->set_error('upload_file_partial');
+                    $this->set_error('upload_file_partial');
                     break;
                 case 4: // UPLOAD_ERR_NO_FILE
-                   $this->set_error('upload_no_file_selected');
+                    $this->set_error('upload_no_file_selected');
                     break;
                 case 6: // UPLOAD_ERR_NO_TMP_DIR
                     $this->set_error('upload_no_temp_directory');
@@ -992,4 +982,4 @@ Class upload_CORE implements PHP5_Library {
 // END Upload Class
 
 /* End of file Upload.php */
-/* Location: ./obullo/libraries/php5/Upload.php */
+/* Location: ./obullo/libraries/Upload.php */

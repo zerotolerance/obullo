@@ -357,18 +357,7 @@ if( ! function_exists('script') )
         return _load_view($file_info['path'], $file_info['filename'], $data, TRUE, $return, __FUNCTION__);
     }
 }
-// ------------------------------------------------------------------------
 
-/**
-* @deprecated !!!
-*/
-if( ! function_exists('script_app') )
-{
-    function script_app($filename = '', $data = '')
-    {
-        return script($filename, $data);
-    }
-}
 // ------------------------------------------------------------------------
 
 /**

@@ -26,7 +26,7 @@ Class FtpException extends CommonException {}
  * @author        Ersin Guvenc
  * @link        
  */
-Class ftp_CORE implements PHP5_Library {
+Class OB_Ftp {
 
     public $hostname    = '';
     public $username    = '';
@@ -35,45 +35,43 @@ Class ftp_CORE implements PHP5_Library {
     public $passive     = TRUE;
     public $debug       = FALSE;
     public $conn_id     = FALSE;
-
-    private static $instance;
-    
-    public static function instance()
-    {
-       if(! (self::$instance instanceof self))
-       {
-            self::$instance = new self();
-       } 
-       
-       return self::$instance;
-    }
-
-    // --------------------------------------------------------------------
     
     /**
-     * Constructor - Sets Preferences
-     *
-     * The constructor can be passed an array of config values
-     */
-    public function init($config = array())
+    * Constructor - Sets Preferences
+    *
+    * The constructor can be passed an array of config values
+    */
+    function __construct($config = array())
     {
         if (count($config) > 0)
         {
-            foreach ($config as $key => $val)
-            {
-                if (isset($this->$key))
-                {
-                    $this->$key = $val;
-                }
-            }
-
-            // Prep the hostname
-            $this->hostname = preg_replace('|.+?://|', '', $this->hostname);
+            $this->init($config);
         }
 
         log_me('debug', "FTP Class Initialized");
-        
-        return self::instance();
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+     * Initialize preferences
+     *
+     * @access    public
+     * @param    array
+     * @return    void
+     */
+    public function init($config = array())
+    {
+        foreach ($config as $key => $val)
+        {
+            if (isset($this->$key))
+            {
+                $this->$key = $val;
+            }
+        }
+
+        // Prep the hostname
+        $this->hostname = preg_replace('|.+?://|', '', $this->hostname);
     }
     
     // --------------------------------------------------------------------
@@ -609,4 +607,4 @@ Class ftp_CORE implements PHP5_Library {
 // END FTP Class
 
 /* End of file Ftp.php */
-/* Location: ./obullo/libraries/php5/Ftp.php */
+/* Location: ./obullo/libraries/Ftp.php */

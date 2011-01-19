@@ -28,14 +28,6 @@ defined('BASE') or exit('Access Denied!');
 */
 
 /**
-* A Php5 library must be contain that functions.
-*/
-interface PHP5_Library
-{
-    public static function instance();
-}
-
-/**
 * base_register()
 *
 * Register base classes which start by OB_ prefix
@@ -218,7 +210,7 @@ function register_autoload($real_name)
         $class  = strtolower($real_name); // lowercase classname.
         $prefix = config_item('subclass_prefix');
 
-        // Local php5 libraries load support.
+        // php5 libraries load support.
         // --------------------------------------------------------------------
         if(file_exists(DIR .$GLOBALS['d']. DS .'libraries'. DS .'php5'. DS .$class. EXT))
         {
@@ -228,7 +220,10 @@ function register_autoload($real_name)
             return;
         }
 
+        // BASE LIBRARIES -----------------------------------------------------------
+        
         // Php5 application library load and replace support.
+        /*
         // --------------------------------------------------------------------
         if(file_exists(APP .'libraries'. DS .'php5'. DS .$class. EXT))
         {
@@ -277,9 +272,30 @@ function register_autoload($real_name)
         }
 
         return;
+        */
+        return;
 }
 
 spl_autoload_register('register_autoload',true);
+
+// --------------------------------------------------------------------
+
+/**
+* Obullo library loader
+* 
+* @param string $class
+* @param array | false $params_or_no_instance
+* @param true | object $new_object
+*/
+if( ! function_exists('lib'))
+{
+    function lib($class, $params_or_no_instance = '', $new_object = NULL)
+    {
+        $class = strtolower($class);
+        
+        return base_register($class, $new_object, $params_or_no_instance);
+    }
+}
 
 // --------------------------------------------------------------------
 

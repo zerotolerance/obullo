@@ -14,8 +14,6 @@ defined('BASE') or exit('Access Denied!');
  */
 
 // ------------------------------------------------------------------------
- 
-require_once 'Pager_common.php';
 
 /**
  * Obullo Pager Jumping Driver
@@ -30,7 +28,7 @@ require_once 'Pager_common.php';
  * @link          
  */
 
-Class Pager_jumping extends Pager_common
+Class OB_Pager_jumping extends OB_Pager_common
 {
     /**
     * Constructor
@@ -258,5 +256,5 @@ Class Pager_jumping extends Pager_common
 
 // END Pager_jumping Class
 
-/* End of file Pager_jumping.php */
-/* Location: ./obullo/libraries/php5/drivers/pager/Pager_jumping.php */
+/* End of file OB_Pager_jumping.php */
+/* Location: ./obullo/libraries/drivers/pager/OB_Pager_jumping.php */
