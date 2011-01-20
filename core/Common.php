@@ -220,6 +220,15 @@ function register_autoload($real_name)
             return;
         }
 
+        if(file_exists(APP .'libraries'. DS .'php5'. DS .$class. EXT))
+        {
+            $replaced = '_loaded';
+            require(APP .'libraries'. DS .'php5'. DS .$class. EXT);
+
+            profiler_set('libraries', 'php5_'.$class. $replaced, $class);
+            return;
+        }
+        
         // BASE LIBRARIES -----------------------------------------------------------
         
         // Php5 application library load and replace support.
