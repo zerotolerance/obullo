@@ -220,6 +220,7 @@ function register_autoload($real_name)
             return;
         }
 
+        /*
         if(file_exists(APP .'libraries'. DS .'php5'. DS .$class. EXT))
         {
             $replaced = '_loaded';
@@ -228,11 +229,11 @@ function register_autoload($real_name)
             profiler_set('libraries', 'php5_'.$class. $replaced, $class);
             return;
         }
-        
+        */
         // BASE LIBRARIES -----------------------------------------------------------
         
         // Php5 application library load and replace support.
-        /*
+        
         // --------------------------------------------------------------------
         if(file_exists(APP .'libraries'. DS .'php5'. DS .$class. EXT))
         {
@@ -280,8 +281,6 @@ function register_autoload($real_name)
             return;
         }
 
-        return;
-        */
         return;
 }
 
