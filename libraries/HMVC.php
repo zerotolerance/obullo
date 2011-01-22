@@ -112,7 +112,7 @@ Class OB_HMVC
             
             if(strpos($this->uri_string, '?') > 0)
             {
-                $uri_part = explode('?', $this->uri_string);
+                $uri_part = explode('?', urldecode($this->uri_string));
                 $this->query_string = $uri_part[0] .'?'. $uri_part[1];
                 
                 $URI->set_uri_string($uri_part[0]);
