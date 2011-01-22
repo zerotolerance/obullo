@@ -154,6 +154,7 @@ Class OB_HMVC
         $this->uri          = '';
         $this->router       = '';
         $this->config       = '';
+        $this->empty        = '';
         $this->_this        = '';
     
         $this->request_method   = 'GET';
@@ -437,7 +438,7 @@ Class OB_HMVC
         
         @ob_end_clean();
         
-        $this->_set_response($content);
+        $this->_set_response($content); 
         
         $this->_reset_router();
                 
@@ -454,8 +455,6 @@ Class OB_HMVC
     */
     private function _reset_router($no_loop = FALSE)
     {
-        while (@ob_end_clean());  // clean all buffers
-        
         $GLOBALS['PUT'] = $_SERVER = $_POST = $_GET = $_REQUEST = array();
         $_GET     = $this->_GET_BACKUP;           // Assign global variables we copied before ..
         $_POST    = $this->_POST_BACKUP;

@@ -43,8 +43,6 @@ Class OB_Output {
         log_me('debug', "Output Class Initialized");
     }
     
-    // --------------------------------------------------------------------
-    
     /**
     * Get Output
     *
@@ -172,13 +170,7 @@ Class OB_Output {
     * @return   string
     */
     public function _display_hmvc($output = '', $URI)
-    {        
-        // Set the output data
-        if (empty($output) OR $output == '')
-        {
-            $output =& $this->final_output;   
-        }
-        
+    {            
         // Do we need to write a HMVC cache file?
         if ($URI->cache_time > 0)
         {
