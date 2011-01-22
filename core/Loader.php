@@ -180,7 +180,7 @@ Class loader {
             }
         }
 
-        throw new LoaderException('Unable to locate the library file: '. $class . EXT);
+        throw new LoaderException('Unable to locate the library file: '. $data['file']);
     }
 
     // --------------------------------------------------------------------
@@ -248,7 +248,7 @@ Class loader {
     {
         if ( ! file_exists($file))
         {
-            throw new LoaderException('Unable to locate the model: '.$model_name);
+            throw new LoaderException('Unable to locate the model: '.$file);
         }
 
         $model_var = $model_name;
@@ -384,7 +384,7 @@ Class loader {
             return;
         }
 
-        throw new LoaderException('Unable to locate the application helper: ' .$helper. EXT);
+        throw new LoaderException('Unable to locate the application helper: ' .$data['file']);
     }
 
     // --------------------------------------------------------------------
@@ -429,7 +429,7 @@ Class loader {
             return;
         }
 
-        throw new LoaderException('Unable to locate the helper: '.$helper. EXT);
+        throw new LoaderException('Unable to locate the helper: '.$data['file']);
     }
 
     // --------------------------------------------------------------------
