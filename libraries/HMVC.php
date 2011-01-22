@@ -100,10 +100,10 @@ Class OB_HMVC
             $this->uri    = clone $URI;     // Create copy of original URI class.
             $this->router = clone $Router;  // Create copy of original Router class.
             $this->config = clone base_register('Config');  // Create copy of original Config class.
-            $this->empty  = clone base_register('Empty');
+            $this->empty  = clone base_register('Empty');   // Create copy of original Empty class and it's Objects.
             
-            $URI->clear();           // Reset uri objects we will use it for hmvc.
-            $Router->clear();        // Reset router objects we will use it for hmvc.
+            $URI->clear();           // Reset uri objects we will reuse it for hmvc
+            $Router->clear();        // Reset router objects we will reuse it for hmvc.
             
             $Router->hmvc = TRUE;    // We need to know Router class whether to use HMVC.
             
@@ -112,7 +112,7 @@ Class OB_HMVC
             
             if(strpos($this->uri_string, '?') > 0)
             {
-                $uri_part = explode('?', urldecode($this->uri_string));
+                $uri_part = explode('?', urldecode($this->uri_string));  // support any possible url encode operation
                 $this->query_string = $uri_part[0] .'?'. $uri_part[1];
                 
                 $URI->set_uri_string($uri_part[0]);
@@ -256,36 +256,19 @@ Class OB_HMVC
     * Parse Url if there is any possible query string like this
     * hmvc_request('welcome/test/index?foo=im_foo&bar=im_bar');
     * 
-    * @param string $query_string
+    * @param  string $query_string
+    * @return array  $segments
     */
     public function parse_query($query_string = '')
     {
-        if($query_string == '') return array(); 
-        
-        $separator = ini_get('arg_separator.output');
-        if ($separator == '&amp;') 
-        {
-            $separator = '&';
+        if($query_string == '')
+        { 
+            return array();
         }
+        
+        parse_str(html_entity_decode(parse_url($query_string, PHP_URL_QUERY)), $segments);
 
-        $query_string  = parse_url($query_string, PHP_URL_QUERY);
-        $query_string  = html_entity_decode($query_string);
-        $query_string  = explode($separator, $query_string);
-        $arr  = array();
-        
-        foreach($query_string as $val)
-        {
-            $words = explode('=', $val);
-            
-            if(isset($words[0]) AND isset($words[1]))
-            {
-                $arr[$words[0]] = $words[1];
-            }
-        }
-        
-        unset($val, $words, $query_string);
-        
-        return $arr;
+        return $segments;
     }
     
     // --------------------------------------------------------------------
@@ -455,6 +438,7 @@ Class OB_HMVC
     */
     private function _reset_router($no_loop = FALSE)
     {
+        // do not close buffers in here !! 
         $GLOBALS['PUT'] = $_SERVER = $_POST = $_GET = $_REQUEST = array();
         $_GET     = $this->_GET_BACKUP;           // Assign global variables we copied before ..
         $_POST    = $this->_POST_BACKUP;
