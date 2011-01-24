@@ -119,9 +119,14 @@ if( ! function_exists('_lang_load_file'))
 {
     function _lang_load_file($file_url, $base = '', $extra_path = '')
     {
+        if($extra_path != '')
+        {
+            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
+        }
+        
         if($base == 'base')  // if  base lang
         {
-            return array('filename' => $file_url, 'path' => BASE .'lang'. DS);
+            return array('filename' => $file_url, 'path' => BASE .'lang'. DS. $extra_path);
         }
         
         $file_url = strtolower($file_url);
@@ -149,11 +154,6 @@ if( ! function_exists('_lang_load_file'))
         if( count($paths) > 0)
         {
             $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
-        }
-
-        if($extra_path != '')
-        {
-            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
         }
         
         $path        = APP .'lang'. DS .$sub_path .$extra_path;
