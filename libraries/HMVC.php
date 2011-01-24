@@ -224,8 +224,8 @@ Class OB_HMVC
            case 'POST':
             foreach($params_or_data as $key => $val)
             {
-                $_POST[$key]    = $val;
-                $_REQUEST[$key] = $val;
+                $_POST[$key]    = urldecode($val);
+                $_REQUEST[$key] = urldecode($val);
                 
                 $this->request_keys[$key] = '';
             }
@@ -234,8 +234,8 @@ Class OB_HMVC
            case ($method == 'GET' || $method == 'DELETE'):
             foreach($params_or_data as $key => $val)
             {
-                $_GET[$key]     = $val;
-                $_REQUEST[$key] = $val;
+                $_GET[$key]     = urldecode($val);
+                $_REQUEST[$key] = urldecode($val);
                 
                 $this->request_keys[$key] = '';
             }
