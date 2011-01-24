@@ -268,8 +268,6 @@ Class OB_HMVC
         
         parse_str(html_entity_decode($query_string), $segments);
         
-        print_r($segments); exit;
-        
         return $segments;
     }
     
