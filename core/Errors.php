@@ -83,7 +83,7 @@ function log_php_errors($type, $errstr, $errfile, $errline)
 function Obullo_Exception_Handler($e)
 {   
     $type = 'Exception';
-    $sql  = '';
+    $sql  = array();
         
     if(substr($e->getMessage(),0,3) == 'SQL') 
     {
@@ -93,7 +93,9 @@ function Obullo_Exception_Handler($e)
         foreach(profiler_get('databases') as $db_name => $db_var)
         {
            if(is_object($ob->$db_var))
-           $sql .= $ob->{$db_var}->last_query($ob->{$db_var}->prepare); 
+           {
+               $sql[] = $ob->{$db_var}->last_query($ob->{$db_var}->prepare);
+           }
         }        
     }
     

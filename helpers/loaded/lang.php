@@ -63,19 +63,9 @@ if( ! function_exists('lang_load') )
             $idiom = ($deft_lang == '') ? 'english' : $deft_lang;
         }
         
-        $folder = APP .'lang'. DS .$idiom;
-        if($dir == 'base')
-        {
-            $folder = BASE.'lang'. DS .$idiom;
-        }
-        else 
-        {
-            if(file_exists(DIR .$GLOBALS['d']. DS .'lang'. DS .$idiom. DS .$langfile. EXT))  // module support
-            {
-                $folder = DIR .$GLOBALS['d']. DS .'lang'. DS .$idiom;
-            }
-        }
-        
+        $file_info = _lang_load_file($langfile, $dir, $idiom);
+        $folder    = $file_info['path'];
+
         if( ! is_dir($folder))
         return;
         
@@ -83,7 +73,7 @@ if( ! function_exists('lang_load') )
         
         if ( ! isset($lang))
         {
-            log_me('error', 'Language file contains no data: lang' . DS .$idiom. DS .$langfile. EXT);
+            log_me('error', 'Language file contains no data: lang' . $file_info['path'] . $file_info['filename']. EXT);
             return;
         }
 
@@ -93,10 +83,11 @@ if( ! function_exists('lang_load') )
         $_ob->lang->is_loaded[] = $langfile;
         $_ob->lang->language    = array_merge($_ob->lang->language, $lang);
         
-        profiler_set('lang_files', $langfile, $langfile);
+        profiler_set('lang_files', $file_info['path'] . $file_info['filename'], $file_info['path'] . $file_info['filename']. EXT);
+        
         unset($lang);
 
-        log_me('debug', 'Language file loaded: '.$folder.$langfile. EXT);
+        log_me('debug', 'Language file loaded: '.$file_info['path'] . $file_info['filename']. EXT);
         return TRUE;
     }
 }
@@ -121,6 +112,63 @@ if( ! function_exists('lang') )
         return $item;
     }
 }
+
+// --------------------------------------------------------------------
+
+if( ! function_exists('_lang_load_file'))
+{
+    function _lang_load_file($file_url, $base = '', $extra_path = '')
+    {
+        if($base == 'base')  // if  base lang
+        {
+            return array('filename' => $file_url, 'path' => BASE .'lang'. DS);
+        }
+        
+        $file_url = strtolower($file_url);
+
+        if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
+        {
+            $paths      = explode('/', substr($file_url, 3));
+            $filename   = array_pop($paths);          // get file name
+            $modulename = array_shift($paths);        // get module name
+        }
+        else    // if current modulename/file
+        {
+            $filename = $file_url;          
+            $paths    = array();
+            if( strpos($filename, '/') !== FALSE)
+            {
+                $paths      = explode('/', $filename);
+                $filename   = array_pop($paths);
+            }
+
+            $modulename = $GLOBALS['d'];
+        }
+
+        $sub_path   = '';
+        if( count($paths) > 0)
+        {
+            $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
+        }
+
+        if($extra_path != '')
+        {
+            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
+        }
+        
+        $path        = APP .'lang'. DS .$sub_path .$extra_path;
+        $module_path = DIR .$modulename. DS .'lang'. DS .$sub_path. $extra_path;
+        
+        if(file_exists($module_path. $filename. EXT))  // first check module path
+        {
+            $path = $module_path;
+        }
+        
+        return array('filename' => $filename, 'path' => $path);
+    }
+}
+
+
 
 /* End of file lang.php */
 /* Location: ./obullo/helpers/loaded/lang.php */

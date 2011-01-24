@@ -109,11 +109,11 @@ Class OB_HMVC
             
             $this->cache_time = $cache_time;
             $this->uri_string = $URI->_filter_uri($hmvc_uri);   // secure URLS
-            
+
             if(strpos($this->uri_string, '?') > 0)
             {
                 $uri_part = explode('?', urldecode($this->uri_string));  // support any possible url encode operation
-                $this->query_string = $uri_part[0] .'?'. $uri_part[1];
+                $this->query_string = $uri_part[1];
                 
                 $URI->set_uri_string($uri_part[0]);
             }
@@ -199,7 +199,7 @@ Class OB_HMVC
         $this->_set_conn_string(serialize($params_or_data));
         
         $this->request_method = $method;
-        
+                    
         if($this->query_string != '')
         {
             $query_str_params = $this->parse_query($this->query_string);
@@ -266,8 +266,10 @@ Class OB_HMVC
             return array();
         }
         
-        parse_str(html_entity_decode(parse_url($query_string, PHP_URL_QUERY)), $segments);
-
+        parse_str(html_entity_decode($query_string), $segments);
+        
+        print_r($segments); exit;
+        
         return $segments;
     }
     

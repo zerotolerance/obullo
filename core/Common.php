@@ -216,20 +216,20 @@ function register_autoload($real_name)
         {
             require(DIR .$GLOBALS['d']. DS .'libraries'. DS .'php5'. DS .$class. EXT);
 
-            profiler_set('libraries', 'php5_local_'.$class.'_loaded', $class);
+            profiler_set('libraries', 'php5_module_'.$class.'_loaded', $class);
             return;
         }
 
-        /*
         if(file_exists(APP .'libraries'. DS .'php5'. DS .$class. EXT))
         {
-            $replaced = '_loaded';
             require(APP .'libraries'. DS .'php5'. DS .$class. EXT);
 
-            profiler_set('libraries', 'php5_'.$class. $replaced, $class);
+            profiler_set('libraries', 'php5_'.$class.'_loaded', $class);
             return;
         }
-        */
+        
+        return;
+        /*
         // BASE LIBRARIES -----------------------------------------------------------
         
         // Php5 application library load and replace support.
@@ -282,6 +282,7 @@ function register_autoload($real_name)
         }
 
         return;
+        */
 }
 
 spl_autoload_register('register_autoload',true);
