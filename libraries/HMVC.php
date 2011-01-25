@@ -239,7 +239,19 @@ Class OB_HMVC
              break;
              
            case 'PUT':
-           $GLOBALS['PUT'] = $_REQUEST['PUT'] = array_map('urldecode', $params_or_data);
+            if(is_array($params_or_data))
+            {
+                foreach($params_or_data as $key => $val)
+                {
+                    $_REQUEST[$key] = urldecode($val);
+                    
+                    $this->request_keys[$key] = '';
+                }
+            } 
+            else 
+            {
+                $GLOBALS['PUT'] = $_REQUEST['PUT'] = $params_or_data;
+            }
              break;
         }
     
