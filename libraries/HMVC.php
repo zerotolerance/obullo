@@ -24,8 +24,7 @@ function ob_request_timer($mark = '')
 
  /**
  * HMVC Class
- * Hierarcial Model View Controller
- * Parses URIs and determines routing
+ * Hierarcial Model View Controller Library
  *
  * @package     Obullo
  * @subpackage  Libraries
@@ -193,12 +192,10 @@ Class OB_HMVC
     */
     public function set_method($method = 'GET' , $params_or_data = '')
     {
-        $method = strtoupper($method);
+        $method = $this->request_method = strtoupper($method);
     
         $this->_set_conn_string($method);        // Set Unique connection string foreach HMVC request
         $this->_set_conn_string(serialize($params_or_data));
-        
-        $this->request_method = $method;
                     
         if($this->query_string != '')
         {
@@ -242,8 +239,7 @@ Class OB_HMVC
              break;
              
            case 'PUT':
-           $_REQUEST['PUT'] = $params_or_data;
-           $GLOBALS['PUT']  = $params_or_data;
+           $GLOBALS['PUT'] = $_REQUEST['PUT'] = array_map('urldecode', $params_or_data);
              break;
         }
     

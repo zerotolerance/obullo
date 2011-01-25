@@ -21,7 +21,6 @@ defined('BASE') or exit('Access Denied!');
  * @package         Obullo   
  * @subpackage      Core.controller 
  * @category        Controller
- * @author          Global Controllers (c) Ersin Guvenc
  * 
  * @version 0.1 removed Obullo.php and moved all contents to Controller.php.
  * @version 0.2 depreciated old global controllers functionality, deleted parse_parents() func.
