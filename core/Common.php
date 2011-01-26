@@ -205,10 +205,12 @@ function register_autoload($real_name)
             return;
         }
 
+        $class = $real_name;
+        
         // Strlower class name.
         // --------------------------------------------------------------------
-        $class  = strtolower($real_name); // lowercase classname.
-        $prefix = config_item('subclass_prefix');
+        // $class  = strtolower($real_name); // lowercase classname.
+        // $prefix = config_item('subclass_prefix');
 
         // php5 libraries load support.
         // --------------------------------------------------------------------
