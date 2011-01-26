@@ -154,8 +154,13 @@ Class loader {
 
             if(is_array($params_or_no_ins))
             {
-                if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
-
+                // HMVC CRAZY BUG !!
+                // If someone use HMVC we need to create new instance() foreach Library
+                if(base_register('Router')->hmvc == FALSE)
+                {
+                    if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
+                }
+            
                 $OB->$class_var = new $data['file_name']($params_or_no_ins);
 
                 profiler_set('libraries', $class_var, $class_var);
@@ -243,6 +248,7 @@ Class loader {
     * @version   0.1
     * @version   0.2 added params_or_no_ins instantiate switch ,added Ssc::instance()->_profiler_mods
     * @version   0.3 added profiler_set function
+    * @version   0.4 HMVC bug fixed.
     */
     private static function _model($file, $model_name, $object_name = '', $params_or_no_ins = '')
     {
@@ -256,7 +262,12 @@ Class loader {
 
         $OB = this();
 
-        if (isset($OB->$model_var) AND is_object($OB->$model_var)) { return; }
+        // HMVC CRAZY BUG !!
+        // If someone use HMVC we need to create new instance() foreach Model
+        if(base_register('Router')->hmvc == FALSE)
+        {
+            if (isset($OB->$model_var) AND is_object($OB->$model_var)) { return; }
+        }
 
         require_once($file);
         $model = ucfirst($model_name);
