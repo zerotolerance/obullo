@@ -92,13 +92,14 @@ Class loader {
     * load app libraries from /directories folder.
     *
     * @param    mixed $class
-    * @param    mixed $no_ins_params array | false
+    * @param    mixed $params_or_no_ins array | null | false
     * @param    string $object_name
+    * @param    boolean $new_instance create new instance 
     * @return   self::_library()
     */
-    public static function lib($class, $no_ins_params = '', $object_name = '')
+    public static function lib($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
     {
-        self::_library($class, $no_ins_params, FALSE, $object_name = '');
+        self::_library($class, $params_or_no_ins, $object_name, $new_instance);
     }
 
     // --------------------------------------------------------------------
@@ -109,13 +110,14 @@ Class loader {
     * load app libraries from /application folder.
     *
     * @param    mixed $class
-    * @param    mixed $no_ins_params array | null | false
+    * @param    mixed $params_or_no_ins array | null | false
     * @param    string $object_name
+    * @param    boolean $new_instance create new instance 
     * @return   self::_library()
     */
-    public static function app_lib($class, $no_ins_params = NULL, $object_name = '')
+    public static function app_lib($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
     {
-        self::_library($class, $no_ins_params, FALSE, $object_name = '', TRUE);
+        self::_library($class, $params_or_no_ins, $object_name, $new_instance, TRUE);
     }
 
     // --------------------------------------------------------------------
@@ -126,17 +128,17 @@ Class loader {
     * @author   Ersin Guvenc
     * @param    string $class class name
     * @param    array | boolean $params_or_no_ins __construct() params  | or | No Instantiate
-    *
+    * @param    boolean $new_instance create new instance
+    *  
     * @version  0.1
     * @version  0.2  added register_static functions
     * @version  0.3  removed class_exists, removed asn_to_models()
     * @version  0.4  added profiler_set() func.
     * @return   void
     */
-    private static function _library($class, $params_or_no_ins = '', $base = FALSE, $object_name = '', $app_folder = FALSE)
+    private static function _library($class, $params_or_no_ins = '', $object_name = '', $new_instance = FALSE, $app_folder = FALSE)
     {
-        if($class == '')
-        return FALSE;
+        if($class == '') return FALSE;
 
         $OB = this();  // Grab the Super Object.
 
@@ -156,7 +158,7 @@ Class loader {
             {
                 // HMVC CRAZY BUG !!
                 // If someone use HMVC we need to create new instance() foreach Library
-                if(base_register('Router')->hmvc == FALSE)
+                if(base_register('Router')->hmvc == FALSE AND $new_instance == FALSE)
                 {
                     if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
                 }
@@ -196,28 +198,29 @@ Class loader {
     * @author   Ersin Guvenc
     * @param    string $model
     * @param    string $object_name
-    * @param    array | boolean $params_or_no_ins (construct params) | or | No Instantiate
+    * @param    array | boolean $params_or_no_ins (construct params) | or | No Instantiate just include file
+    * @param    boolean $new_instance create new instance 
     * @return   void
     */
-    public static function app_model($model, $object_name = '', $params_or_no_ins = '')
+    public static function app_model($model, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
     {
-        self::model($model, $object_name, $params_or_no_ins, TRUE);
+        $data = self::_load_file($model, $folder = 'models', $app_folder = TRUE);
+
+        self::_model($data['file'], $data['file_name'], $object_name, $params_or_no_ins, $new_instance);
     }
 
     // --------------------------------------------------------------------
 
     /**
     * loader::model();
-    * Obullo Model Loader
-    *
     * loader::model('subfolder/model_name')  local sub folder load
     * loader::model('../outside_folder/model_name')  outside directory load
     *
     * @author    Ersin Guvenc
     * @param     string $model
     * @param     string $object_name
-    * @param     array | boolean $params (construct params) | or | Not Instantiate
-    * @param     reserved private parameter for application model func.
+    * @param     array | boolean $params (construct params) | or | Not Instantiate just include file
+    * @param     boolean $new_instance create new instance 
     * @version   0.1
     * @version   0.2 added directory support
     * @version   0.3 changed $GLOBALS['c'] as $GLOBALS['d']
@@ -228,13 +231,14 @@ Class loader {
     * @version   0.6 changed $params as $params_or_no_ins
     * @version   0.7 loading from another path bug fixed. added 'models' string and DS.
     * @version   0.8 added  model('.outside_folder/model_name') and model('subfolder/model_name') support
+    * @version   0.9 added $new_instance variable, user can create new instance for each models.
     * @return    void
     */
-    public static function model($model, $object_name = '', $params_or_no_ins = '', $app_folder = FALSE)
+    public static function model($model, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
     {
-        $data = self::_load_file($model, $folder = 'models', $app_folder);
+        $data = self::_load_file($model, $folder = 'models', FALSE);
 
-        self::_model($data['file'], $data['file_name'], $object_name, $params_or_no_ins);
+        self::_model($data['file'], $data['file_name'], $object_name, $params_or_no_ins, $new_instance);
     }
 
     // --------------------------------------------------------------------
@@ -245,12 +249,15 @@ Class loader {
     * @access    private
     * @param     string $file
     * @param     string $model_name
+    * @param     string $object_name
+    * @param     array | boolean  $params_or_no_ins
+    * @param     boolean $new_instance  create new instance
     * @version   0.1
     * @version   0.2 added params_or_no_ins instantiate switch ,added Ssc::instance()->_profiler_mods
     * @version   0.3 added profiler_set function
     * @version   0.4 HMVC bug fixed.
     */
-    private static function _model($file, $model_name, $object_name = '', $params_or_no_ins = '')
+    private static function _model($file, $model_name, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
     {
         if ( ! file_exists($file))
         {
@@ -264,7 +271,7 @@ Class loader {
 
         // HMVC CRAZY BUG !!
         // If someone use HMVC we need to create new instance() foreach Model
-        if(base_register('Router')->hmvc == FALSE)
+        if(base_register('Router')->hmvc == FALSE AND $new_instance == FALSE)
         {
             if (isset($OB->$model_var) AND is_object($OB->$model_var)) { return; }
         }
