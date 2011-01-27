@@ -58,33 +58,28 @@ Class OB_Config
     * @param    string    the config file name
     * @return   boolean   if the file was loaded correctly
     */    
-    public function load($file = '', $use_sections = FALSE, $fail_gracefully = FALSE)
+    public function load($file_url = '', $use_sections = FALSE, $fail_gracefully = FALSE)
     {
-        $file = ($file == '') ? 'config' : str_replace(EXT, '', $file);
+        $file_info = $this->_load_file($file_url);
+        
+        $file = ($file_info['filename'] == '') ? 'config' : str_replace(EXT, '', $file_info['filename']);
     
         if (in_array($file, $this->is_loaded, TRUE))
         {
             return TRUE;
         }
         
-        $path = APP .'config'. DS .$file. EXT;
-        
-        if(file_exists(DIR. $GLOBALS['d']. DS .'config'. DS .$file. EXT))  // module support ..
-        {
-            $path = DIR. $GLOBALS['d']. DS .'config'. DS .$file. EXT;
-        }
-
-        if ( ! file_exists($path))
+        if ( ! file_exists($file_info['path'] .$file. EXT))
         {
             if ($fail_gracefully === TRUE)
             {
                 return FALSE;
             }
             
-            throw new ConfigException('The configuration file '.$file. EXT .' does not exist.');
+            throw new ConfigException('The configuration file '.$file_info['path'] .$file. EXT .' does not exist.');
         }
     
-        include($path);
+        include($file_info['path'] .$file. EXT);
 
         if ( ! isset($config) OR ! is_array($config))
         {
@@ -117,12 +112,66 @@ Class OB_Config
         profiler_set('config_files', $file, $file);
         unset($config);
 
-        log_me('debug', 'Config file loaded: config/'.$file.EXT);
+        log_me('debug', 'Config file loaded: '.$file_info['path'] .$file. EXT);
         return TRUE;
     }
       
     // --------------------------------------------------------------------
 
+    /**
+    * Load config file.
+    * 
+    * @param  string $file_url
+    * @param  string $extra_path
+    * @return array
+    */
+    public function _load_file($file_url, $extra_path = '')
+    {
+        if($extra_path != '')
+        {
+            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
+        }
+        
+        $file_url = strtolower($file_url);
+
+        if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
+        {
+            $paths      = explode('/', substr($file_url, 3));
+            $filename   = array_pop($paths);          // get file name
+            $modulename = array_shift($paths);        // get module name
+        }
+        else    // if current modulename/file
+        {
+            $filename = $file_url;          
+            $paths    = array();
+            if( strpos($filename, '/') !== FALSE)
+            {
+                $paths      = explode('/', $filename);
+                $filename   = array_pop($paths);
+            }
+
+            $modulename = $GLOBALS['d'];
+        }
+
+        $sub_path   = '';
+        if( count($paths) > 0)
+        {
+            $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
+        }
+        
+        $path        = APP .'config'. DS .$sub_path .$extra_path;
+        $module_path = DIR .$modulename. DS .'config'. DS .$sub_path. $extra_path;
+        
+        if(file_exists($module_path. $filename. EXT))  // first check module path
+        {
+            $path = $module_path;
+        }
+        
+        return array('filename' => $filename, 'path' => $path);
+    }
+    
+    // --------------------------------------------------------------------
+    
     /**
     * Fetch a config file item
     *
@@ -175,6 +224,8 @@ Class OB_Config
         $this->auto_base_url = $bool;
     }
     
+    // --------------------------------------------------------------------
+    
     /**
     * Set host based auto public url
     * 
@@ -208,7 +259,7 @@ Class OB_Config
 
         $pref = $this->config[$item];
 
-        if ($pref != '' && substr($pref, -1) != '/')
+        if ($pref != '' AND substr($pref, -1) != '/')
         {    
             $pref .= '/';
         }

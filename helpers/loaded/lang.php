@@ -28,7 +28,7 @@ Class LangException extends CommonException {}
 if( ! isset($_ob->lang)) 
 {
     $_ob = base_register('Empty');
-    $_ob->lang = new stdClass();
+    $_ob->lang = new stdClass();    // Create new language Object.
 
     $_ob->lang->language  = array();
     $_ob->lang->is_loaded = array();
@@ -65,15 +65,15 @@ if( ! function_exists('lang_load') )
         
         $file_info = _lang_load_file($langfile, $dir, $idiom);
         $folder    = $file_info['path'];
-
+        
         if( ! is_dir($folder))
         return;
         
-        $lang = get_static($langfile, 'lang', $folder);     // Obullo changes ...
+        $lang = get_static($file_info['filename'], 'lang', $folder);     // Obullo changes ...
         
         if ( ! isset($lang))
         {
-            log_me('error', 'Language file contains no data: lang' . $file_info['path'] . $file_info['filename']. EXT);
+            log_me('error', 'Language file contains no lang variable: ' . $file_info['path'] . $file_info['filename']. EXT);
             return;
         }
 
@@ -94,29 +94,17 @@ if( ! function_exists('lang_load') )
 
 // --------------------------------------------------------------------
 
-/**
-* Fetch a item of text from the language array
-*
-* @access   public
-* @param    string  $item the language item
-* @return   string
-*/
-if( ! function_exists('lang') ) 
-{
-    function lang($item = '')
-    {
-        $_ob = base_register('Empty');
-        
-        $item = ($item == '' OR ! isset($_ob->lang->language[$item])) ? FALSE : $_ob->lang->language[$item];
-        
-        return $item;
-    }
-}
-
-// --------------------------------------------------------------------
-
 if( ! function_exists('_lang_load_file'))
 {
+    /**
+    * Language loader
+    * 
+    * @access private
+    * @param  string $file_url
+    * @param  string $base
+    * @param  string $extra_path
+    * @return mixed
+    */
     function _lang_load_file($file_url, $base = '', $extra_path = '')
     {
         if($extra_path != '')
@@ -124,7 +112,7 @@ if( ! function_exists('_lang_load_file'))
             $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
         }
         
-        if($base == 'base')  // if  base lang
+        if($base == 'base')  // if base lang
         {
             return array('filename' => $file_url, 'path' => BASE .'lang'. DS. $extra_path);
         }
@@ -163,10 +151,33 @@ if( ! function_exists('_lang_load_file'))
         {
             $path = $module_path;
         }
-        
+
         return array('filename' => $filename, 'path' => $path);
     }
 }
+
+
+// --------------------------------------------------------------------
+
+/**
+* Fetch a item of text from the language array
+*
+* @access   public
+* @param    string  $item the language item
+* @return   string
+*/
+if( ! function_exists('lang') ) 
+{
+    function lang($item = '')
+    {
+        $_ob = base_register('Empty');
+        
+        $item = ($item == '' OR ! isset($_ob->lang->language[$item])) ? FALSE : $_ob->lang->language[$item];
+        
+        return $item;
+    }
+}
+
 
 
 

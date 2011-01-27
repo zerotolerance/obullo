@@ -86,6 +86,10 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
         $classname = 'OB_'.$Class;
         $prefix    = config_item('subclass_prefix');  // MY_
 
+        // Base library Module extend support
+        // --------------------------------------------------------------------
+        // $extend_path = DIR .$GLOBALS['d']. DS .'libraries'. DS .$prefix. $Class. EXT;
+        
         if(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))
         {
             if( ! isset($new_objects[$Class]) )  // check new object instance

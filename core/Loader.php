@@ -516,18 +516,6 @@ Class loader {
         lang_load($file, $folder, NULL, $return);
     }
 
-    // --------------------------------------------------------------------
-
-    /**
-    * @deprecated !!
-    */
-    /*
-    public static function app_lang($file = '', $folder = '', $return = FALSE)
-    {
-        lang_load($file, $folder, 'global', $return);
-    }
-    */
-
     // ------------------------------------------------------------------
 
     public static function base_lang($file = '', $folder = '', $return = FALSE)
@@ -544,9 +532,9 @@ Class loader {
 
     // --------------------------------------------------------------------
 
-    public static function config($file)
+    public static function config($file, $use_sections = FALSE, $fail_gracefully = FALSE)
     {
-        this()->config->load($file);
+        this()->config->load($file, $use_sections, $fail_gracefully);
     }
 
     // --------------------------------------------------------------------
