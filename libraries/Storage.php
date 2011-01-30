@@ -16,7 +16,7 @@ defined('BASE') or exit('Access Denied!');
  */
  
 /**
-* An Empty Class (c) 2011.
+* A Storage Class (c) 2011.
 * Control the Procedural Functions.
 * User can use this class to set custom Objects.
 * 
@@ -24,11 +24,10 @@ defined('BASE') or exit('Access Denied!');
 * @author   Ersin Guvenc
 */
 
-Class OB_Empty {
+Class OB_Storage {
     
     // WARNING !
-    // Reserved Variables, please don't override
-    // these public variables.
+    // Reserved Variables, please don't override these public variables.
     // ( $view, $lang, $log, $session, $security, $input, $benchmark ).
     
     public $properties   = array();
@@ -70,7 +69,7 @@ Class OB_Empty {
     
     /**
     * Clone Empty objects for HMVC Requests, When we
-    * use HMVC we use $this->empty = clone base_register('Empty');
+    * use HMVC we use $this->empty = clone base_register('Storage');
     * that means we say to Empty class when Clone word used in HMVC library 
     * use cloned Empty objects instead of orginals ( ersin ).
     */
@@ -87,7 +86,7 @@ Class OB_Empty {
     
 }
 
-// END Empty Class
+// END Storage Class
 
 /* End of file Empty.php */
-/* Location: ./obullo/libraries/Empty.php */
+/* Location: ./obullo/libraries/Storage.php */

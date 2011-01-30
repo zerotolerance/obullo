@@ -93,13 +93,13 @@ Class OB_HMVC
                                      // becuse of it will change foreach HMVC requests.
         if($hmvc_uri != '')
         {          
-            $URI    = base_register('URI');
-            $Router = base_register('Router');
+            $URI    = core_register('URI');
+            $Router = core_register('Router');
 
             $this->uri    = clone $URI;     // Create copy of original URI class.
             $this->router = clone $Router;  // Create copy of original Router class.
             $this->config = clone base_register('Config');  // Create copy of original Config class.
-            $this->empty  = clone base_register('Empty');   // Create copy of original Empty class and it's Objects.
+            $this->empty  = clone base_register('Storage');   // Create copy of original Empty class and it's Objects.
             
             $URI->clear();           // Reset uri objects we will reuse it for hmvc
             $Router->clear();        // Reset router objects we will reuse it for hmvc.
@@ -302,8 +302,8 @@ Class OB_HMVC
             self::$_conn_id[$conn_id] = $conn_id;    // store connection id.
         }
         
-        $URI    = base_register('URI');
-        $router = base_register('Router');
+        $URI    = core_register('URI');
+        $router = core_register('Router');
         $config = base_register('Config');
         $output = base_register('Output');
 
@@ -454,12 +454,12 @@ Class OB_HMVC
         $_REQUEST = $this->_REQUEST_BACKUP;
         
         // Set original objects foreach HMVC requests we backup before  ..
-        $URI = base_register('URI');
+        $URI = core_register('URI');
         
-        $this->_this->uri    = base_register('URI', $this->uri);
-        $this->_this->router = base_register('Router', $this->router);
+        $this->_this->uri    = core_register('URI', $this->uri);
+        $this->_this->router = core_register('Router', $this->router);
         $this->_this->config = base_register('Config', $this->config);
-        $this->_this->empty  = base_register('Empty', $this->empty);
+        $this->_this->empty  = base_register('Storage', $this->empty);
         
         this($this->_this);         // Set original $this to instance that we backup before
         

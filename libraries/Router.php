@@ -60,7 +60,7 @@ Class OB_Router {
         unset($routes);
 
         $this->method = $this->routes['index_method'];
-        $this->uri    = base_register('URI');
+        $this->uri    = core_register('URI');
 
         $this->_set_routing();
 
@@ -77,7 +77,7 @@ Class OB_Router {
     */
     public function clear()
     {
-        $this->uri                 = base_register('URI');   // reset cloned URI object.
+        $this->uri                 = core_register('URI');   // reset cloned URI object.
         $this->config              = '';
         $this->hmvc                = FALSE;
         $this->hmvc_response       = '';
@@ -192,6 +192,7 @@ Class OB_Router {
             log_me('debug', "No URI present. Default controller set.");
             return;
         }
+        
         unset($this->routes['default_controller']);
 
         // Do we need to remove the URL suffix?

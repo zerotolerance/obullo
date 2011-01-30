@@ -65,7 +65,7 @@ if( ! function_exists('css') )
         $title = $title_or_embed;
         $link = '<link ';
 
-        $_ob = base_register('Empty');   // obullo changes ..
+        $_ob = base_register('Storage');   // obullo changes ..
 
         // When user use view_set_folder('css', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';
@@ -170,7 +170,7 @@ if( ! function_exists('js') )
 
         $link = '<script type="'.$type.'" ';
 
-        $_ob = base_register('Empty');   // obullo changes ..
+        $_ob = base_register('Storage');   // obullo changes ..
 
         // When user use view_set_folder('js', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';

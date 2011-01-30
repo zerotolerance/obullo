@@ -256,5 +256,5 @@ Class OB_Pager_jumping extends OB_Pager_common
 
 // END Pager_jumping Class
 
-/* End of file OB_Pager_jumping.php */
-/* Location: ./obullo/libraries/drivers/pager/OB_Pager_jumping.php */
+/* End of file Pager_jumping.php */
+/* Location: ./obullo/libraries/drivers/pager/Pager_jumping.php */

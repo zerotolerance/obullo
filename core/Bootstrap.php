@@ -55,12 +55,12 @@ if( ! function_exists('ob_set_headers'))
         // Loaded system helpers
         if (config_item('log_threshold') > 0)
         {
-            loaded_helper('log');
+            core_helper('log');
         }
         
-        loaded_helper('input');
-        loaded_helper('lang');
-        loaded_helper('benchmark');        
+        core_helper('input');
+        core_helper('lang');
+        core_helper('benchmark');        
     }
 }
 
@@ -70,24 +70,24 @@ if( ! function_exists('ob_system_run'))
 {
     function ob_system_run()
     {
-        $uri       = base_register('URI');
-        $router    = base_register('Router');
-        $output    = base_register('Output');
-        $config    = base_register('Config'); 
+        $uri       = core_register('URI');
+        $router    = core_register('Router');
         
         benchmark_mark('total_execution_time_start');
         benchmark_mark('loading_time_base_classes_start');
         
-        // Check REQUEST uri if there is a Cached file exist
-        if ($output->_display_cache($config, $uri) == TRUE) { exit; }
-          
-        _sanitize_globals(); // Initalize to input filter. ( Sanitize must be above the GLOBALS !! )
-          
+        _sanitize_globals();  // Initalize to input filter. ( Sanitize must be above the GLOBALS !! )             
+                                  
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
         $GLOBALS['s']   = $router->fetch_subfolder();   // Check subfolder exist
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
+        $output    = base_register('Output');
+        $config    = base_register('Config'); 
+        
+        if ($output->_display_cache($config, $uri) == TRUE) { exit; }  // Check REQUEST uri if there is a Cached file exist 
+        
         if($GLOBALS['s'] != '')
         {
             $page_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";

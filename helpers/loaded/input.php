@@ -20,7 +20,7 @@ Class InputException extends CommonException {}
 
 if( ! isset($_ob->input))   // Helper Constructor
 {
-    $_ob = base_register('Empty');
+    $_ob = base_register('Storage');
     $_ob->input = new stdClass();
 
     $_ob->input->use_xss_clean      = FALSE;
@@ -51,10 +51,10 @@ if( ! function_exists('_sanitize_globals') )
 {
     function _sanitize_globals()
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         // Would kind of be "wrong" to unset any of these GLOBALS
-        $protected = array('_SERVER', '_GET', '_POST', '_FILES', '_REQUEST', '_SESSION', '_ENV', '_ob', '_controller', 
+        $protected = array('_SERVER', '_GET', '_POST', '_FILES', '_REQUEST', '_SESSION', '_ENV', '_controller', 
         'GLOBALS', 'HTTP_RAW_POST_DATA');
        
         // Unset globals for security. 
@@ -135,7 +135,7 @@ if( ! function_exists('_clean_input_data') )
 {
     function _clean_input_data($str)
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         if (is_array($str))
         {
@@ -348,7 +348,7 @@ if( ! function_exists('i_ip_address') )
 {
     function i_ip_address()
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         if ($_ob->input->ip_address !== FALSE)
         {
@@ -452,7 +452,7 @@ if( ! function_exists('i_user_agent') )
 {
     function i_user_agent()
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         if ($_ob->input->user_agent !== FALSE)
         {

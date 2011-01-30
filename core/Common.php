@@ -28,27 +28,15 @@ defined('BASE') or exit('Access Denied!');
 */
 
 /**
-* base_register()
-*
-* Register base classes which start by OB_ prefix
-*
-* @access   private
-* @param    string $class the class name being requested
-* @param    array | bool $params_or_no_ins (__construct parameter ) | or | No Instantiate
-* @version  0.1
-* @version  0.2 removed OB_Library::factory()
-*               added lib_factory() function
-* @version  0.3 renamed base "libraries" folder as "base"
-* @version  0.4 added extend to core libraries support
-* @version  0.5 added $params_or_no_ins instantiate switch FALSE.
-* @version  0.6 added $new_object instance param, added unset object.
-* @version  0.7 added new instance support ( added $new_objects variable).
-*
-* @return   object  | NULL
+* Register core libraries
+* 
+* @param string $realname
+* @param boolean | object $new_object
+* @param array $params_or_no_ins
 */
-function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
+function core_register($realname, $new_object = NULL, $params_or_no_ins = '')
 {
-    static $new_objects = array();
+    static $new_objects = array();                
     
     $Class    = ucfirst($realname);
     $registry = OB_Registry::instance();
@@ -64,10 +52,10 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
     }
 
     $getObject = $registry->get_object($Class);
-
+                                                   
     if ($getObject !== NULL)
     return $getObject;
-
+                                                  
     if(file_exists(BASE .'libraries'. DS . $Class. EXT))
     {
         if( ! isset($new_objects[$Class]) )  // check new object instance
@@ -85,12 +73,8 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
 
         $classname = 'OB_'.$Class;
         $prefix    = config_item('subclass_prefix');  // MY_
-
-        // Base library Module extend support
-        // --------------------------------------------------------------------
-        // $extend_path = DIR .$GLOBALS['d']. DS .'libraries'. DS .$prefix. $Class. EXT;
-        
-        if(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))
+         
+        if(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
         {
             if( ! isset($new_objects[$Class]) )  // check new object instance
             {
@@ -100,8 +84,8 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
             $classname = $prefix. $Class;
 
             profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-        }
-
+        } 
+        
         // __construct params support.
         // --------------------------------------------------------------------
         if($new_object == TRUE)
@@ -133,7 +117,7 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
 
         // return to singleton object.
         // --------------------------------------------------------------------
-        
+                      
         if(is_object($Object))
         return $Object;
 
@@ -142,6 +126,133 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
     return NULL;  // if register func return to null
                   // we will show a loader exception
 }
+
+// -------------------------------------------------------------------- 
+
+/**
+* base_register()
+*
+* Register base classes which start by OB_ prefix
+*
+* @access   private
+* @param    string $class the class name being requested
+* @param    array | bool $params_or_no_ins (__construct parameter ) | or | No Instantiate
+* @version  0.1
+* @version  0.2 removed OB_Library::factory()
+*               added lib_factory() function
+* @version  0.3 renamed base "libraries" folder as "base"
+* @version  0.4 added extend to core libraries support
+* @version  0.5 added $params_or_no_ins instantiate switch FALSE.
+* @version  0.6 added $new_object instance param, added unset object.
+* @version  0.7 added new instance support ( added $new_objects variable).
+*
+* @return   object  | NULL
+*/
+function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
+{
+    static $new_objects = array();                
+    
+    $Class    = ucfirst($realname);
+    $registry = OB_Registry::instance();
+    
+    // if we need to reset any registered object .. 
+    // --------------------------------------------------------------------
+    if(is_object($new_object))
+    {
+        $registry->unset_object($Class);
+        $registry->set_object($Class, $new_object);
+        
+        return $new_object;
+    }
+
+    $getObject = $registry->get_object($Class);
+                                                   
+    if ($getObject !== NULL)
+    return $getObject;
+                                                  
+    if(file_exists(BASE .'libraries'. DS . $Class. EXT))
+    {
+        if( ! isset($new_objects[$Class]) )  // check new object instance
+        {
+            require(BASE .'libraries'. DS . $Class. EXT);
+        }
+        
+        $classname = $Class;    // prepare classname
+
+        if($params_or_no_ins === FALSE)
+        {
+            profiler_set('libraries', 'php_'.$Class.'_no_instantiate', $Class);
+            return TRUE;
+        }
+
+        $classname   = 'OB_'.$Class;
+        $prefix      = config_item('subclass_prefix');  // MY_
+        $module      = core_register('Router')->fetch_directory();
+        
+        if(file_exists(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
+        {
+            if( ! isset($new_objects[$Class]) )  // check new object instance
+            {
+                require(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT);
+            }
+            
+            $classname = $prefix. $Class;
+
+            profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+        }  
+        elseif(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
+        {
+            if( ! isset($new_objects[$Class]) )  // check new object instance
+            {
+                require(APP .'libraries'. DS .$prefix. $Class. EXT);
+            }
+            
+            $classname = $prefix. $Class;
+
+            profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+        } 
+        
+        // __construct params support.
+        // --------------------------------------------------------------------
+        if($new_object == TRUE)
+        {
+            if(is_array($params_or_no_ins))  // construct support.
+            {
+                $Object = new $classname($params_or_no_ins);
+
+            } else
+            {
+                $Object = new $classname();
+            }
+            
+            $new_objects[$Class] = $Class;  // set new instance to static variable
+        } 
+        else 
+        {
+            if(is_array($params_or_no_ins)) // construct support.
+            {
+                $registry->set_object($Class, new $classname($params_or_no_ins));
+
+            } else
+            {
+                $registry->set_object($Class, new $classname());
+            }
+
+            $Object = $registry->get_object($Class);
+        }
+
+        // return to singleton object.
+        // --------------------------------------------------------------------
+                      
+        if(is_object($Object))
+        return $Object;
+
+    }
+
+    return NULL;  // if register func return to null
+                  // we will show a loader exception
+}
+
 // --------------------------------------------------------------------
 
 /**
@@ -162,11 +273,13 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
 *
 * @return NULL | Exception
 */
-function register_autoload($real_name)
+function ob_autoload($real_name)
 {
     if(class_exists($real_name))
     return;
-
+    
+        $module = core_register('Router')->fetch_directory();
+    
         // Parents folder files: App_controller and Global Controllers
         // --------------------------------------------------------------------
         if(substr(strtolower($real_name), -11) == '_controller')
@@ -182,9 +295,9 @@ function register_autoload($real_name)
             }
 
             // If local Global Controller file exist ..
-            if(file_exists(DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT))
+            if(file_exists(DIR .$module. DS .'parents'. DS .$real_name. EXT))
             {            
-                require(DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT);
+                require(DIR .$module. DS .'parents'. DS .$real_name. EXT);
 
                 profiler_set('parents', $real_name, DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT);
 
@@ -210,17 +323,12 @@ function register_autoload($real_name)
         }
 
         $class = $real_name;
-        
-        // Strlower class name.
-        // --------------------------------------------------------------------
-        // $class  = strtolower($real_name); // lowercase classname.
-        // $prefix = config_item('subclass_prefix');
 
         // php5 libraries load support.
         // --------------------------------------------------------------------
-        if(file_exists(DIR .$GLOBALS['d']. DS .'libraries'. DS .'php5'. DS .$class. EXT))
+        if(file_exists(DIR .$module. DS .'libraries'. DS .'php5'. DS .$class. EXT))
         {
-            require(DIR .$GLOBALS['d']. DS .'libraries'. DS .'php5'. DS .$class. EXT);
+            require(DIR .$module. DS .'libraries'. DS .'php5'. DS .$class. EXT);
 
             profiler_set('libraries', 'php5_module_'.$class.'_loaded', $class);
             return;
@@ -235,63 +343,9 @@ function register_autoload($real_name)
         }
         
         return;
-        /*
-        // BASE LIBRARIES -----------------------------------------------------------
-        
-        // Php5 application library load and replace support.
-        
-        // --------------------------------------------------------------------
-        if(file_exists(APP .'libraries'. DS .'php5'. DS .$class. EXT))
-        {
-            $replaced = '_loaded';
-            require(APP .'libraries'. DS .'php5'. DS .$class. EXT);
-
-            if(file_exists(BASE .'libraries'. DS .'php5'. DS .ucfirst($class). EXT))
-            $replaced = '_replaced';
-
-            profiler_set('libraries', 'php5_'.$class. $replaced, $class);
-            return;
-        }
-
-        // Php5 library extend (override) support.
-        // --------------------------------------------------------------------
-        if(file_exists(APP .'libraries'. DS .'php5'. DS . $prefix .$class. EXT))
-        {
-            require(APP .'libraries'. DS .'php5'. DS . $prefix .$class. EXT);
-
-            profiler_set('libraries', 'php5_'.$class.'_overridden', $prefix. $class);
-            return;
-        }
-
-        // load classname_CORE libraries.
-        // --------------------------------------------------------------------
-        if(substr($class, -5) == '_core')
-        {
-            $name = explode('_', $class);
-
-            require(BASE .'libraries'. DS .'php5'. DS .ucfirst($name[0]). EXT);
-
-            profiler_set('libraries', 'php5_'.$class, $class);
-            return;
-        }
-
-        // else call directly php5 base libraries.
-        // --------------------------------------------------------------------
-        if(file_exists(BASE .'libraries'. DS .'php5'. DS .ucfirst($class). EXT))
-        {
-            require(BASE .'libraries'. DS .'php5'. DS .ucfirst($class). EXT);
-
-            eval('Class '.$class.' extends '.$class.'_CORE {}');
-
-            profiler_set('libraries', 'php5_'.$class.'_loaded', $class);
-            return;
-        }
-
-        return;
-        */
 }
 
-spl_autoload_register('register_autoload',true);
+spl_autoload_register('ob_autoload',true);
 
 // --------------------------------------------------------------------
 
@@ -306,9 +360,7 @@ if( ! function_exists('lib'))
 {
     function lib($class, $params_or_no_instance = '', $new_object = NULL)
     {
-        $class = strtolower($class);
-        
-        return base_register($class, $new_object, $params_or_no_instance);
+        return base_register(strtolower($class), $new_object, $params_or_no_instance);
     }
 }
 
@@ -321,7 +373,7 @@ if( ! function_exists('lib'))
 * @param    mixed $filename
 * @param    mixed $folder
 */
-function loaded_helper($helper)
+function core_helper($helper)
 {
     if(file_exists(BASE .'helpers'. DS .'loaded'. DS .$helper. EXT))
     {
@@ -331,10 +383,12 @@ function loaded_helper($helper)
         if(file_exists(APP .'helpers'. DS .$prefix. $helper. EXT))
         {
             include(APP .'helpers'. DS .$prefix. $helper. EXT);
+            
             profiler_set('loaded_helpers', $prefix . $helper, $prefix . $helper);
         }
 
         include(BASE .'helpers'. DS .'loaded'. DS .$helper. EXT);
+        
         profiler_set('loaded_helpers', $helper, $helper);
         return;
     }
@@ -476,6 +530,7 @@ function log_me($level = 'error', $message, $php_error = FALSE)
     log_write($level, $message, $php_error);
 }
 
+// -------------------------------------------------------------------- 
 
 /**
 * Codeigniter Backward Compatibility.
@@ -567,7 +622,7 @@ function is_php($version = '5.0.0')
 */
 function profiler_set($type, $key, $val)
 {
-    base_register('Empty')->profiler_var[$type][$key] = $val;
+    base_register('Storage')->profiler_var[$type][$key] = $val;
 }
 
 /**
@@ -579,7 +634,7 @@ function profiler_set($type, $key, $val)
 */
 function profiler_get($type)
 {
-    $_ob = base_register('Empty');
+    $_ob = base_register('Storage');
     
     if( isset($_ob->profiler_var[$type]))
     {

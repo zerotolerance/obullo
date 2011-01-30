@@ -30,7 +30,7 @@ defined('BASE') or exit('Access Denied!');
 // --------------------------------------------------------------------
 if( ! isset($_ob->security)) 
 {
-    $_ob = base_register('Empty');
+    $_ob = base_register('Storage');
     
     $_ob->security = new stdClass();
     $_ob->security->xss_hash            = ''; 
@@ -87,7 +87,7 @@ if( ! function_exists('xss_clean') )
 {
     function xss_clean($str, $is_image = FALSE)
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         /*
         * Is the string an array?
         *
@@ -375,7 +375,7 @@ if( ! function_exists('xss_hash') )
 {
     function xss_hash()
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         if ($_ob->security->xss_hash == '')
         {

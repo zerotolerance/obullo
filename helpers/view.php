@@ -33,7 +33,7 @@ Class ViewException extends CommonException {}
 
 if( ! isset($_ob->view))  // Helper Constructror
 {
-    $_ob = base_register('Empty');
+    $_ob = base_register('Storage');
     $_ob->view = new stdClass();
 
     $_ob->view->view_folder      = DS .'';
@@ -63,7 +63,7 @@ if ( ! function_exists('view_var'))
 {
     function view_var($key, $val = '', $use_layout = FALSE, $layout_data = array())
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
 
         if($val == '')
         {
@@ -97,7 +97,7 @@ if ( ! function_exists('view_array'))
     function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
     {
         $val= (array)$val;
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
 
         if($val == array())
         {
@@ -139,7 +139,7 @@ if ( ! function_exists('view_set'))
 {
     function view_set($layout)
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         $_ob->view->layout_name = $layout;
     }
@@ -162,7 +162,7 @@ if ( ! function_exists('view_set_folder'))
 {
     function view_set_folder($func = 'view', $folder = '')
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
 
         switch ($func)
         {
@@ -221,7 +221,7 @@ if ( ! function_exists('view'))
 {
     function view($file_url, $data = '', $string = TRUE)
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         $return     = FALSE;
         $extra_path = '';
@@ -256,7 +256,7 @@ if ( ! function_exists('view_layout'))
 {
     function view_layout($file_url, $data = '', $string = FALSE)
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         $return     = FALSE;
         $extra_path = '';
@@ -291,7 +291,7 @@ if ( ! function_exists('_set_view_data'))
 {
   function _set_view_data($data = array())
   {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
 		if(isset($_ob->view->view_data)) 
         {
@@ -316,7 +316,7 @@ if ( ! function_exists('view_render'))
 {
     function view_render($filenames = array(), $data = '')
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
 
         $var = '';
         foreach($filenames as $filename)
@@ -340,7 +340,7 @@ if( ! function_exists('script') )
 {
     function script($file_url = '', $data = '')
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         $return     = FALSE;
         $extra_path = '';
@@ -402,7 +402,7 @@ if ( ! function_exists('_load_view'))
 {
     function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
-	    $_ob = base_register('Empty');
+	    $_ob = base_register('Storage');
 		
         _set_view_data($data);
         

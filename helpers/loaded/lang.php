@@ -27,7 +27,7 @@ Class LangException extends CommonException {}
  
 if( ! isset($_ob->lang)) 
 {
-    $_ob = base_register('Empty');
+    $_ob = base_register('Storage');
     $_ob->lang = new stdClass();    // Create new language Object.
 
     $_ob->lang->language  = array();
@@ -52,7 +52,7 @@ if( ! function_exists('lang_load') )
 {
     function lang_load($langfile = '', $idiom = '', $dir = '', $return = FALSE)
     {     
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         if (in_array($langfile, $_ob->lang->is_loaded, TRUE))
         return;  
@@ -170,7 +170,7 @@ if( ! function_exists('lang') )
 {
     function lang($item = '')
     {
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         $item = ($item == '' OR ! isset($_ob->lang->language[$item])) ? FALSE : $_ob->lang->language[$item];
         

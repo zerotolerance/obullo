@@ -301,5 +301,5 @@ Class OB_Pager_html_widgets
 
 // END Pager_html_widgets Class
 
-/* End of file OB_Pager_html_widgets.php */
-/* Location: ./obullo/libraries/drivers/pager/OB_Pager_html_widgets.php */
+/* End of file Pager_html_widgets.php */
+/* Location: ./obullo/libraries/drivers/pager/Pager_html_widgets.php */

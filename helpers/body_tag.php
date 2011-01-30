@@ -205,7 +205,7 @@ if( ! function_exists('img') )
             $src = array('src' => $src);
         }
 
-        $_ob = base_register('Empty');       // obullo changes ..
+        $_ob = base_register('Storage');       // obullo changes ..
                 
         $extra_path = '';
         if( isset($_ob->view->img_folder{1}) )  // When user use view_set_folder('img');

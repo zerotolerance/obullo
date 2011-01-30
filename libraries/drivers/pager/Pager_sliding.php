@@ -313,5 +313,5 @@ Class OB_Pager_sliding extends OB_Pager_common
 
 // END Pager_sliding Class
 
-/* End of file OB_Pager_sliding.php */
-/* Location: ./obullo/libraries/drivers/pager/OB_Pager_sliding.php */
+/* End of file Pager_sliding.php */
+/* Location: ./obullo/libraries/drivers/pager/Pager_sliding.php */

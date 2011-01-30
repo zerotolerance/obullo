@@ -26,7 +26,7 @@ Class LogException extends CommonException {}
  */
 if( ! isset($_ob->log)) 
 {
-    $_ob = base_register('Empty');
+    $_ob = base_register('Storage');
     $_ob->log = new stdClass();
 
     $_ob->log->_log_path  = '';
@@ -72,7 +72,7 @@ if( ! function_exists('log_write') )
 {
     function log_write($level = 'error', $msg, $php_error = FALSE)
     {        
-        $_ob = base_register('Empty');
+        $_ob = base_register('Storage');
         
         if ($_ob->log->_enabled === FALSE)
         {

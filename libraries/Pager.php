@@ -15,7 +15,9 @@ defined('BASE') or exit('Access Denied!');
  
 // ------------------------------------------------------------------------
 
-/**
+require_once 'drivers'. DS .'pager'. DS .'Pager_common.php';
+
+/**                 
  * Obullo Pager Class
  *
  *
@@ -38,28 +40,15 @@ Class OB_Pager
     * @static
     * @access public
     */
-    public function __construct($options = array())
+    public function init($options = array())
     {
         $mode = (isset($options['mode']) ? strtolower($options['mode']) : 'jumping');
-        
-        require_once 'OB_Pager_common.php';
-        
-        $classname = 'Pager_'.$mode;
-        $classfile = 'drivers'. DS .'pager'. DS .'OB_Pager_'. $mode. EXT;
-
-        if ( ! class_exists($classname)) 
-        {
-            include_once $classfile;
-        }
-
-        // If the class exists, return a new instance of it.
-        if (class_exists($classname)) 
-        {
-            $pager = new $classname($options);
-            return $pager;
-        }
-
-        return NULL;
+    
+        $classname = 'Pager_' . $mode;
+                                         
+        loader::base_helper('driver');
+                                            
+        return driver_lib($folder = 'pager', $classname, $options);
     }
 
 }

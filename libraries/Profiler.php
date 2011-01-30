@@ -51,7 +51,7 @@ Class OB_Profiler {
      {
          $profile = array();
          
-         $_ob = base_register('Empty');
+         $_ob = base_register('Storage');
           
          foreach ($_ob->benchmark->marker as $key => $val)
          {

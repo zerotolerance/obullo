@@ -158,7 +158,7 @@ Class loader {
             {
                 // HMVC CRAZY BUG !!
                 // If someone use HMVC we need to create new instance() foreach Library
-                if(base_register('Router')->hmvc == FALSE AND $new_instance == FALSE)
+                if(core_register('Router')->hmvc == FALSE AND $new_instance == FALSE)
                 {
                     if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
                 }
@@ -271,7 +271,7 @@ Class loader {
 
         // HMVC CRAZY BUG !!
         // If someone use HMVC we need to create new instance() foreach Model
-        if(base_register('Router')->hmvc == FALSE AND $new_instance == FALSE)
+        if(core_register('Router')->hmvc == FALSE AND $new_instance == FALSE)
         {
             if (isset($OB->$model_var) AND is_object($OB->$model_var)) { return; }
         }

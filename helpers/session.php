@@ -13,8 +13,8 @@ Class SessionException extends CommonException {}
 
 if( ! isset($_ob->session)) 
 {
-    $_ob = base_register('Empty');
-    $_ob->session = new stdClass();
+    $_ob = base_register('Storage');
+    $_ob->session = new stdClass();    // Create new Sesssion Object.
     
     $_ob->session->sess_encrypt_cookie  = FALSE;
     $_ob->session->sess_expiration      = '7200';
