@@ -546,7 +546,7 @@ if( ! function_exists('_html_entity_decode_callback') )
 {
     function _html_entity_decode_callback($match)
     {
-        $config  = base_register('Config');
+        $config  = core_register('Config');
         $charset = $config->item('charset');
 
         return _html_entity_decode($match[0], strtoupper($charset));

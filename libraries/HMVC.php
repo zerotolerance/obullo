@@ -98,7 +98,7 @@ Class OB_HMVC
 
             $this->uri    = clone $URI;     // Create copy of original URI class.
             $this->router = clone $Router;  // Create copy of original Router class.
-            $this->config = clone base_register('Config');  // Create copy of original Config class.
+            $this->config = clone core_register('Config');  // Create copy of original Config class.
             $this->empty  = clone base_register('Storage');   // Create copy of original Empty class and it's Objects.
             
             $URI->clear();           // Reset uri objects we will reuse it for hmvc
@@ -304,8 +304,8 @@ Class OB_HMVC
         
         $URI    = core_register('URI');
         $router = core_register('Router');
-        $config = base_register('Config');
-        $output = base_register('Output');
+        $config = core_register('Config');
+        $output = core_register('Output');
 
         //------------------------------------
         self::$start_time = ob_request_timer('start');
@@ -458,7 +458,7 @@ Class OB_HMVC
         
         $this->_this->uri    = core_register('URI', $this->uri);
         $this->_this->router = core_register('Router', $this->router);
-        $this->_this->config = base_register('Config', $this->config);
+        $this->_this->config = core_register('Config', $this->config);
         $this->_this->empty  = base_register('Storage', $this->empty);
         
         this($this->_this);         // Set original $this to instance that we backup before

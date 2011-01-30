@@ -28,7 +28,7 @@ if( ! isset($_ob->input))   // Helper Constructor
     $_ob->input->user_agent         = FALSE;
     $_ob->input->allow_get_array    = FALSE;
 
-    $_config = base_register('Config');
+    $_config = core_register('Config');
 
     $_ob->input->use_xss_clean   = ($_config->item('global_xss_filtering') === TRUE) ? TRUE : FALSE;
     $_ob->input->allow_get_array = ($_config->item('enable_query_strings') === TRUE) ? TRUE : FALSE;

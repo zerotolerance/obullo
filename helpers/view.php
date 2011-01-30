@@ -53,10 +53,10 @@ if( ! isset($_ob->view))  // Helper Constructror
 /**
 * Create view variables for layouts
 * 
-* @param string $key
-* @param string $val
-* @param boolean $use_layout
-* @param array $layout_data
+* @param  string $key
+* @param  string $val
+* @param  boolean $use_layout
+* @param  array $layout_data
 * @return  string | NULL
 */
 if ( ! function_exists('view_var'))
@@ -92,6 +92,15 @@ if ( ! function_exists('view_var'))
 
 // ------------------------------------------------------------------------
 
+/**
+* Create view arrays for layouts
+* 
+* @param  string $key
+* @param  array $val
+* @param  boolean $use_layout
+* @param  array $layout_data
+* @return  string | NULL
+*/
 if ( ! function_exists('view_array'))
 {
     function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
@@ -454,7 +463,7 @@ if ( ! function_exists('_load_view'))
         }
 
         // Set Global views inside to Output Class for caching functionality..
-        base_register('Output')->append_output(ob_get_contents());
+        core_register('Output')->append_output(ob_get_contents());
 
         @ob_end_clean();
 

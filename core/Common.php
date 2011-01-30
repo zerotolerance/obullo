@@ -56,11 +56,11 @@ function core_register($realname, $new_object = NULL, $params_or_no_ins = '')
     if ($getObject !== NULL)
     return $getObject;
                                                   
-    if(file_exists(BASE .'libraries'. DS . $Class. EXT))
+    if(file_exists(BASE .'libraries'. DS .'core'. DS .$Class. EXT))
     {
         if( ! isset($new_objects[$Class]) )  // check new object instance
         {
-            require(BASE .'libraries'. DS . $Class. EXT);
+            require(BASE .'libraries'. DS .'core'. DS .$Class. EXT);
         }
         
         $classname = $Class;    // prepare classname
@@ -278,71 +278,71 @@ function ob_autoload($real_name)
     if(class_exists($real_name))
     return;
     
-        $module = core_register('Router')->fetch_directory();
-    
-        // Parents folder files: App_controller and Global Controllers
-        // --------------------------------------------------------------------
-        if(substr(strtolower($real_name), -11) == '_controller')
+    $module = core_register('Router')->fetch_directory();
+
+    // Parents folder files: App_controller and Global Controllers
+    // --------------------------------------------------------------------
+    if(substr(strtolower($real_name), -11) == '_controller')
+    {
+        // If Global Controller file exist ..
+        if(file_exists(APP .'parents'. DS .$real_name. EXT))
         {
-            // If Global Controller file exist ..
-            if(file_exists(APP .'parents'. DS .$real_name. EXT))
-            {
-                require(APP .'parents'. DS .$real_name. EXT);
+            require(APP .'parents'. DS .$real_name. EXT);
 
-                profiler_set('parents', $real_name, APP .'parents'. DS .$real_name. EXT);
+            profiler_set('parents', $real_name, APP .'parents'. DS .$real_name. EXT);
 
-                return;
-            }
-
-            // If local Global Controller file exist ..
-            if(file_exists(DIR .$module. DS .'parents'. DS .$real_name. EXT))
-            {            
-                require(DIR .$module. DS .'parents'. DS .$real_name. EXT);
-
-                profiler_set('parents', $real_name, DIR .$GLOBALS['d']. DS .'parents'. DS .$real_name. EXT);
-
-                return;
-            }
-        }
-
-        // Database files.
-        // --------------------------------------------------------------------
-        if(strpos($real_name, 'OB_DB') === 0)
-        {
-            require(BASE .'database'. DS .substr($real_name, 3). EXT);
             return;
         }
 
-        if(strpos($real_name, 'Obullo_DB_Driver_') === 0)
-        {
-            $exp   = explode('_', $real_name);
-            $class = strtolower(array_pop($exp));
+        // If local Global Controller file exist ..
+        if(file_exists(DIR .$module. DS .'parents'. DS .$real_name. EXT))
+        {            
+            require(DIR .$module. DS .'parents'. DS .$real_name. EXT);
 
-            require(BASE .'database'. DS .'drivers'. DS .$class.'_driver'. EXT);
+            profiler_set('parents', $real_name, DIR .$module. DS .'parents'. DS .$real_name. EXT);
+
             return;
         }
+    }
 
-        $class = $real_name;
-
-        // php5 libraries load support.
-        // --------------------------------------------------------------------
-        if(file_exists(DIR .$module. DS .'libraries'. DS .'php5'. DS .$class. EXT))
-        {
-            require(DIR .$module. DS .'libraries'. DS .'php5'. DS .$class. EXT);
-
-            profiler_set('libraries', 'php5_module_'.$class.'_loaded', $class);
-            return;
-        }
-
-        if(file_exists(APP .'libraries'. DS .'php5'. DS .$class. EXT))
-        {
-            require(APP .'libraries'. DS .'php5'. DS .$class. EXT);
-
-            profiler_set('libraries', 'php5_'.$class.'_loaded', $class);
-            return;
-        }
-        
+    // Database files.
+    // --------------------------------------------------------------------
+    if(strpos($real_name, 'OB_DB') === 0)
+    {
+        require(BASE .'database'. DS .substr($real_name, 3). EXT);
         return;
+    }
+
+    if(strpos($real_name, 'Obullo_DB_Driver_') === 0)
+    {
+        $exp   = explode('_', $real_name);
+        $class = strtolower(array_pop($exp));
+
+        require(BASE .'database'. DS .'drivers'. DS .$class.'_driver'. EXT);
+        return;
+    }
+
+    $class = $real_name;
+
+    // php5 libraries load support.
+    // --------------------------------------------------------------------
+    if(file_exists(DIR .$module. DS .'libraries'. DS .'php5'. DS .$class. EXT))
+    {
+        require(DIR .$module. DS .'libraries'. DS .'php5'. DS .$class. EXT);
+
+        profiler_set('libraries', 'php5_module_'.$class.'_loaded', $class);
+        return;
+    }
+
+    if(file_exists(APP .'libraries'. DS .'php5'. DS .$class. EXT))
+    {
+        require(APP .'libraries'. DS .'php5'. DS .$class. EXT);
+
+        profiler_set('libraries', 'php5_'.$class.'_loaded', $class);
+        return;
+    }
+    
+    return;
 }
 
 spl_autoload_register('ob_autoload',true);
@@ -375,25 +375,24 @@ if( ! function_exists('lib'))
 */
 function core_helper($helper)
 {
-    if(file_exists(BASE .'helpers'. DS .'loaded'. DS .$helper. EXT))
+    if(file_exists(BASE .'helpers'. DS .'core'. DS .$helper. EXT))
     {
         $prefix = config_item('subhelper_prefix');
 
-        // If user helper file exist ..
-        if(file_exists(APP .'helpers'. DS .$prefix. $helper. EXT))
+        if(file_exists(APP .'helpers'. DS .$prefix. $helper. EXT))  // If user helper file exist .. 
         {
             include(APP .'helpers'. DS .$prefix. $helper. EXT);
             
             profiler_set('loaded_helpers', $prefix . $helper, $prefix . $helper);
         }
 
-        include(BASE .'helpers'. DS .'loaded'. DS .$helper. EXT);
+        include(BASE .'helpers'. DS .'core'. DS .$helper. EXT);
         
         profiler_set('loaded_helpers', $helper, $helper);
         return;
     }
 
-    throw new LoaderException('Unable to locate the base helper: ' .$helper. EXT);
+    throw new CommonException('Unable to locate the core helper: ' .$helper. EXT);
 }
 
 // --------------------------------------------------------------------

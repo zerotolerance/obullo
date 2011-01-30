@@ -49,11 +49,9 @@ if( ! function_exists('ob_set_headers'))
 {
     function ob_set_headers()
     {
-        // Kill magic quotes
-        if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }
-                                  
-        // Loaded system helpers
-        if (config_item('log_threshold') > 0)
+        if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }   // Kill magic quotes 
+        
+        if (config_item('log_threshold') > 0)   // Loaded core helpers  
         {
             core_helper('log');
         }
@@ -83,8 +81,8 @@ if( ! function_exists('ob_system_run'))
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
-        $output    = base_register('Output');
-        $config    = base_register('Config'); 
+        $output    = core_register('Output');
+        $config    = core_register('Config'); 
         
         if ($output->_display_cache($config, $uri) == TRUE) { exit; }  // Check REQUEST uri if there is a Cached file exist 
         
@@ -126,14 +124,10 @@ if( ! function_exists('ob_system_run'))
         require (BASE .'core'. DS .'Controller'. EXT);
         require (BASE .'core'. DS .'Model'. EXT);
         
-        // Set a mark point for benchmarking
-        benchmark_mark('loading_time_base_classes_end');
+        benchmark_mark('loading_time_base_classes_end');  // Set a mark point for benchmarking  
+        benchmark_mark('execution_time_( '.$page_uri.' )_start');  // Mark a start point so we can benchmark the controller 
         
-        // Mark a start point so we can benchmark the controller
-        benchmark_mark('execution_time_( '.$page_uri.' )_start');
-        
-        // call the controller.
-        require ($controller);
+        require ($controller);  // call the controller.
         
         if ( ! class_exists($GLOBALS['c']) OR $GLOBALS['m'] == 'controller' 
               OR $GLOBALS['m'] == '_output'       // security fix.
@@ -145,11 +139,9 @@ if( ! function_exists('ob_system_run'))
             show_404($page_uri);
         }
         
-        // If Everyting ok Declare Called Controller !
-        $OB = new $GLOBALS['c']();
+        $OB = new $GLOBALS['c']();           // If Everyting ok Declare Called Controller ! 
 
-        // Check method exist or not
-        if ( ! in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods($OB))))
+        if ( ! in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods($OB))))  // Check method exist or not 
         {
             show_404($page_uri);
         }
@@ -159,8 +151,7 @@ if( ! function_exists('ob_system_run'))
         // will be passed to the method for convenience
         call_user_func_array(array($OB, $GLOBALS['m']), array_slice($OB->uri->rsegments, $arg_slice));
         
-        // Mark a benchmark end point
-        benchmark_mark('execution_time_( '.$page_uri.' )_end');
+        benchmark_mark('execution_time_( '.$page_uri.' )_end');  // Mark a benchmark end point 
         
         // Write Cache file if cache on ! and Send the final rendered output to the browser
         $output->_display();
@@ -176,16 +167,15 @@ if( ! function_exists('ob_system_close'))
     {
         $OB = this();
         
-        // Close all PDO connections..        
-        foreach(profiler_get('databases') as $db_name => $db_var)
+        foreach(profiler_get('databases') as $db_name => $db_var)  // Close all PDO connections..  
         {
             $OB->{$db_var} = NULL;
         }
         
-        // close all buffers.
-        while (ob_get_level() > 0) { ob_end_flush(); }
+        while (ob_get_level() > 0) { ob_end_flush(); }     // close all buffers.     
     }
 }
+
 // END Bootstrap.php File
 
 /* End of file Bootstrap.php
