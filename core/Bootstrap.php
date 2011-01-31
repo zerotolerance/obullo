@@ -36,7 +36,7 @@ if( ! function_exists('ob_include_files'))
         require (BASE .'constants'. DS .'file'. EXT);
         require (APP  .'config'. DS .'constants'. EXT);  // Your constants ..
         require (BASE .'core'. DS .'Registry'. EXT);
-        require (BASE .'core'. DS .'Common'. EXT);
+        require (BASE .'core'. DS .'Common'. EXT);      
         require (BASE .'core'. DS .'Errors'. EXT);
         require (APP  .'config'. DS .'init'. EXT);      // Your system init functions ..
         
@@ -50,11 +50,8 @@ if( ! function_exists('ob_set_headers'))
     function ob_set_headers()
     {
         if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }   // Kill magic quotes 
-        
-        if (config_item('log_threshold') > 0)   // Loaded core helpers  
-        {
-            core_helper('log');
-        }
+            
+        if(config_item('log_threshold') > 0) core_helper('Log');
         
         core_helper('input');
         core_helper('lang');
@@ -67,8 +64,8 @@ if( ! function_exists('ob_set_headers'))
 if( ! function_exists('ob_system_run'))
 {
     function ob_system_run()
-    {
-        $uri       = core_register('URI');
+    {    
+        $uri       = core_register('URI'); 
         $router    = core_register('Router');
         
         benchmark_mark('total_execution_time_start');

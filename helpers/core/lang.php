@@ -94,17 +94,17 @@ if( ! function_exists('lang_load') )
 
 // --------------------------------------------------------------------
 
+/**
+* Language loader
+* 
+* @access private
+* @param  string $file_url
+* @param  string $base
+* @param  string $extra_path
+* @return mixed
+*/
 if( ! function_exists('_lang_load_file'))
 {
-    /**
-    * Language loader
-    * 
-    * @access private
-    * @param  string $file_url
-    * @param  string $base
-    * @param  string $extra_path
-    * @return mixed
-    */
     function _lang_load_file($file_url, $base = '', $extra_path = '')
     {
         if($extra_path != '')
@@ -182,4 +182,4 @@ if( ! function_exists('lang') )
 
 
 /* End of file lang.php */
-/* Location: ./obullo/helpers/loaded/lang.php */
+/* Location: ./obullo/helpers/core/lang.php */

@@ -26,7 +26,7 @@ defined('BASE') or exit('Access Denied!');
 * @version 1.5 added PHP5 library interface class, added spl_autoload_register()
 *              renamed register_static() function, added replace support ..
 */
-
+                       
 /**
 * Register core libraries
 * 
@@ -51,11 +51,11 @@ function core_register($realname, $new_object = NULL, $params_or_no_ins = '')
         return $new_object;
     }
 
-    $getObject = $registry->get_object($Class);
+    $getObject = $registry->get_object($Class);   
                                                    
     if ($getObject !== NULL)
     return $getObject;
-                                                  
+                      
     if(file_exists(BASE .'libraries'. DS .'core'. DS .$Class. EXT))
     {
         if( ! isset($new_objects[$Class]) )  // check new object instance
@@ -294,7 +294,7 @@ function ob_autoload($real_name)
             return;
         }
 
-        // If local Global Controller file exist ..
+        // If Module Global Controller file exist ..
         if(file_exists(DIR .$module. DS .'parents'. DS .$real_name. EXT))
         {            
             require(DIR .$module. DS .'parents'. DS .$real_name. EXT);
@@ -387,7 +387,7 @@ function core_helper($helper)
         }
 
         include(BASE .'helpers'. DS .'core'. DS .$helper. EXT);
-        
+
         profiler_set('loaded_helpers', $helper, $helper);
         return;
     }
@@ -523,10 +523,16 @@ function db_item($item, $index = 'db')
 */
 function log_me($level = 'error', $message, $php_error = FALSE)
 {
-    if (config_item('log_threshold') == 0)
-    return;
+    static $log;
 
+    if (config_item('log_threshold') == 0)
+    {
+        return;
+    }
+    
     log_write($level, $message, $php_error);
+    
+    return;
 }
 
 // -------------------------------------------------------------------- 
