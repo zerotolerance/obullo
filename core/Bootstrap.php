@@ -51,7 +51,7 @@ if( ! function_exists('ob_set_headers'))
     {
         if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }   // Kill magic quotes 
             
-        if(config_item('log_threshold') > 0) core_helper('Log');
+        if(config_item('log_threshold') > 0) core_helper('log');
         
         core_helper('input');
         core_helper('lang');
