@@ -324,21 +324,21 @@ function ob_autoload($real_name)
 
     $class = $real_name;
 
-    // php5 libraries load support.
+    // __autoload libraries load support.
     // --------------------------------------------------------------------
-    if(file_exists(DIR .$module. DS .'libraries'. DS .'php5'. DS .$class. EXT))
+    if(file_exists(DIR .$module. DS .'libraries'. DS .$class. EXT))
     {
-        require(DIR .$module. DS .'libraries'. DS .'php5'. DS .$class. EXT);
+        require(DIR .$module. DS .'libraries'. DS .$class. EXT);
 
-        profiler_set('libraries', 'php5_module_'.$class.'_loaded', $class);
+        profiler_set('libraries', 'module_'.$class.'_autoloaded', $class);
         return;
     }
+    
+    if(file_exists(APP .'libraries'. DS .$class. EXT))
+    {    
+        require(APP .'libraries'. DS .$class. EXT);
 
-    if(file_exists(APP .'libraries'. DS .'php5'. DS .$class. EXT))
-    {
-        require(APP .'libraries'. DS .'php5'. DS .$class. EXT);
-
-        profiler_set('libraries', 'php5_'.$class.'_loaded', $class);
+        profiler_set('libraries', $class.'_autoloaded', $class);
         return;
     }
     
@@ -351,6 +351,8 @@ spl_autoload_register('ob_autoload',true);
 
 /**
 * Obullo library loader
+* BECAREFULL !! IF you use hmvc library
+* you need create new instance in some where 
 * 
 * @param string $class
 * @param array | false $params_or_no_instance

@@ -169,7 +169,7 @@ Class loader {
 
                 return;
             }
-            elseif($params_or_no_ins === FALSE OR isset($data['php5']))
+            elseif($params_or_no_ins === FALSE)
             {
                 profiler_set('libraries', $class_var, $class_var);
 
@@ -625,11 +625,6 @@ Class loader {
             $return['file_name'] = $file_name;
             $return['file']      = $file;
 
-            if(strpos($sub_path, 'php5') !== FALSE)
-            {
-                $return['php5']  = TRUE;
-            }
-
             return $return;
         }
 
@@ -641,11 +636,6 @@ Class loader {
 
             $return['file_name'] = $file_name;
             $return['file']      = $root. DS .$sub_root. $path. DS .$file_name. EXT;
-
-            if(strpos($path, 'php5') !== FALSE)
-            {
-                $return['php5']  = TRUE;
-            }
 
             return $return;
         }
