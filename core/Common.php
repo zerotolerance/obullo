@@ -351,8 +351,8 @@ spl_autoload_register('ob_autoload',true);
 
 /**
 * Obullo library loader
-* BECAREFULL !! IF you use hmvc library
-* you need create new instance in some where 
+* BECAREFULL !! When you use hmvc library
+* you need to create new instance sometimes.
 * 
 * @param string $class
 * @param array | false $params_or_no_instance

@@ -89,7 +89,7 @@ Class loader {
     /**
     * loader::lib();
     *
-    * load app libraries from /directories folder.
+    * load libraries from /module folder. (current module) 
     *
     * @param    mixed $class
     * @param    mixed $params_or_no_ins array | null | false
@@ -107,7 +107,7 @@ Class loader {
     /**
     * loader::app_lib();
     *
-    * load app libraries from /application folder.
+    * load libraries from /application folder.
     *
     * @param    mixed $class
     * @param    mixed $params_or_no_ins array | null | false

@@ -31,7 +31,7 @@ defined('BASE') or exit('Access Denied!');
 
 /**
 * Call HMVC Request using HMVC Class.
-*
+*                               
 * @access   public
 * @param    string  $request
 * @param    integer $cache_time
@@ -49,7 +49,7 @@ if( ! function_exists('hmvc_request') )
         return $hmvc;   // return hmvc_object
     }
 
-}
+} 
 
 /* End of file hmvc.php */
 /* Location: ./obullo/helpers/hmvc.php */

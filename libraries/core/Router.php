@@ -535,7 +535,7 @@ Class OB_Router {
     */
     public function forward($uri, $method = 'GET', $no_loop = FALSE)
     {
-        loader::base_helper('hmvc');
+        loader::base_helper('request');
         
         $params = $_GET;
         if($method == 'POST')
@@ -543,7 +543,7 @@ Class OB_Router {
             $params = $_POST;
         }
     
-        return hmvc_request($method, $uri, $params)->no_loop($no_loop)->exec()->response();
+        return request($method, $uri, $params)->no_loop($no_loop)->exec()->response();
     }
     
 }
