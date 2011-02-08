@@ -50,7 +50,12 @@ function Obullo_Exception_Handler($e, $type = '')
         {
            if(is_object($ob->$db_var))
            {
-               $sql[$db_name] = $ob->{$db_var}->last_query($ob->{$db_var}->prepare);
+               $last_query = $ob->{$db_var}->last_query($ob->{$db_var}->prepare);
+               
+               if( ! empty($last_query))
+               {
+                   $sql[$db_name] = $last_query;
+               }
            }
         }        
     }
@@ -158,7 +163,7 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
 */
 function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
 {
-    if ($errno == 0) return;
+    if (($errno AND error_reporting()) == 0) return;
     
     switch ($errno)
     {
@@ -193,7 +198,7 @@ function Obullo_Shutdown_Handler()
     
     if( ! $error) return;
     
-    ob_get_level() and ob_clean(); // Clean the output buffer
+    ob_get_level() AND ob_clean(); // Clean the output buffer
 
     Obullo_Error_Handler($error['type'], $error['message'], $error['file'], $error['line']);
     
