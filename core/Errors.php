@@ -12,51 +12,7 @@ defined('BASE') or exit('Access Denied!');
  * @since           Version 1.0
  * @filesource
  * @license
- */ 
-
-/*
-*  Predefined error constants
-*  http://usphp.com/manual/en/errorfunc.constants.php
-* * 
-1     E_ERROR
-2     E_WARNING
-4     E_PARSE
-8     E_NOTICE
-16    E_CORE_ERROR
-32    E_CORE_WARNING
-64    E_COMPILE_ERROR
-128   E_COMPILE_WARNING
-256   E_USER_ERROR
-512   E_USER_WARNING
-1024  E_USER_NOTICE
-2048  E_STRICT
-4096  E_RECOVERABLE_ERROR
-8192  E_DEPRECATED
-16384 E_USER_DEPRECATED
-30719 E_ALL
-*/         
-/**
-* Error Template
-* 
-* @param mixed $errno
-* @param mixed $errstr
-* @param mixed $errfile
-* @param mixed $errline
-* @param mixed $type
-*/
-function Obullo_Error_Template($errno, $errstr, $errfile, $errline, $type)
-{ 
-    ob_start();
-    include(APP .'system'. DS .'errors'. DS .'ob_error'. EXT);
-    $buffer = ob_get_contents(); 
-    ob_end_clean();
-
-    log_php_errors($type, $errstr, $errfile, $errline);
-
-    echo $buffer;
-}
-
-// -------------------------------------------------------------------- 
+ */  
 
 /**
  * Php Error Logger
@@ -80,11 +36,11 @@ function log_php_errors($type, $errstr, $errfile, $errline)
 * 
 * @param object $e
 */
-function Obullo_Exception_Handler($e)
+function Obullo_Exception_Handler($e, $type = '')
 {   
-    $type = 'Exception';
+    $type = ($type != '') ? ucwords(strtolower($type)) : 'Exception Error';
     $sql  = array();
-        
+    
     if(substr($e->getMessage(),0,3) == 'SQL') 
     {
         $ob   = this();
@@ -94,20 +50,20 @@ function Obullo_Exception_Handler($e)
         {
            if(is_object($ob->$db_var))
            {
-               $sql[] = $ob->{$db_var}->last_query($ob->{$db_var}->prepare);
+               $sql[$db_name] = $ob->{$db_var}->last_query($ob->{$db_var}->prepare);
            }
         }        
     }
     
     ob_start();
-    include(APP .'system'. DS .'errors'. DS .'ob_exception'. EXT);
-    $buffer = ob_get_contents(); 
-    ob_end_clean();
-    
-    log_php_errors('Exception', $e->getMessage(), $e->getFile(), $e->getLine());
-    
+    include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+    $buffer = ob_get_clean(); 
+
     echo $buffer;
+    
+    log_php_errors('Exception Error', $e->getMessage(), $e->getFile(), $e->getLine());
 }       
+
 
 // -------------------------------------------------------------------- 
  
@@ -165,9 +121,8 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
     $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
     
     ob_start();
-    include(APP. 'system'. DS .'errors'. DS .$template. EXT);
-    $buffer = ob_get_contents(); 
-    ob_end_clean();
+    include(ROOT . APP. 'core'. DS .'errors'. DS .$template. EXT);
+    $buffer = ob_get_clean();
     
     return $buffer;
 }
@@ -176,6 +131,25 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
 
 /**
 * Main Error Handler
+* Predefined error constants
+* http://usphp.com/manual/en/errorfunc.constants.php
+* 
+* 1     E_ERROR
+* 2     E_WARNING
+* 4     E_PARSE
+* 8     E_NOTICE
+* 16    E_CORE_ERROR
+* 32    E_CORE_WARNING
+* 64    E_COMPILE_ERROR
+* 128   E_COMPILE_WARNING
+* 256   E_USER_ERROR
+* 512   E_USER_WARNING
+* 1024  E_USER_NOTICE
+* 2048  E_STRICT
+* 4096  E_RECOVERABLE_ERROR
+* 8192  E_DEPRECATED
+* 16384 E_USER_DEPRECATED
+* 30719 E_ALL
 * 
 * @param int $errno
 * @param string $errstr
@@ -184,165 +158,175 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
 */
 function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
 {
-    if (($errno & error_reporting()) == 0) return;  
+    if ($errno == 0) return;
     
     switch ($errno)
     {
-        case E_ERROR:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "ERROR");
-        break;
-        
-        case E_WARNING:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "WARNING");
-        break;
-        
-        case E_PARSE:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "PARSE ERROR");
-        break;
-        
-        case E_NOTICE:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "NOTICE");
-        break;
-                           
-        case E_CORE_ERROR:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "CORE ERROR");
-        break;
-        
-        case E_CORE_WARNING:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "CORE WARNING");
-        break;
-        
-        case E_COMPILE_ERROR:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "COMPILE ERROR");
-        break;
-        
-        case E_USER_ERROR:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "USER FATAL ERROR");
-            exit();
-        break;   
-            
-        case E_USER_WARNING:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "USER WARNING");
-        break;
-        
-        case E_USER_NOTICE:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "USER NOTICE");
-        break;
-        
-        case E_STRICT:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "STRICT ERROR");
-        break;
-        
-        case E_RECOVERABLE_ERROR:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "RECOVERABLE ERROR");
-        break;
-        
-        case E_DEPRECATED:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "DEPRECATED ERROR");
-        break;
-        
-        case E_USER_DEPRECATED:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "USER DEPRECATED ERROR");
-        break;
-        
-        case E_ALL:
-            Obullo_Error_Template($errno, $errstr, $errfile, $errline, "ERROR");
-        break;
-    
+        case '1':       $type = 'ERROR'; break;
+        case '2':       $type = 'WARNING'; break;
+        case '4':       $type = 'PARSE ERROR'; break;
+        case '8':       $type = 'NOTICE'; break;
+        case '16':      $type = 'CORE ERROR'; break;
+        case '32':      $type = "CORE WARNING"; break;
+        case '64':      $type = 'COMPILE ERROR'; break;
+        case '128':     $type = 'COMPILE WARNING'; break;
+        case '256':     $type = 'USER FATAL ERROR'; break;
+        case '512':     $type = 'USER WARNING'; break;
+        case '1024':    $type = 'USER NOTICE'; break;
+        case '2048':    $type = 'STRICT ERROR'; break;
+        case '4096':    $type = 'RECOVERABLE ERROR'; break;
+        case '8192':    $type = 'DEPRECATED ERROR'; break;
+        case '16384':   $type = 'USER DEPRECATED ERROR'; break;
+        case '30719':   $type = 'ERROR'; break;
     }
     
-    return TRUE;    // return true and don't execute internal error handler 
+    Obullo_Exception_Handler(new ErrorException( $errstr, $errno, 0, $errfile, $errline), $type);
+    
+    return;
 }          
 
 // -------------------------------------------------------------------- 
 
+function Obullo_Shutdown_Handler()
+{                      
+    $error = error_get_last();
+    
+    if( ! $error) return;
+    
+    ob_get_level() and ob_clean(); // Clean the output buffer
+
+    Obullo_Error_Handler($error['type'], $error['message'], $error['file'], $error['line']);
+    
+    exit();
+}
+
+// --------------------------------------------------------------------  
+
 /**
-* Set HTTP Status Header
-*
-* @access   public
-* @param    int     the status code
-* @param    string    
-* @return   void
+* Don't show root paths for security
+* reason.
+* 
+* @param  string $file
+* @return 
 */
-function set_status_header($code = 200, $text = '')
+function error_secure_path($file)
 {
-    $stati = array(
-                        200    => 'OK',
-                        201    => 'Created',
-                        202    => 'Accepted',
-                        203    => 'Non-Authoritative Information',
-                        204    => 'No Content',
-                        205    => 'Reset Content',
-                        206    => 'Partial Content',
-
-                        300    => 'Multiple Choices',
-                        301    => 'Moved Permanently',
-                        302    => 'Found',
-                        304    => 'Not Modified',
-                        305    => 'Use Proxy',
-                        307    => 'Temporary Redirect',
-
-                        400    => 'Bad Request',
-                        401    => 'Unauthorized',
-                        403    => 'Forbidden',
-                        404    => 'Not Found',
-                        405    => 'Method Not Allowed',
-                        406    => 'Not Acceptable',
-                        407    => 'Proxy Authentication Required',
-                        408    => 'Request Timeout',
-                        409    => 'Conflict',
-                        410    => 'Gone',
-                        411    => 'Length Required',
-                        412    => 'Precondition Failed',
-                        413    => 'Request Entity Too Large',
-                        414    => 'Request-URI Too Long',
-                        415    => 'Unsupported Media Type',
-                        416    => 'Requested Range Not Satisfiable',
-                        417    => 'Expectation Failed',
-
-                        500    => 'Internal Server Error',
-                        501    => 'Not Implemented',
-                        502    => 'Bad Gateway',
-                        503    => 'Service Unavailable',
-                        504    => 'Gateway Timeout',
-                        505    => 'HTTP Version Not Supported'
-                    );
-
-    if ($code == '' OR ! is_numeric($code))
+    if (strpos($file, APP) === 0)
     {
-        show_error('Status codes must be numeric', 500);
+        $file = 'APP'. DS . substr($file, strlen(APP));
+    }
+    elseif (strpos($file, BASE) === 0)
+    {
+        $file = 'BASE'. DS .substr($file, strlen(BASE));
+    }
+    elseif (strpos($file, DIR) === 0)
+    {
+        $file = 'DIR'. DS .substr($file, strlen(DIR));
+    }
+    elseif (strpos($file, ROOT) === 0)
+    {
+        $file = 'ROOT'. DS .substr($file, strlen(ROOT));
     }
 
-    if (isset($stati[$code]) AND $text == '')
-    {                
-        $text = $stati[$code];
-    }
-    
-    if ($text == '')
-    {
-        show_error('No status text available.  Please check your status code number or supply your own message text.', 500);
-    }
-    
-    $server_protocol = (isset($_SERVER['SERVER_PROTOCOL'])) ? $_SERVER['SERVER_PROTOCOL'] : FALSE;
-
-    if (substr(php_sapi_name(), 0, 3) == 'cgi')
-    {
-        header("Status: {$code} {$text}", TRUE);
-    }
-    elseif ($server_protocol == 'HTTP/1.1' OR $server_protocol == 'HTTP/1.0')
-    {
-        header($server_protocol." {$code} {$text}", TRUE, $code);
-    }
-    else
-    {
-        header("HTTP/1.1 {$code} {$text}", TRUE, $code);
-    }
+    return $file;  
 }
 
 // -------------------------------------------------------------------- 
 
-set_error_handler('Obullo_Error_Handler');
+/**
+* This function borrowed from Kohana Php Framework.
+* 
+* @author Ersin Guvenc
+* @param  resource $file
+* @param  mixed $line
+* @param  mixed $padding
+* 
+* @return boolean | string
+*/
+function error_write_file_source($file, $line_number, $id = '0', $padding = 5)
+{
+    if ( ! $file OR ! is_readable($file))
+    {
+        return FALSE;   // Continuing will cause errors
+    }
+
+    // Open the file and set the line position
+    $file = fopen($file, 'r');
+    $line = 0;
+
+    // Set the reading range
+    $range = array('start' => $line_number - $padding, 'end' => $line_number + $padding);
+    
+    $format = '% '.strlen($range['end']).'d';    // Set the zero-padding amount for line numbers
+
+    $source = '';
+    while (($row = fgets($file)) !== FALSE)
+    {
+        if (++$line > $range['end'])  // Increment the line number
+            break;
+
+        if ($line >= $range['start'])
+        {
+            $row = htmlspecialchars($row, ENT_NOQUOTES, config_item('charset'));  // Make the row safe for output
+
+            $row = '<span class="number">'.sprintf($format, $line).'</span> '.$row;  // Trim whitespace and sanitize the row
+
+            if ($line === $line_number)
+            {
+                $row = '<span class="line highlight">'.$row.'</span>';  // Apply highlighting to this row
+            }
+            else
+            {
+                $row = '<span class="line">'.$row.'</span>';
+            }
+            
+            $source .= $row;  // Add to the captured source
+        }
+    }
+    
+    fclose($file);  // Close the file
+
+    $display = ($id > 0) ? ' style="display:none;" ' : '';
+    
+    return '<span id="error_toggle_'.$id.'" '.$display.'><pre class="source"><code>'.$source.'</code></pre></span>';
+}
+
+// -------------------------------------------------------------------- 
+
+/**
+* Debug Backtrace
+* 
+* @param mixed $e
+*/
+function error_debug_backtrace($e)
+{
+    $trace = $e->getTrace();      // Get the exception backtrace
+
+    if ($e instanceof ErrorException)
+    {
+        if (version_compare(PHP_VERSION, '5.3', '<'))
+        {
+            // Workaround for a bug in ErrorException::getTrace() that exists in
+            // all PHP 5.2 versions. @see http://bugs.php.net/bug.php?id=45895
+            for ($i = count($trace) - 1; $i > 0; --$i)
+            {
+                if (isset($trace[$i - 1]['args']))
+                {
+                    $trace[$i]['args'] = $trace[$i - 1]['args'];  // Re-position the args
+
+                    unset($trace[$i - 1]['args']); // Remove the args
+                }
+            }
+        }
+    }
+    
+    return $trace;
+}
+
+error_reporting(0);     // we need to close error reporting we already catch the fatal errors. 
+set_error_handler('Obullo_Error_Handler'); 
 set_exception_handler('Obullo_Exception_Handler');
+register_shutdown_function('Obullo_Shutdown_Handler');    // Enable the Obullo shutdown handler, which catches E_FATAL errors.  
 
 
 // END Errors.php File

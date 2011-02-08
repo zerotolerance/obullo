@@ -38,7 +38,6 @@ if( ! function_exists('ob_include_files'))
         require (BASE .'core'. DS .'Registry'. EXT);
         require (BASE .'core'. DS .'Common'. EXT);      
         require (BASE .'core'. DS .'Errors'. EXT);
-        require (APP  .'config'. DS .'init'. EXT);      // Your system init functions ..
         
     }
 }

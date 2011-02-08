@@ -69,19 +69,23 @@ if( ! function_exists('driver_lib'))
         {               
             if(count($options) > 0)
             {
-                $pager = new $classname($options);
+                $instance = new $classname($options);
             } 
             else 
             {
-                $pager = new $classname(); 
+                $instance = new $classname(); 
             }
 
-            return $pager;
+            return $instance;
         }
 
         return NULL;
     }
 }
+
+
+// todo driver helper
+
 
 /* End of file driver.php */
 /* Location: ./obullo/helpers/driver.php */
