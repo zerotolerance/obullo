@@ -359,7 +359,7 @@ Class OB_Output {
         
         $path = config_item('cache_path', 'cache');
     
-        $cache_path = ($path == '') ?  APP.'system'.DS.'cache'.DS : $path;
+        $cache_path = ($path == '') ?  APP .'core'. DS .'cache'. DS : $path;
         
         if ( ! is_dir($cache_path) OR ! is_really_writable($cache_path))
         {
@@ -409,7 +409,7 @@ Class OB_Output {
     */    
     public function _display_cache(&$config, &$URI, $HMVC = FALSE)
     {        
-        $cache_path = (config_item('cache_path', 'cache') == '') ? APP.'system'.DS.'cache'.DS : config_item('cache_path', 'cache');
+        $cache_path = (config_item('cache_path', 'cache') == '') ? APP .'core'. DS .'cache'. DS : config_item('cache_path', 'cache');
 
         // Build the file path.  The file name is an MD5 hash of the full URI
         $uri =  $config->base_url() . $config->item('index_page') . $URI->uri_string;

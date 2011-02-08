@@ -48,7 +48,7 @@ if( ! function_exists('log_write') )
         $_levels    = array('ERROR' => '1', 'DEBUG' => '2',  'INFO' => '3', 'ALL' => '4');
 
         $_config    = get_config();
-        $_log_path  = ($_config['log_path'] != '') ? $_config['log_path'] : APP .'system'. DS .'logs'. DS;
+        $_log_path  = ($_config['log_path'] != '') ? $_config['log_path'] : APP .'core'. DS .'logs'. DS;
 
         if ( ! is_dir($_log_path) OR ! is_really_writable($_log_path))
         {
