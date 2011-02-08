@@ -14,61 +14,39 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */  
 
-/**
- * Php Error Logger
- *
- * This function logs PHP generated error messages
- *
- * @access   private
- * @param    string    the error type
- * @param    string    the error string
- * @param    string    the error file
- * @param    int       the error line number
- * @return   string
- */
-function log_php_errors($type, $errstr, $errfile, $errline)
-{    
-    log_me('error', 'Php Error Type: '.$type.'  --> '.$errstr. ' '.$errfile.' '.$errline, TRUE);
-}
-
+ 
 /**
 * Catch Exceptions
 * 
 * @param object $e
 */
-function Obullo_Exception_Handler($e, $type = '')
-{   
-    $type = ($type != '') ? ucwords(strtolower($type)) : 'Exception Error';
-    $sql  = array();
-    
-    if(substr($e->getMessage(),0,3) == 'SQL') 
-    {
-        $ob   = this();
-        $type = 'Database';
-        
-        foreach(profiler_get('databases') as $db_name => $db_var)
+if( ! function_exists('Obullo_Exception_Handler')) 
+{
+    function Obullo_Exception_Handler($e, $type = '')
+    {   
+        if($type == 'PARSE ERROR')  // We couldn't use object
         {
-           if(is_object($ob->$db_var))
-           {
-               $last_query = $ob->{$db_var}->last_query($ob->{$db_var}->prepare);
-               
-               if( ! empty($last_query))
-               {
-                   $sql[$db_name] = $last_query;
-               }
-           }
-        }        
-    }
-    
-    ob_start();
-    include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
-    $buffer = ob_get_clean(); 
+            $type = ucwords(strtolower($type));
+            
+            ob_start();
+            include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+            $buffer = ob_get_clean(); 
 
-    echo $buffer;
-    
-    log_php_errors('Exception Error', $e->getMessage(), $e->getFile(), $e->getLine());
-}       
-
+            echo $buffer;
+            
+            log_me('error', 'Php Error Type: '.$type.'  --> '.$errstr. ' '.$errfile.' '.$errline, TRUE);
+        } 
+        else
+        {   
+            $Exception = base_register('Exception');
+            
+            if(is_object($Exception)) 
+            {
+                echo $Exception->write_exception($e, $type);
+            }
+        }
+    }    
+}   
 
 // -------------------------------------------------------------------- 
  
