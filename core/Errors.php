@@ -269,7 +269,7 @@ function error_write_file_source($file, $line_number, $id = '0', $padding = 5)
     
     fclose($file);  // Close the file
 
-    $display = ($id > 0) ? ' style="display:none;" ' : '';
+    $display = ($id > 0) ? ' class="collapse" ' : '';
     
     return '<span id="error_toggle_'.$id.'" '.$display.'><pre class="source"><code>'.$source.'</code></pre></span>';
 }
