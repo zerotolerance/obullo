@@ -328,7 +328,7 @@ function error_debug_backtrace($e)
     return $trace;
 }
 
-error_reporting(0);     // we need to close error reporting we already catch the fatal errors. 
+// error_reporting(0);     // we need to close error reporting we already catch the fatal errors. 
 set_error_handler('Obullo_Error_Handler'); 
 set_exception_handler('Obullo_Exception_Handler');
 register_shutdown_function('Obullo_Shutdown_Handler');    // Enable the Obullo shutdown handler, which catches E_FATAL errors.  
