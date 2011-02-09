@@ -155,7 +155,7 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
 */
 function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
 {
-    if ($errno == 0) return;  
+    if ($errno == 0 OR error_reporting() == 0) return;  
 
     switch ($errno)
     {
