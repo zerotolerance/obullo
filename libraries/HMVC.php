@@ -215,6 +215,7 @@ Class OB_HMVC
         $this->_REQUEST_BACKUP = $_REQUEST;
 
         $GLOBALS['PUT'] = $_SERVER = $_POST = $_GET = $_REQUEST = array();   // reset global variables
+        $_SERVER['HTTP_USER_AGENT'] = isset($this->_SERVER_BACKUP['HTTP_USER_AGENT']) ? $this->_SERVER_BACKUP['HTTP_USER_AGENT'] : array(); 
 
         switch ($method)
         {
