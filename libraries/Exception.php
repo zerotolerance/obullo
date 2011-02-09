@@ -67,25 +67,11 @@ Class OB_Exception {
         include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
         $buffer = ob_get_clean(); 
 
-        $this->log_php_errors('Exception Error', $e->getMessage(), $e->getFile(), $e->getLine());
+        log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE);  
         
         return $buffer;
     }
-    
-    // --------------------------------------------------------------------
 
-    /**
-    * Log all php errors.
-    * 
-    * @param string  $type
-    * @param string  $errstr
-    * @param string  $errfile
-    * @param integer $errline
-    */
-    public function log_php_errors($type, $errstr, $errfile, $errline)
-    {
-        log_me('error', 'Php Error Type: '.$type.'  --> '.$errstr. ' '.$errfile.' '.$errline, TRUE);
-    }
     
 }
 
