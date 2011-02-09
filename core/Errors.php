@@ -226,7 +226,7 @@ function error_secure_path($file)
 * 
 * @return boolean | string
 */
-function error_write_file_source($file, $line_number, $id = 0, $prefix, $padding = 5)
+function error_write_file_source($file, $line_number, $id = 0, $prefix = '', $padding = 5)
 {
     if ( ! $file OR ! is_readable($file))
     {
