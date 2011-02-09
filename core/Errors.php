@@ -226,7 +226,7 @@ function error_secure_path($file)
 * 
 * @return boolean | string
 */
-function error_write_file_source($file, $line_number, $id = '0', $padding = 5)
+function error_write_file_source($file, $line_number, $id = 0, $prefix, $padding = 5)
 {
     if ( ! $file OR ! is_readable($file))
     {
@@ -271,7 +271,7 @@ function error_write_file_source($file, $line_number, $id = '0', $padding = 5)
 
     $display = ($id > 0) ? ' class="collapse" ' : '';
     
-    return '<span id="error_toggle_'.$id.'" '.$display.'><pre class="source"><code>'.$source.'</code></pre></span>';
+    return '<span id="error_toggle_'.$prefix.$id.'" '.$display.'><pre class="source"><code>'.$source.'</code></pre></span>';
 }
 
 // -------------------------------------------------------------------- 
