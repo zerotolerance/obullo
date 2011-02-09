@@ -24,27 +24,41 @@ if( ! function_exists('Obullo_Exception_Handler'))
 {
     function Obullo_Exception_Handler($e, $type = '')
     {   
-        if($type == 'PARSE ERROR')  // We couldn't use object
+        $shutdown_errors = array(
+        'ERROR'            => 'ERROR',            // E_ERROR 
+        'PARSE ERROR'      => 'PARSE ERROR',      // E_PARSE
+        'USER FATAL ERROR' => 'USER FATAL ERROR', // E_USER_ERROR
+        );
+        
+        if(isset($shutdown_errors[$type]))  // We couldn't use object
         {
             $type = ucwords(strtolower($type));
             
-            ob_start();
-            include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
-            $buffer = ob_get_clean(); 
+            if(config_item('display_errors'))  // If user want to display all errors
+            {
+                ob_start();
+                include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+                $buffer = ob_get_clean(); 
 
-            echo $buffer;
+                echo $buffer;
+            }
             
             log_me('error', 'Php Error Type: '.$type.'  --> '.$errstr. ' '.$errfile.' '.$errline, TRUE);
         } 
         else
         {   
-            $Exception = base_register('Exception');
+            $exception = base_register('Exception');
             
-            if(is_object($Exception)) 
+            if(is_object($exception)) 
             {
-                echo $Exception->write_exception($e, $type);
+                if(config_item('display_errors'))  // If user want to display all errors
+                {
+                    echo $exception->write_exception($e, $type);
+                }
             }
         }
+        
+        return;
     }    
 }   
 
@@ -141,8 +155,8 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
 */
 function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
 {
-    if (($errno AND error_reporting()) == 0) return;
-    
+    if ($errno == 0) return;  
+
     switch ($errno)
     {
         case '1':       $type = 'ERROR'; break;
@@ -163,7 +177,7 @@ function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
         case '30719':   $type = 'ERROR'; break;
     }
     
-    Obullo_Exception_Handler(new ErrorException( $errstr, $errno, 0, $errfile, $errline), $type);
+    Obullo_Exception_Handler(new ErrorException( $errstr, $errno, 0, $errfile, $errline), $type);   
     
     return;
 }          
@@ -173,14 +187,20 @@ function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
 function Obullo_Shutdown_Handler()
 {                      
     $error = error_get_last();
-    
+                                       
     if( ! $error) return;
     
     ob_get_level() AND ob_clean(); // Clean the output buffer
 
-    Obullo_Error_Handler($error['type'], $error['message'], $error['file'], $error['line']);
+    $shutdown_errors = array(
+    '1'   => 'ERROR',            // E_ERROR 
+    '4'   => 'PARSE ERROR',      // E_PARSE
+    '256' => 'USER FATAL ERROR', // E_USER_ERROR
+    );
+
+    $type = (isset($shutdown_errors[$error['type']])) ? $shutdown_errors[$error['type']] : '';
     
-    exit();
+    Obullo_Exception_Handler(new ErrorException($error['message'], $error['type'], 0, $error['file'], $error['line']), $type);
 }
 
 // --------------------------------------------------------------------  
@@ -305,12 +325,15 @@ function error_debug_backtrace($e)
     
     return $trace;
 }
-
-// error_reporting(0);     // we need to close error reporting we already catch the fatal errors. 
+                                                      
 set_error_handler('Obullo_Error_Handler'); 
 set_exception_handler('Obullo_Exception_Handler');
 register_shutdown_function('Obullo_Shutdown_Handler');    // Enable the Obullo shutdown handler, which catches E_FATAL errors.  
 
+error_reporting(0);     // we need to close error reporting we already catch the fatal errors.
+
+// restore_error_handler();
+// restore_exception_handler(); 
 
 // END Errors.php File
 
