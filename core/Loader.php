@@ -120,8 +120,26 @@ Class loader {
         self::_library($class, $params_or_no_ins, $object_name, $new_instance, TRUE);
     }
 
+    // -------------------------------------------------------------------- 
+    
+    /**
+    * loader::ext();
+    *
+    * load main extension library from /extension folder.
+    *
+    * @param    mixed $class
+    * @param    mixed $params_or_no_ins array | null | false
+    * @param    string $object_name
+    * @param    boolean $new_instance create new instance 
+    * @return   self::_library()
+    */
+    public static function ext($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
+    {
+        self::_library($class, $params_or_no_ins, $object_name, $new_instance, FALSE, $extension = TRUE);
+    }
+    
     // --------------------------------------------------------------------
-
+                             
     /**
     * Obullo Library Loader.
     *
@@ -136,18 +154,20 @@ Class loader {
     * @version  0.4  added profiler_set() func.
     * @return   void
     */
-    private static function _library($class, $params_or_no_ins = '', $object_name = '', $new_instance = FALSE, $app_folder = FALSE)
+    private static function _library($class, $params_or_no_ins = '', $object_name = '', $new_instance = FALSE, $app_folder = FALSE, $ext = FALSE)
     {
         if($class == '') return FALSE;
 
         $OB = this();  // Grab the Super Object.
 
+        $profiler_type = ($ext) ? 'extensions' : 'libraries';
+        
         $data = self::_load_file($class, $folder = 'libraries', $app_folder);
 
         $class_var = '';
 
         if( file_exists($data['file']))
-        {
+        {                    
             require_once($data['file']);
 
             $class_var = strtolower($data['file_name']);
@@ -165,13 +185,13 @@ Class loader {
             
                 $OB->$class_var = new $data['file_name']($params_or_no_ins);
 
-                profiler_set('libraries', $class_var, $class_var);
+                profiler_set($profiler_type, $class_var, $class_var);
 
                 return;
             }
             elseif($params_or_no_ins === FALSE)
             {
-                profiler_set('libraries', $class_var, $class_var);
+                profiler_set($profiler_type, $class_var, $class_var);
 
                 return;
             }
@@ -181,15 +201,17 @@ Class loader {
 
                 $OB->$class_var = new $data['file_name']();
 
-                profiler_set('libraries', $class_var, $class_var);
+                profiler_set($profiler_type, $class_var, $class_var);
 
                 return;
             }
         }
 
-        throw new LoaderException('Unable to locate the library file: '. $data['file']);
+        $type = ($ext) ? 'extension' : 'library';
+        
+        throw new LoaderException('Unable to locate the '.$type.' file: '. $data['file']);
     }
-
+    
     // --------------------------------------------------------------------
 
     /**
@@ -391,7 +413,7 @@ Class loader {
             return;
         }
 
-        $data = self::_load_file($helper, $folder = 'helpers', TRUE);
+        $data = self::_load_file($helper, $folder = 'helpers', $app_folder = TRUE);
 
         if(file_exists($data['file']))
         {
@@ -468,12 +490,39 @@ Class loader {
         {
             return;
         }
-
+               
         if(file_exists(BASE .'helpers'. DS .$helper. EXT))
         {
             $prefix = config_item('subhelper_prefix');
 
-            if(file_exists(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
+            $extensions = get_config('extensions');
+            $extension_helper_override = FALSE;
+            
+            if(is_array($extensions))
+            {
+                foreach($extensions as $name => $val)   // Extension Override Support
+                {
+                    if(isset($val['helper_override']))
+                    {
+                        if($val['helper_override'] == $helper)
+                        {
+                            $extension_helper_override = TRUE;
+                            $extension = $name;
+                        }
+                    }
+                } 
+            }                            
+                       
+            if($extension_helper_override)
+            {
+                if(is_extension($extension))  // if extension enabled .. 
+                { 
+                    include(EXTENSION .$extension. DS .'helpers'. DS .$prefix. $helper. EXT);
+
+                    self::$_base_helpers[$prefix . $helper] = $prefix . $helper;
+                }    
+            }
+            elseif(file_exists(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
             {
                 include(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT);
 
@@ -622,6 +671,11 @@ Class loader {
 
             $file = DIR . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;
 
+            if(is_extension($modulename))
+            {
+                $file = EXTENSION . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;  
+            }
+            
             $return['file_name'] = $file_name;
             $return['file']      = $file;
 

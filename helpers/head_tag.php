@@ -32,6 +32,7 @@ defined('BASE') or exit('Access Denied!');
 * css('welcome.css');
 * css('subfolder/welcome.css')
 * css('../module/welcome.css');  from /modules dir
+* css('../extension/welcome.css');  from /extension dir
 * css(array('welcome.css', 'hello.css'));
 * css('#main {display: block; color: red;}', 'embed');
 *

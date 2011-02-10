@@ -492,13 +492,19 @@ if( ! function_exists('_view_load_file'))
             return array('filename' => $file_url, 'path' => BASE .$folder. DS);
         }
         
-        $file_url = strtolower($file_url);
-
+        $file_url  = strtolower($file_url);
+        $extension = FALSE;
+        
         if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
         {
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
+            
+            if(is_extension($modulename))
+            {
+                $extension = TRUE; 
+            }
         }
         else    // if current modulename/file
         {
@@ -531,7 +537,12 @@ if( ! function_exists('_view_load_file'))
         {
             $path = $module_path;
         }
-
+    
+        if($extension)
+        {
+            $path = EXTENSION .$modulename. DS .$folder. DS .$sub_path;  // We don't need extra path 
+        }
+    
         return array('filename' => $filename, 'path' => $path);
     }
 

@@ -150,7 +150,8 @@ function core_register($realname, $new_object = NULL, $params_or_no_ins = '')
 */
 function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
 {
-    static $new_objects = array();                
+    static $new_objects       = array();               
+    static $overriden_objects = array();               
     
     $Class    = ucfirst($realname);
     $registry = OB_Registry::instance();
@@ -188,29 +189,73 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
         $classname   = 'OB_'.$Class;
         $prefix      = config_item('subclass_prefix');  // MY_
         $module      = core_register('Router')->fetch_directory();
+        $extensions  = get_config('extensions');
+        $extension_lib_override = FALSE;
         
-        if(file_exists(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
+        //------------------ OVERRIDE SUPPORT ------------------//
+        
+        if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
         {
-            if( ! isset($new_objects[$Class]) )  // check new object instance
+            if(is_array($extensions))
             {
-                require(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT);
-            }
-            
-            $classname = $prefix. $Class;
-
-            profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-        }  
-        elseif(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
-        {
-            if( ! isset($new_objects[$Class]) )  // check new object instance
+                foreach($extensions as $name => $val)   // Extension Override Support
+                {
+                    if(isset($val['lib_override']))
+                    {
+                        if($val['lib_override'] == $Class)
+                        {
+                            $extension_lib_override = TRUE;
+                            $extension = $name;
+                        }
+                    }
+                }
+            }                            
+                       
+            if($extension_lib_override)
             {
-                require(APP .'libraries'. DS .$prefix. $Class. EXT);
-            }
-            
-            $classname = $prefix. $Class;
+                if(is_extension($extension))  // if extension enabled .. 
+                { 
+                    if( ! isset($new_objects[$Class]) )  // check new object instance
+                    {
+                        require(EXTENSION .$extension. DS .'libraries'. DS .$prefix. $Class. EXT);
+                    }
+                    
+                    $classname = $prefix. $Class;
 
-            profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-        } 
+                    profiler_set('libraries', 'php_'. $Class . '_extension_overridden', $prefix . $Class); 
+                    
+                    $overriden_objects[$Class] = $Class;
+                }
+            }      
+            elseif(file_exists(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
+            {
+                if( ! isset($new_objects[$Class]) )  // check new object instance
+                {
+                    require(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT);
+                }
+                
+                $classname = $prefix. $Class;
+
+                profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+                
+                $overriden_objects[$Class] = $Class;
+            }  
+            elseif(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
+            {
+                if( ! isset($new_objects[$Class]) )  // check new object instance
+                {
+                    require(APP .'libraries'. DS .$prefix. $Class. EXT);
+                }
+                
+                $classname = $prefix. $Class;
+
+                profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+                
+                $overriden_objects[$Class] = $Class;
+            }     
+        }
+        
+        //------------------ END OVERRIDE SUPPORT ------------------// 
         
         // __construct params support.
         // --------------------------------------------------------------------
@@ -525,8 +570,6 @@ function db_item($item, $index = 'db')
 */
 function log_me($level = 'error', $message, $php_error = FALSE)
 {
-    static $log;
-
     if (config_item('log_threshold') == 0)
     {
         return;
@@ -620,6 +663,8 @@ function is_php($version = '5.0.0')
     return $_is_php[$version];
 }
 
+// --------------------------------------------------------------------  
+
 /**
 * Set data to profiler variable
 *
@@ -631,6 +676,8 @@ function profiler_set($type, $key, $val)
 {
     base_register('Storage')->profiler_var[$type][$key] = $val;
 }
+
+// --------------------------------------------------------------------  
 
 /**
 * Get profiler data from profiler
@@ -736,6 +783,64 @@ function set_status_header($code = 200, $text = '')
     }
 }
 
+// ------------------------------------------------------------------------
+
+/**
+* Check the string is a Obullo extension 
+* which is defined in config/extensions.php
+* 
+* @param mixed $name
+*/
+function is_extension($name = '')
+{                         
+    static $enabled_extensions = array();
+    if($name == '') return FALSE;
+                     
+    if(isset($enabled_extensions[$name]))
+    {
+        return TRUE;
+    }
+                     
+    $extensions = get_config('extensions'); 
+    
+    if(is_array($extensions))
+    {
+        if(isset($extensions[$name]) AND is_dir(EXTENSION . $name))           
+        {             
+            if($extensions[$name]['enabled'])   // Check extension is enabled.
+            {
+                $enabled_extensions[$name] = $name;
+                return TRUE;
+            }
+        }
+    }
+    
+    return FALSE;
+}
+
+// ------------------------------------------------------------------------ 
+
+/**
+* Get current extension configuration.
+* 
+* @param   string $name
+* @param   string $item
+* @return  mixed | NULL
+*/
+function ext_item($name, $item)
+{
+    $extensions = get_config('extensions');
+
+    if(isset($extensions[$name][$item]))
+    {
+        return $extensions[$name][$item];
+    }
+    
+    return NULL;
+}
+
+// ------------------------------------------------------------------------ 
+
 /**
 * Parse head files to learn whether it
 * comes from modules directory.
@@ -754,16 +859,21 @@ if( ! function_exists('_get_public_path') )
 {
     function _get_public_path($file_url, $extra_path = '')
     {
-        $ob = this();
-        $file_url = strtolower($file_url);
+        $OB = this();
         
-        // if ../modulename/public folder request
-
-        if(strpos($file_url, '../') === 0)
+        $file_url  = strtolower($file_url);
+        $extension = TRUE;
+        
+        if(strpos($file_url, '../') === 0)   // if ../modulename/public folder request 
         {
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
+            
+            if(is_extension($modulename))
+            {
+                $extension = TRUE; 
+            }
         }
         else    // if current modulename/public request
         {
@@ -784,13 +894,13 @@ if( ! function_exists('_get_public_path') )
             $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
         }
 
-        $extension = substr(strrchr($filename, '.'), 1);
-        if($extension == FALSE) 
+        $ext = substr(strrchr($filename, '.'), 1);   // file extension
+        if($ext == FALSE) 
         {
             return FALSE;
         }
 
-        $folder = $extension . '/';
+        $folder = $ext . '/';
         
         if($extra_path != '')
         {
@@ -798,8 +908,8 @@ if( ! function_exists('_get_public_path') )
             $folder = '';
         }
 
-        $public_url    = $ob->config->public_url('', true) .str_replace(DS, '/', trim(DIR, DS)). '/';
-        $public_folder = trim($ob->config->item('public_folder'), '/');
+        $public_url    = $OB->config->public_url('', true) .str_replace(DS, '/', trim(DIR, DS)). '/';
+        $public_folder = trim($OB->config->item('public_folder'), '/');
 
         // if config public_folder = 'public/site' just grab the 'public' word
         // so when managing multi applications user don't need to divide public folder files.
@@ -816,16 +926,23 @@ if( ! function_exists('_get_public_path') )
         $pure_path  = $modulename . '/'. $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
         $full_path  = $public_url . $pure_path;
 
-        // if file located in another server fetch it from outside /public folder.
-        if(strpos($ob->config->public_url(), '://') !== FALSE)
+        if($extension)  // If its a extension file
         {
-            return $ob->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+            $public_folder = (ext_item($modulename, 'public_folder') != NULL) ? ext_item($modulename, 'public_folder') : $public_folder;
+            
+            return $public_url . $modulename . '/'. $public_folder .'/'. $folder . $sub_path . $filename;  
+        }
+        
+        // if file located in another server fetch it from outside /public folder.
+        if(strpos($OB->config->public_url(), '://') !== FALSE)
+        {
+            return $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
         }
         
         // if file not exists in current module folder fetch it from outside /public folder. 
         if( ! file_exists(DIR . str_replace('/', DS, trim($pure_path, '/'))) )
         {
-            return $ob->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+            return $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
         }
         
         return $full_path;
