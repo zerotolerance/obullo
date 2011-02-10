@@ -862,7 +862,7 @@ if( ! function_exists('_get_public_path') )
         $OB = this();
         
         $file_url  = strtolower($file_url);
-        $extension = TRUE;
+        $extension = FALSE;
         
         if(strpos($file_url, '../') === 0)   // if ../modulename/public folder request 
         {
@@ -927,7 +927,7 @@ if( ! function_exists('_get_public_path') )
         $full_path  = $public_url . $pure_path;
 
         if($extension)  // If its a extension file
-        {
+        {                         
             $public_folder = (ext_item($modulename, 'public_folder') != NULL) ? ext_item($modulename, 'public_folder') : $public_folder;
             
             return $public_url . $modulename . '/'. $public_folder .'/'. $folder . $sub_path . $filename;  
