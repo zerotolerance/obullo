@@ -118,18 +118,12 @@ if( ! function_exists('_lang_load_file'))
         }
         
         $file_url = strtolower($file_url);
-        $extension = FALSE;
         
         if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
         {
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
-            
-            if(is_extension($modulename))
-            {
-                $extension = TRUE; 
-            }
         }
         else    // if current modulename/file
         {
@@ -156,11 +150,6 @@ if( ! function_exists('_lang_load_file'))
         if(file_exists($module_path. $filename. EXT))  // first check module path
         {
             $path = $module_path;
-        }
-        
-        if($extension)
-        {
-            $path = EXTENSION .$modulename. DS .'lang'. DS .$sub_path. $extra_path; 
         }
 
         return array('filename' => $filename, 'path' => $path);

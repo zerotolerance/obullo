@@ -133,18 +133,12 @@ Class OB_Config
         }
         
         $file_url  = strtolower($file_url);
-        $extension = FALSE;
 
         if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
         {
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
-            
-            if(is_extension($modulename))
-            {
-                $extension = TRUE; 
-            }
         }
         else    // if current modulename/file
         {
@@ -172,12 +166,7 @@ Class OB_Config
         {
             $path = $module_path;
         }
-        
-        if($extension)
-        {
-            $path = EXTENSION .$modulename. DS .'config'. DS .$sub_path. $extra_path; 
-        }
-        
+    
         return array('filename' => $filename, 'path' => $path);
     }
     

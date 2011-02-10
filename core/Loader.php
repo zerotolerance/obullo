@@ -125,7 +125,7 @@ Class loader {
     /**
     * loader::ext();
     *
-    * load main extension library from /extension folder.
+    * load extension library from /modules folder.
     *
     * @param    mixed $class
     * @param    mixed $params_or_no_ins array | null | false
@@ -157,12 +157,19 @@ Class loader {
     private static function _library($class, $params_or_no_ins = '', $object_name = '', $new_instance = FALSE, $app_folder = FALSE, $ext = FALSE)
     {
         if($class == '') return FALSE;
+        
+        if($params_or_no_ins === TRUE AND $ext == TRUE)  // extension helper file.
+        {
+            self::helper($class, 'helpers', TRUE);
+            
+            return;  // If file helper extension return.
+        }
 
         $OB = this();  // Grab the Super Object.
 
         $profiler_type = ($ext) ? 'extensions' : 'libraries';
         
-        $data = self::_load_file($class, $folder = 'libraries', $app_folder);
+        $data = self::_load_file($class, $folder = 'libraries', $app_folder, $ext);
 
         $class_var = '';
 
@@ -451,14 +458,21 @@ Class loader {
     *               loader::helper('.outside_folder/helper_name')  outside directory  load support
     * @return   void
     */
-    public static function helper($helper, $func = 'helper')
+    public static function helper($helper, $func = 'helper', $is_extension = FALSE)
     {
         if( isset(self::$_helpers[$helper]) )
         {
             return;
         }
 
-        $data = self::_load_file($helper, $folder = 'helpers');
+        if($is_extension)
+        {
+             $data = self::_load_file($helper, $folder = 'helpers', FALSE, TRUE); 
+        } 
+        else 
+        {
+             $data = self::_load_file($helper, $folder = 'helpers'); 
+        }
 
         if(file_exists($data['file']))
         {
@@ -513,18 +527,19 @@ Class loader {
                 } 
             }                            
                        
+            $module = $GLOBALS['d'];
+                       
             if($extension_helper_override)
             {
                 if(is_extension($extension))  // if extension enabled .. 
                 { 
-                    include(EXTENSION .$extension. DS .'helpers'. DS .$prefix. $helper. EXT);
-
-                    self::$_base_helpers[$prefix . $helper] = $prefix . $helper;
+                    $module = $extension;
                 }    
             }
-            elseif(file_exists(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
+            
+            if(file_exists(DIR .$module. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
             {
-                include(DIR .$GLOBALS['d']. DS .'helpers'. DS .$prefix. $helper. EXT);
+                include(DIR .$module. DS .'helpers'. DS .$prefix. $helper. EXT);
 
                 self::$_base_helpers[$prefix . $helper] = $prefix . $helper;
             }
@@ -645,11 +660,19 @@ Class loader {
     *
     * return array  file_name | file
     */
-    private static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE)
+    private static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE, $extension = FALSE)
     {
         $real_name  = strtolower($filename);
         $root       = rtrim(DIR, DS);  // APP .'modules';
 
+        if($extension)  // main extension library or helper file.
+        {
+            $return['file_name'] = $real_name;
+            $return['file']      = DIR . $real_name . DS . $real_name. EXT;
+
+            return $return; 
+        }
+        
         $sub_root   = $GLOBALS['d']. DS .$folder. DS;
         if($app_folder)
         {
@@ -668,13 +691,8 @@ Class loader {
             {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
-
+            
             $file = DIR . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;
-
-            if(is_extension($modulename))
-            {
-                $file = EXTENSION . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;  
-            }
             
             $return['file_name'] = $file_name;
             $return['file']      = $file;

@@ -215,19 +215,11 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
             {
                 if(is_extension($extension))  // if extension enabled .. 
                 { 
-                    if( ! isset($new_objects[$Class]) )  // check new object instance
-                    {
-                        require(EXTENSION .$extension. DS .'libraries'. DS .$prefix. $Class. EXT);
-                    }
-                    
-                    $classname = $prefix. $Class;
-
-                    profiler_set('libraries', 'php_'. $Class . '_extension_overridden', $prefix . $Class); 
-                    
-                    $overriden_objects[$Class] = $Class;
+                    $module = $extension;
                 }
-            }      
-            elseif(file_exists(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
+            }
+                  
+            if(file_exists(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
             {
                 if( ! isset($new_objects[$Class]) )  // check new object instance
                 {
@@ -805,7 +797,7 @@ function is_extension($name = '')
     
     if(is_array($extensions))
     {
-        if(isset($extensions[$name]) AND is_dir(EXTENSION . $name))           
+        if(isset($extensions[$name]) AND is_dir(DIR . $name))           
         {             
             if($extensions[$name]['enabled'])   // Check extension is enabled.
             {

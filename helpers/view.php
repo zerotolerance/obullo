@@ -540,7 +540,7 @@ if( ! function_exists('_view_load_file'))
     
         if($extension)
         {
-            $path = EXTENSION .$modulename. DS .$folder. DS .$sub_path;  // We don't need extra path 
+            $path = DIR .$modulename. DS .$folder. DS .$sub_path;  // We don't need extra path for extensions
         }
     
         return array('filename' => $filename, 'path' => $path);
