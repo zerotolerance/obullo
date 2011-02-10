@@ -51,10 +51,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
             
             if(is_object($exception)) 
             {
-                if(config_item('display_errors'))  // If user want to display all errors
-                {
-                    echo $exception->write_exception($e, $type);
-                }
+                $exception->write_exception($e, $type);
             }
         }
         

@@ -189,8 +189,11 @@ Class loader {
                 {
                     if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
                 }
-            
-                $OB->$class_var = new $data['file_name']($params_or_no_ins);
+                
+                if(class_exists($data['file_name']))
+                {
+                    $OB->$class_var = new $data['file_name']($params_or_no_ins);
+                }
 
                 profiler_set($profiler_type, $class_var, $class_var);
 
@@ -206,8 +209,11 @@ Class loader {
             {
                 if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
 
-                $OB->$class_var = new $data['file_name']();
-
+                if(class_exists($data['file_name']))
+                {
+                    $OB->$class_var = new $data['file_name']();
+                }
+                
                 profiler_set($profiler_type, $class_var, $class_var);
 
                 return;

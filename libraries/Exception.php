@@ -69,7 +69,10 @@ Class OB_Exception {
 
         log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE);  
         
-        return $buffer;
+        if(config_item('display_errors'))  // If user want to display all errors
+        {
+            echo $buffer;
+        }
     }
 
     
