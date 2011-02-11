@@ -117,6 +117,7 @@ if( ! function_exists('ob_system_run'))
         }
         
         require (BASE .'core'. DS .'Loader'. EXT);
+        require (APP  .'core'. DS .'Loader'. EXT);
         require (BASE .'core'. DS .'Controller'. EXT);
         require (BASE .'core'. DS .'Model'. EXT);
                                                                    

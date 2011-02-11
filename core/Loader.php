@@ -52,7 +52,7 @@ defined('BASE') or exit('Access Denied!');
 
 Class LoaderException extends CommonException {}
 
-Class loader {
+Class OB_Loader {
 
     /**
     * Prevent Duplication
@@ -754,6 +754,7 @@ Class loader {
     }
 
 }
+
 // END Loader Class
 
 /* End of file Loader.php */
