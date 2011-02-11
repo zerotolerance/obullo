@@ -42,6 +42,14 @@ if( ! function_exists('Obullo_Exception_Handler'))
 
                 echo $buffer;
             }
+            else  // If display_errors = false, we show a blank page template.
+            {
+                ob_start();
+                include(ROOT . APP .'core'. DS .'errors'. DS .'ob_disabled_error'. EXT);
+                $buffer = ob_get_clean();
+                
+                echo $buffer;  
+            }
             
             log_me('error', 'Php Error Type: '.$type.'  --> '.$errstr. ' '.$errfile.' '.$errline, TRUE);
         } 

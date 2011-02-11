@@ -72,9 +72,9 @@ Class OB_Exception {
         if(config_item('display_errors'))  // If user want to display all errors
         {
             return $buffer;
-        }
-    }
+        }         
 
+    }
     
 }
 
