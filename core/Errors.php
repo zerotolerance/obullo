@@ -51,7 +51,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
             
             if(is_object($exception)) 
             {
-                $exception->write_exception($e, $type);
+                echo $exception->write($e, $type);
             }
         }
         
@@ -153,7 +153,7 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
 function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
 {
     if ($errno == 0) return;  
-
+    
     switch ($errno)
     {
         case '1':       $type = 'ERROR'; break;

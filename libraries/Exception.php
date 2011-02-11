@@ -39,7 +39,7 @@ Class OB_Exception {
     * 
     * @return string
     */
-    public function write_exception($e, $type = '')
+    public function write($e, $type = '')
     {
         $type = ($type != '') ? ucwords(strtolower($type)) : 'Exception Error';
         $sql  = array();
@@ -71,7 +71,7 @@ Class OB_Exception {
         
         if(config_item('display_errors'))  // If user want to display all errors
         {
-            echo $buffer;
+            return $buffer;
         }
     }
 
