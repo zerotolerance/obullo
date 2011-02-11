@@ -65,7 +65,7 @@ Class OB_Exception {
         
         ob_start();
         include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
-        $buffer = ob_get_clean(); 
+        $buffer = ob_get_contents(); @ob_end_clean();
 
         log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE);  
         

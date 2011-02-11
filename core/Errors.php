@@ -40,7 +40,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
                 
                 ob_start();
                 include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
-                $buffer = ob_get_clean(); 
+                $buffer = ob_get_contents(); @ob_end_clean();
 
                 echo $buffer;
             }
@@ -48,7 +48,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
             {
                 ob_start();
                 include(ROOT . APP .'core'. DS .'errors'. DS .'ob_disabled_error'. EXT);
-                $buffer = ob_get_clean();
+                $buffer = ob_get_contents(); @ob_end_clean();
                 
                 echo $buffer;  
             }
