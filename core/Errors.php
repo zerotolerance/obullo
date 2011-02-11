@@ -33,9 +33,11 @@ if( ! function_exists('Obullo_Exception_Handler'))
         if(isset($shutdown_errors[$type]))  // We couldn't use object
         {
             $type = ucwords(strtolower($type));
-            
+        
             if(config_item('display_errors'))  // If user want to display all errors
             {
+                $sql = array();
+                
                 ob_start();
                 include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
                 $buffer = ob_get_clean(); 
@@ -51,7 +53,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
                 echo $buffer;  
             }
             
-            log_me('error', 'Php Error Type: '.$type.'  --> '.$errstr. ' '.$errfile.' '.$errline, TRUE);
+            log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE); 
         } 
         else
         {   
