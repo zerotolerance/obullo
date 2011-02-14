@@ -64,7 +64,7 @@ Class OB_Exception {
         }
 
         ob_start();
-        include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+        include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
         $buffer = ob_get_contents();
         ob_clean();  // Don't close output buffering just clean it, 
                      // there is a blank page issue in some servers.

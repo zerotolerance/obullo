@@ -494,7 +494,7 @@ function get_config($filename = 'config', $var = '')
     
     if($filename == 'extensions')
     {
-        $path = trim(MODULES, DS);
+        $path = rtrim(MODULES, DS);
     }
     
     return get_static($filename, $var, $path);
@@ -910,7 +910,9 @@ if( ! function_exists('_get_public_path') )
             $folder = '';
         }
 
-        $public_url    = $OB->config->public_url('', true) .str_replace(DS, '/', trim(MODULES, DS)). '/';
+        $ROOT = str_replace(ROOT, '', rtrim(MODULES, DS));
+        
+        $public_url    = $OB->config->public_url('', true) .str_replace(DS, '/', $ROOT). '/';
         $public_folder = trim($OB->config->item('public_folder'), '/');
 
         // if config public_folder = 'public/site' just grab the 'public' word

@@ -22,15 +22,16 @@ defined('BASE') or exit('Access Denied!');
 */
 if( ! function_exists('Obullo_Exception_Handler')) 
 {
-    function Obullo_Exception_Handler($e, $type = '')
+    function Obullo_Exception_Handler($e, $type = 'Exception')
     {   
         $shutdown_errors = array(
         'ERROR'            => 'ERROR',            // E_ERROR 
         'PARSE ERROR'      => 'PARSE ERROR',      // E_PARSE
+        'COMPILE ERROR'    => 'COMPILE ERROR',    // E_COMPILE_ERROR   
         'USER FATAL ERROR' => 'USER FATAL ERROR', // E_USER_ERROR
         );
         
-        if(isset($shutdown_errors[$type]))  // We couldn't use object
+        if(isset($shutdown_errors[$type]) OR $type = 'Exception')  // We couldn't use object
         {
             $type = ucwords(strtolower($type));
             $err_level = config_item('error_reporting');
@@ -40,7 +41,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
                 $sql = array();
                 
                 ob_start();
-                include(ROOT . APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+                include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
                 $buffer = ob_get_contents(); @ob_end_clean();
 
                 echo $buffer;
@@ -48,7 +49,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
             else  // If display_errors = false, we show a blank page template.
             {
                 ob_start();
-                include(ROOT . APP .'core'. DS .'errors'. DS .'ob_disabled_error'. EXT);
+                include(APP .'core'. DS .'errors'. DS .'ob_disabled_error'. EXT);
                 $buffer = ob_get_contents(); @ob_end_clean();
                 
                 echo $buffer;  
@@ -128,7 +129,7 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
     $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
     
     ob_start();
-    include(ROOT . APP. 'core'. DS .'errors'. DS .$template. EXT);
+    include(APP. 'core'. DS .'errors'. DS .$template. EXT);
     $buffer = ob_get_clean();
     
     return $buffer;
@@ -164,7 +165,7 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
 * @param int $errline
 */
 function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
-{
+{                           
     if ($errno == 0) return;  
     
     switch ($errno)
@@ -202,7 +203,7 @@ function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
 function Obullo_Shutdown_Handler()
 {                      
     $error = error_get_last();
-                                       
+           
     if( ! $error) return;
     
     ob_get_level() AND ob_clean(); // Clean the output buffer
@@ -210,6 +211,7 @@ function Obullo_Shutdown_Handler()
     $shutdown_errors = array(
     '1'   => 'ERROR',            // E_ERROR 
     '4'   => 'PARSE ERROR',      // E_PARSE
+    '64'  => 'COMPILE ERROR',    // E_COMPILE_ERROR
     '256' => 'USER FATAL ERROR', // E_USER_ERROR
     );
 
