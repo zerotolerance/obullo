@@ -145,7 +145,7 @@ if( ! function_exists('_lang_load_file'))
         }
         
         $path        = APP .'lang'. DS .$sub_path .$extra_path;
-        $module_path = DIR .$modulename. DS .'lang'. DS .$sub_path. $extra_path;
+        $module_path = MODULES .$modulename. DS .'lang'. DS .$sub_path. $extra_path;
         
         if(file_exists($module_path. $filename. EXT))  // first check module path
         {

@@ -531,7 +531,7 @@ if( ! function_exists('_view_load_file'))
         }
         
         $path        = APP .$folder. DS .$sub_path .$extra_path;
-        $module_path = DIR .$modulename. DS .$folder. DS .$sub_path. $extra_path;
+        $module_path = MODULES .$modulename. DS .$folder. DS .$sub_path. $extra_path;
         
         if(file_exists($module_path. $filename. EXT))  // first check module path
         {
@@ -540,7 +540,7 @@ if( ! function_exists('_view_load_file'))
     
         if($extension)
         {
-            $path = DIR .$modulename. DS .$folder. DS .$sub_path;  // We don't need extra path for extensions
+            $path = MODULES .$modulename. DS .$folder. DS .$sub_path;  // We don't need extra path for extensions
         }
     
         return array('filename' => $filename, 'path' => $path);

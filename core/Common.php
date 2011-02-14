@@ -210,7 +210,7 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
                     }
                 }
             }                            
-                       
+
             if($extension_lib_override)
             {
                 if(is_extension($extension))  // if extension enabled .. 
@@ -218,16 +218,16 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
                     $module = $extension;
                 }
             }
-                  
-            if(file_exists(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
+        
+            if(file_exists(MODULES .$module. DS .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
             {
                 if( ! isset($new_objects[$Class]) )  // check new object instance
                 {
-                    require(DIR .$module. DS .'libraries'. DS .$prefix. $Class. EXT);
+                    require(MODULES .$module. DS .'libraries'. DS .$prefix. $Class. EXT);
                 }
                 
                 $classname = $prefix. $Class;
-
+     
                 profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
                 
                 $overriden_objects[$Class] = $Class;
@@ -245,6 +245,7 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
                 
                 $overriden_objects[$Class] = $Class;
             }     
+            
         }
         
         //------------------ END OVERRIDE SUPPORT ------------------// 
@@ -332,11 +333,11 @@ function ob_autoload($real_name)
         }
 
         // If Module Global Controller file exist ..
-        if(file_exists(DIR .$module. DS .'parents'. DS .$real_name. EXT))
+        if(file_exists(MODULES .$module. DS .'parents'. DS .$real_name. EXT))
         {            
-            require(DIR .$module. DS .'parents'. DS .$real_name. EXT);
+            require(MODULES .$module. DS .'parents'. DS .$real_name. EXT);
 
-            profiler_set('parents', $real_name, DIR .$module. DS .'parents'. DS .$real_name. EXT);
+            profiler_set('parents', $real_name, MODULES .$module. DS .'parents'. DS .$real_name. EXT);
 
             return;
         }
@@ -363,9 +364,9 @@ function ob_autoload($real_name)
 
     // __autoload libraries load support.
     // --------------------------------------------------------------------
-    if(file_exists(DIR .$module. DS .'libraries'. DS .$class. EXT))
+    if(file_exists(MODULES .$module. DS .'libraries'. DS .$class. EXT))
     {
-        require(DIR .$module. DS .'libraries'. DS .$class. EXT);
+        require(MODULES .$module. DS .'libraries'. DS .$class. EXT);
 
         profiler_set('libraries', 'module_'.$class.'_autoloaded', $class);
         return;
@@ -457,7 +458,9 @@ function get_static($filename = 'config', $var = '', $folder = '')
     if ( ! isset($static[$filename]))
     {
         if ( ! file_exists($folder. DS .$filename. EXT))
-        throw new CommonException('The static file '. DS .$folder. DS .$filename. EXT .' does not exist.');
+        {
+            throw new CommonException('The static file '. DS .$folder. DS .$filename. EXT .' does not exist.');
+        }
 
         require($folder. DS .$filename. EXT);
 
@@ -487,7 +490,14 @@ function get_static($filename = 'config', $var = '', $folder = '')
 */
 function get_config($filename = 'config', $var = '')
 {
-    return get_static($filename, $var, APP .'config');
+    $path = APP .'config';
+    
+    if($filename == 'extensions')
+    {
+        $path = trim(MODULES, DS);
+    }
+    
+    return get_static($filename, $var, $path);
 }
 
 // --------------------------------------------------------------------
@@ -797,7 +807,7 @@ function is_extension($name = '')
     
     if(is_array($extensions))
     {
-        if(isset($extensions[$name]) AND is_dir(DIR . $name))           
+        if(isset($extensions[$name]) AND is_dir(MODULES . $name))           
         {             
             if($extensions[$name]['enabled'])   // Check extension is enabled.
             {
@@ -900,7 +910,7 @@ if( ! function_exists('_get_public_path') )
             $folder = '';
         }
 
-        $public_url    = $OB->config->public_url('', true) .str_replace(DS, '/', trim(DIR, DS)). '/';
+        $public_url    = $OB->config->public_url('', true) .str_replace(DS, '/', trim(MODULES, DS)). '/';
         $public_folder = trim($OB->config->item('public_folder'), '/');
 
         // if config public_folder = 'public/site' just grab the 'public' word
@@ -932,7 +942,7 @@ if( ! function_exists('_get_public_path') )
         }
         
         // if file not exists in current module folder fetch it from outside /public folder. 
-        if( ! file_exists(DIR . str_replace('/', DS, trim($pure_path, '/'))) )
+        if( ! file_exists(MODULES . str_replace('/', DS, trim($pure_path, '/'))) )
         {
             return $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
         }

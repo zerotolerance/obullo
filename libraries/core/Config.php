@@ -160,7 +160,7 @@ Class OB_Config
         }
         
         $path        = APP .'config'. DS .$sub_path .$extra_path;
-        $module_path = DIR .$modulename. DS .'config'. DS .$sub_path. $extra_path;
+        $module_path = MODULES .$modulename. DS .'config'. DS .$sub_path. $extra_path;
         
         if(file_exists($module_path. $filename. EXT))  // first check module path
         {

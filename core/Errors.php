@@ -33,8 +33,9 @@ if( ! function_exists('Obullo_Exception_Handler'))
         if(isset($shutdown_errors[$type]))  // We couldn't use object
         {
             $type = ucwords(strtolower($type));
-        
-            if(config_item('display_errors'))  // If user want to display all errors
+            $err_level = config_item('error_reporting');
+    
+            if($err_level > 0)  // If user want to display all errors
             {
                 $sql = array();
                 
@@ -60,8 +61,10 @@ if( ! function_exists('Obullo_Exception_Handler'))
             $exception = base_register('Exception');
             
             if(is_object($exception)) 
-            {
+            {            
                 echo $exception->write($e, $type);
+                
+                // var_dump();
             }
         }
         
@@ -166,22 +169,22 @@ function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
     
     switch ($errno)
     {
-        case '1':       $type = 'ERROR'; break;
-        case '2':       $type = 'WARNING'; break;
-        case '4':       $type = 'PARSE ERROR'; break;
-        case '8':       $type = 'NOTICE'; break;
-        case '16':      $type = 'CORE ERROR'; break;
-        case '32':      $type = "CORE WARNING"; break;
-        case '64':      $type = 'COMPILE ERROR'; break;
-        case '128':     $type = 'COMPILE WARNING'; break;
-        case '256':     $type = 'USER FATAL ERROR'; break;
-        case '512':     $type = 'USER WARNING'; break;
-        case '1024':    $type = 'USER NOTICE'; break;
-        case '2048':    $type = 'STRICT ERROR'; break;
-        case '4096':    $type = 'RECOVERABLE ERROR'; break;
-        case '8192':    $type = 'DEPRECATED ERROR'; break;
-        case '16384':   $type = 'USER DEPRECATED ERROR'; break;
-        case '30719':   $type = 'ERROR'; break;
+        case '1':       $type = 'ERROR'; break;             // E_ERROR
+        case '2':       $type = 'WARNING'; break;           // E_WARNING
+        case '4':       $type = 'PARSE ERROR'; break;       // E_PARSE
+        case '8':       $type = 'NOTICE'; break;            // E_NOTICE
+        case '16':      $type = 'CORE ERROR'; break;        // E_CORE_ERROR
+        case '32':      $type = "CORE WARNING"; break;      // E_CORE_WARNING
+        case '64':      $type = 'COMPILE ERROR'; break;     // E_COMPILE_ERROR
+        case '128':     $type = 'COMPILE WARNING'; break;   // E_COMPILE_WARNING
+        case '256':     $type = 'USER FATAL ERROR'; break;  // E_USER_ERROR
+        case '512':     $type = 'USER WARNING'; break;      // E_USER_WARNING
+        case '1024':    $type = 'USER NOTICE'; break;       // E_USER_NOTICE
+        case '2048':    $type = 'STRICT ERROR'; break;      // E_STRICT
+        case '4096':    $type = 'RECOVERABLE ERROR'; break; // E_RECOVERABLE_ERROR
+        case '8192':    $type = 'DEPRECATED ERROR'; break;  // E_DEPRECATED
+        case '16384':   $type = 'USER DEPRECATED ERROR'; break; // E_USER_DEPRECATED
+        case '30719':   $type = 'ERROR'; break;             // E_ALL
     }
     
     Obullo_Exception_Handler(new ErrorException( $errstr, $errno, 0, $errfile, $errline), $type);   
@@ -191,6 +194,11 @@ function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
 
 // -------------------------------------------------------------------- 
 
+/**
+* Catch last occured errors.
+* 
+* @return void
+*/
 function Obullo_Shutdown_Handler()
 {                      
     $error = error_get_last();
@@ -229,9 +237,9 @@ function error_secure_path($file)
     {
         $file = 'BASE'. DS .substr($file, strlen(BASE));
     }
-    elseif (strpos($file, DIR) === 0)
+    elseif (strpos($file, MODULES) === 0)
     {
-        $file = 'DIR'. DS .substr($file, strlen(DIR));
+        $file = 'MODULES'. DS .substr($file, strlen(MODULES));
     }
     elseif (strpos($file, ROOT) === 0)
     {
@@ -241,9 +249,138 @@ function error_secure_path($file)
     return $file;  
 }
 
+// --------------------------------------------------------------------
+ 
+/**
+* Dump arguments
+* This function borrowed from Kohana Php Framework.
+* 
+* @param  mixed $var
+* @param  integer $length
+* @param  integer $level
+* @return mixed
+*/
+function error_dump_argument(& $var, $length = 128, $level = 0)
+{
+    if ($var === NULL)
+    {
+        return '<small>NULL</small>';
+    }
+    elseif (is_bool($var))
+    {
+        return '<small>bool</small> '.($var ? 'TRUE' : 'FALSE');
+    }
+    elseif (is_float($var))
+    {
+        return '<small>float</small> '.$var;
+    }
+    elseif (is_resource($var))
+    {
+        if (($type = get_resource_type($var)) === 'stream' AND $meta = stream_get_meta_data($var))
+        {
+            $meta = stream_get_meta_data($var);
+
+            if (isset($meta['uri']))
+            {
+                $file = $meta['uri'];
+
+                if (function_exists('stream_is_local'))
+                {
+                    if (stream_is_local($file))  // Only exists on PHP >= 5.2.4
+                    {
+                        $file = error_secure_path($file);
+                    }
+                }
+
+                return '<small>resource</small><span>('.$type.')</span> '.htmlspecialchars($file, ENT_NOQUOTES, config_item('charset'));
+            }
+        }
+        else
+        {
+            return '<small>resource</small><span>('.$type.')</span>';
+        }
+    }
+    elseif (is_string($var))
+    {
+        // Encode the string
+        $str = htmlspecialchars($var, ENT_NOQUOTES, config_item('charset'));
+        
+        return '<small>string</small><span>('.strlen($var).')</span> "'.$str.'"';
+    }
+    elseif (is_array($var))
+    {
+        $output = array();
+
+        // Indentation for this variable
+        $space = str_repeat($s = '    ', $level);
+
+        static $marker;
+
+        if ($marker === NULL)
+        {
+            // Make a unique marker
+            $marker = uniqid("\x00");
+        }
+
+        if (empty($var))
+        {
+            // Do nothing
+        }
+        elseif (isset($var[$marker]))
+        {
+            $output[] = "(\n$space$s*RECURSION*\n$space)";
+        }
+        elseif ($level < 5)
+        {
+            $output[] = "<span>(";
+
+            $var[$marker] = TRUE;
+            foreach ($var as $key => & $val)
+            {
+                if ($key === $marker) continue;
+                if ( ! is_int($key))
+                {
+                    $key = '"'.htmlspecialchars($key, ENT_NOQUOTES, config_item('charset')).'"';
+                }
+
+                $output[] = "$space$s$key => ".error_dump_argument($val, $length, $level + 1);
+            }
+            unset($var[$marker]);
+
+            $output[] = "$space)</span>";
+        }
+        else
+        {
+            // Depth too great
+            $output[] = "(\n$space$s...\n$space)";
+        }
+
+        return '<small>array</small><span>('.count($var).')</span> '.implode("\n", $output);
+    }
+    elseif (is_object($var))
+    {
+        ob_start();
+        var_dump($var);
+        $object_dump = ob_get_contents();
+        ob_clean();
+        
+        $object_dump = str_replace("=>", '=><br />', $object_dump);
+        $object_dump = str_replace("{", '{<br /><br />', $object_dump);
+        
+        return '<small>object '.$object_dump.'</small>';
+        // .implode("\n", $output);
+    }
+    else
+    {
+        return '<small>'.gettype($var).'</small> '.htmlspecialchars(print_r($var, TRUE), ENT_NOQUOTES, config_item('charset'));
+    }
+    
+}
+
 // -------------------------------------------------------------------- 
 
 /**
+* Write File Source
 * This function borrowed from Kohana Php Framework.
 * 
 * @author Ersin Guvenc
@@ -253,13 +390,16 @@ function error_secure_path($file)
 * 
 * @return boolean | string
 */
-function error_write_file_source($file, $line_number, $id = 0, $prefix = '', $padding = 5)
+function error_write_file_source($trace, $key = 0, $prefix = '', $padding = 5)
 {
+    $file  = $trace['file'];
+    $line_number = $trace['line'];
+        
     if ( ! $file OR ! is_readable($file))
     {
         return FALSE;   // Continuing will cause errors
     }
-
+    
     // Open the file and set the line position
     $file = fopen($file, 'r');
     $line = 0;
@@ -296,9 +436,10 @@ function error_write_file_source($file, $line_number, $id = 0, $prefix = '', $pa
     
     fclose($file);  // Close the file
 
-    $display = ($id > 0) ? ' class="collapse" ' : '';
+    $display = ($key > 0) ? ' class="collapsed" ' : '';
     
-    return '<span id="error_toggle_'.$prefix.$id.'" '.$display.'><pre class="source"><code>'.$source.'</code></pre></span>';
+    return '<div id="error_toggle_'.$prefix.$key.'" '.$display.'><pre class="source"><code>'.$source.'</code></pre></div>';
+    
 }
 
 // -------------------------------------------------------------------- 
@@ -332,12 +473,15 @@ function error_debug_backtrace($e)
     
     return $trace;
 }
-                                                      
-set_error_handler('Obullo_Error_Handler'); 
-set_exception_handler('Obullo_Exception_Handler');
-register_shutdown_function('Obullo_Shutdown_Handler');    // Enable the Obullo shutdown handler, which catches E_FATAL errors.  
+                                           
+if(config_item('error_reporting') != -1)  // Native error handler switch
+{           
+    set_error_handler('Obullo_Error_Handler'); 
+    register_shutdown_function('Obullo_Shutdown_Handler');    // Enable the Obullo shutdown handler, which catches E_FATAL errors.
+}  
 
-error_reporting(0);     // we need to close error reporting we already catch the fatal errors.
+set_exception_handler('Obullo_Exception_Handler');
+
 
 // restore_error_handler();
 // restore_exception_handler(); 

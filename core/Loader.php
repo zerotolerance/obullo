@@ -543,9 +543,9 @@ Class OB_Loader {
                 }    
             }
             
-            if(file_exists(DIR .$module. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
+            if(file_exists(MODULES .$module. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
             {
-                include(DIR .$module. DS .'helpers'. DS .$prefix. $helper. EXT);
+                include(MODULES .$module. DS .'helpers'. DS .$prefix. $helper. EXT);
 
                 self::$_base_helpers[$prefix . $helper] = $prefix . $helper;
             }
@@ -669,12 +669,12 @@ Class OB_Loader {
     private static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE, $extension = FALSE)
     {
         $real_name  = strtolower($filename);
-        $root       = rtrim(DIR, DS);  // APP .'modules';
+        $root       = rtrim(MODULES, DS);  // APP .'modules';
 
         if($extension)  // main extension library or helper file.
         {
             $return['file_name'] = $real_name;
-            $return['file']      = DIR . $real_name . DS . $real_name. EXT;
+            $return['file']      = MODULES . $real_name . DS . $real_name. EXT;
 
             return $return; 
         }
@@ -698,7 +698,7 @@ Class OB_Loader {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
             
-            $file = DIR . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;
+            $file = MODULES . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;
             
             $return['file_name'] = $file_name;
             $return['file']      = $file;
