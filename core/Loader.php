@@ -167,9 +167,10 @@ Class OB_Loader {
 
         $OB = this();  // Grab the Super Object.
 
-        $profiler_type = ($ext) ? 'extensions' : 'libraries';
+        $profiler_type  = ($ext) ? 'extensions' : 'libraries';
+        $case_sensitive = ($params_or_no_ins == FALSE) ? TRUE : FALSE;
         
-        $data = self::_load_file($class, $folder = 'libraries', $app_folder, $ext);
+        $data = self::_load_file($class, $folder = 'libraries', $app_folder, $ext, $case_sensitive);
 
         $class_var = '';
 
@@ -666,9 +667,9 @@ Class OB_Loader {
     *
     * return array  file_name | file
     */
-    private static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE, $extension = FALSE)
+    private static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE, $extension = FALSE, $case_sensitive = FALSE)
     {
-        $real_name  = strtolower($filename);
+        $real_name  = ($case_sensitive) ? $filename : strtolower($filename);
         $root       = rtrim(MODULES, DS); 
 
         if($extension)  // main extension library or helper file.
@@ -722,6 +723,18 @@ Class OB_Loader {
         return array('file_name' => $real_name, 'file' => $root. DS .$sub_root. $real_name. EXT);
     }
 
+    // --------------------------------------------------------------------
+    
+    public static function req($file = '')
+    {
+        if($file == '') return;
+        
+        self::_library($file, FALSE, '', FALSE);
+    }
+    
+    // @todo
+    public static function inc() { }
+    
     // --------------------------------------------------------------------
 
     /**
