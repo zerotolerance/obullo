@@ -22,7 +22,7 @@ defined('BASE') or exit('Access Denied!');
 */
 if( ! function_exists('Obullo_Exception_Handler')) 
 {
-    function Obullo_Exception_Handler($e, $type = 'Exception')
+    function Obullo_Exception_Handler($e, $type = '')
     {   
         $shutdown_errors = array(
         'ERROR'            => 'ERROR',            // E_ERROR 
@@ -31,7 +31,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
         'USER FATAL ERROR' => 'USER FATAL ERROR', // E_USER_ERROR
         );
         
-        if(isset($shutdown_errors[$type]) OR $type = 'Exception')  // We couldn't use object
+        if(isset($shutdown_errors[$type]))  // We couldn't use object
         {
             $type = ucwords(strtolower($type));
             $err_level = config_item('error_reporting');
@@ -40,19 +40,11 @@ if( ! function_exists('Obullo_Exception_Handler'))
             {
                 $sql = array();
                 
-                ob_start();
                 include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
-                $buffer = ob_get_contents(); @ob_end_clean();
-
-                echo $buffer;
             }
             else  // If display_errors = false, we show a blank page template.
             {
-                ob_start();
                 include(APP .'core'. DS .'errors'. DS .'ob_disabled_error'. EXT);
-                $buffer = ob_get_contents(); @ob_end_clean();
-                
-                echo $buffer;  
             }
             
             log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE); 
@@ -63,9 +55,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
             
             if(is_object($exception)) 
             {            
-                echo $exception->write($e, $type);
-                
-                // var_dump();
+                $exception->write($e, $type);
             }
         }
         
@@ -203,7 +193,7 @@ function Obullo_Error_Handler($errno, $errstr, $errfile, $errline)
 function Obullo_Shutdown_Handler()
 {                      
     $error = error_get_last();
-           
+                     
     if( ! $error) return;
     
     ob_get_level() AND ob_clean(); // Clean the output buffer
@@ -392,8 +382,10 @@ function error_dump_argument(& $var, $length = 128, $level = 0)
 * 
 * @return boolean | string
 */
-function error_write_file_source($trace, $key = 0, $prefix = '', $padding = 5)
+function error_write_file_source($trace, $key = 0, $prefix = '')
 {
+    $debug = config_item('debug_backtrace'); 
+    
     $file  = $trace['file'];
     $line_number = $trace['line'];
         
@@ -407,7 +399,7 @@ function error_write_file_source($trace, $key = 0, $prefix = '', $padding = 5)
     $line = 0;
 
     // Set the reading range
-    $range = array('start' => $line_number - $padding, 'end' => $line_number + $padding);
+    $range = array('start' => $line_number - $debug['padding'], 'end' => $line_number + $debug['padding']);
     
     $format = '% '.strlen($range['end']).'d';    // Set the zero-padding amount for line numbers
 

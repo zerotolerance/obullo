@@ -71,6 +71,9 @@ Class OB_HMVC
 
     public function __construct()
     {
+         // register __destruct method as shutdown function
+        // register_shutdown_function(array(&$this, "__destruct"));
+        
         log_me('debug', "HMVC Class Initialized");
     }
 
@@ -298,7 +301,7 @@ Class OB_HMVC
         {
             $conn_id = $this->_get_id();
 
-            if( isset(self::$_conn_id[$conn_id]) )   // We need that function to prevent HMVC loops if someone use hmvc request
+            if( isset(self::$_conn_id[$conn_id]) )   // We need that to prevent HMVC loops if someone use hmvc request
             {                                        // in Global Controllers.
                 $this->_reset_router(TRUE);
 
@@ -318,7 +321,7 @@ Class OB_HMVC
 
         if($this->hmvc_connect === FALSE)
         {
-            $this->_set_response($router->hmvc_response);
+            $this->set_response($router->hmvc_response);
             $this->_reset_router();
 
             return $this;
@@ -337,15 +340,15 @@ Class OB_HMVC
 
         if($output->_display_cache($config, $URI, TRUE) !== FALSE) // Check request uri if there is a HMVC cached file exist.
         {
-            $cache_content = ob_get_contents();  @ob_end_clean();
-            $this->_set_response($cache_content);
+            $cache_content = ob_get_contents();  if(ob_get_level() > 0) { ob_end_clean(); } 
+            $this->set_response($cache_content);
 
             $this->_reset_router();
 
             return $this;
         }
 
-        @ob_end_clean();
+        if(ob_get_level() > 0) ob_end_clean();
 
         if($GLOBALS['s'] != '')  // sub folder request ?
         {
@@ -354,7 +357,7 @@ Class OB_HMVC
             // Check the sub controller exists or not
             if ( ! file_exists(MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT))
             {
-                $this->_set_response('Hmvc request not found: '.$hmvc_uri);
+                $this->set_response('Hmvc request not found: '.$hmvc_uri);
 
                 $this->_reset_router();
 
@@ -374,7 +377,7 @@ Class OB_HMVC
             // Check the controller exists or not
             if ( ! file_exists(MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT))
             {
-                $this->_set_response('Hmvc unable to load your controller. Check your routes in Routes.php file is valid.');
+                $this->set_response('Hmvc unable to load your controller. Check your routes in Routes.php file is valid.');
 
                 $this->_reset_router();
 
@@ -395,7 +398,7 @@ Class OB_HMVC
               OR in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods('Controller')))
             )
         {
-            $this->_set_response('Hmvc request not found: '.$hmvc_uri);
+            $this->set_response('Hmvc request not found: '.$hmvc_uri);
 
             $this->_reset_router();
 
@@ -404,11 +407,15 @@ Class OB_HMVC
 
         // If Everyting ok Declare Called Controller !
         $OB = new $GLOBALS['c']();
+        
+        // Load the controller using reflection
+        // $controller = new ReflectionClass($GLOBALS['c']);
+        // $OB = $controller->newInstance();
 
         // Check method exist or not
         if ( ! in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods($OB))))
         {
-            $this->_set_response('Hmvc request not found: '.$hmvc_uri);
+            $this->set_response('Hmvc request not found: '.$hmvc_uri);
 
             $this->_reset_router();
 
@@ -422,10 +429,10 @@ Class OB_HMVC
         // will be passed to the method for convenience
         call_user_func_array(array($OB, $GLOBALS['m']), array_slice($URI->rsegments, $arg_slice));
 
-        $content = ob_get_contents();
+        $content = ob_get_contents();       
 
-        @ob_end_clean();
-
+        if(ob_get_level() > 0)  ob_end_clean();   
+                        
         ob_start();
 
         // Write cache file if cache on ! and Send the final rendered output to the browser
@@ -433,12 +440,12 @@ Class OB_HMVC
 
         $content = ob_get_contents();
 
-        @ob_end_clean();
+        if(ob_get_level() > 0)  ob_end_clean(); 
+                                        
+        $this->set_response($content); 
 
-        $this->_set_response($content);
-
-        $this->_reset_router();
-
+        $this->_reset_router();    
+                            
         return $this;
     }
 
@@ -485,7 +492,7 @@ Class OB_HMVC
             self::$request_times[$URI->uri_string] = $end_time - self::$start_time;
 
             profiler_set('hmvc_requests', 'request_time', self::$request_times);
-        }
+        }              
     }
 
     // --------------------------------------------------------------------
@@ -512,7 +519,7 @@ Class OB_HMVC
     * @param    mixed $data
     * @return   void
     */
-    private function _set_response($data = '')
+    public function set_response($data = '')
     {
         $this->response = $data;
     }
@@ -553,6 +560,15 @@ Class OB_HMVC
     private function _get_id()
     {
         return md5(trim($this->_conn_string));
+    }
+    
+    
+    function __destruct() 
+    {
+        // echo 'dfdf';
+        
+
+        // while (ob_get_level() > 0) { ob_end_clean(); }
     }
 
 }

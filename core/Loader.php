@@ -651,11 +651,11 @@ Class OB_Loader {
         throw new LoaderException('Unable to locate the external file: ' .$path);
     }
 
-
+                               
     // --------------------------------------------------------------------
 
     /**
-    * Comman file loader for models and
+    * Common file loader for models and
     * helpers functions.
     *
     * @author  Ersin Guvenc
@@ -669,7 +669,7 @@ Class OB_Loader {
     private static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE, $extension = FALSE)
     {
         $real_name  = strtolower($filename);
-        $root       = rtrim(MODULES, DS);  // APP .'modules';
+        $root       = rtrim(MODULES, DS); 
 
         if($extension)  // main extension library or helper file.
         {

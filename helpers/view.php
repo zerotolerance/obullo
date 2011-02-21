@@ -485,9 +485,14 @@ if ( ! function_exists('_load_view'))
  */
 if( ! function_exists('_view_load_file')) 
 {
-    function _view_load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE)
+    function _view_load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE, $custom = FALSE)
     {
         if($base)  // if  /obullo/scripts
+        {
+            return array('filename' => $file_url, 'path' => BASE .$folder. DS);
+        }
+        
+        if($custom) 
         {
             return array('filename' => $file_url, 'path' => BASE .$folder. DS);
         }
