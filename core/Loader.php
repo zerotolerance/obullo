@@ -733,7 +733,10 @@ Class OB_Loader {
     }
     
     // @todo
-    public static function inc() { }
+    public static function inc($file = '') 
+    { 
+        
+    }
     
     // --------------------------------------------------------------------
 
