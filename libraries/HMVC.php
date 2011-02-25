@@ -561,15 +561,6 @@ Class OB_HMVC
     {
         return md5(trim($this->_conn_string));
     }
-    
-    
-    function __destruct() 
-    {
-        // echo 'dfdf';
-        
-
-        // while (ob_get_level() > 0) { ob_end_clean(); }
-    }
 
 }
 // END HMVC Class

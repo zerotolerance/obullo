@@ -257,8 +257,8 @@ Class OB_Router {
     * Validates the supplied segments.  Attempts to determine the path to
     * the controller.
     *
-    * $segments[0] = directory
-    * $segments[1] = controller name
+    * $segments[0] = module
+    * $segments[1] = controller
     *
     *       0      1           2
     * module / controller /  method  /
@@ -276,9 +276,18 @@ Class OB_Router {
     public function _validate_request($segments)
     {
         if( ! isset($segments[0]) ) return $segments;
-
-        // Check directory
-        if (is_dir(MODULES . $segments[0]))
+                                        
+        $folder = 'controllers';
+        
+        if($this->hmvc == FALSE AND defined('CMD'))  // Command Line Request
+        {          
+            if($segments[0] != 'tasks')
+            {
+                $folder = 'tasks'; 
+            }   
+        }                    
+                                        
+        if (is_dir(MODULES . $segments[0]))  // Check module
         {
             $this->set_directory($segments[0]);
 
@@ -286,17 +295,17 @@ Class OB_Router {
             {
                 //----------- SUB FOLDER SUPPORT ----------//
 
-                if(is_dir(MODULES . $this->fetch_directory() . DS .'controllers'. DS .$segments[1]))   // If there is a subfolder ?
+                if(is_dir(MODULES . $this->fetch_directory() . DS .$folder. DS .$segments[1]))   // If there is a subfolder ?
                 {
                     $this->set_subfolder($segments[1]);
 
                     if( ! isset($segments[2])) return $segments;
 
-                    if (is_dir(MODULES .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_subfolder()))
+                    if (is_dir(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder()))
                     {
 
-                        if( file_exists(MODULES .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_subfolder(). DS .$this->fetch_subfolder(). EXT)
-                            AND ! file_exists(MODULES .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_subfolder(). DS .$segments[2]. EXT))
+                        if( file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$this->fetch_subfolder(). EXT)
+                            AND ! file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$segments[2]. EXT))
                         {
                             array_unshift($segments, $this->fetch_directory());
                         }
@@ -316,14 +325,15 @@ Class OB_Router {
                 }
                 else
                 {
-                    if (file_exists(MODULES .$this->fetch_directory(). DS .'controllers'. DS .$segments[1]. EXT))
-                    return $segments;
+                    if (file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$segments[1]. EXT))
+                    {
+                        return $segments; 
+                    }
                 }
-
             }
 
             // Merge Segments
-            if (file_exists(MODULES .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_directory(). EXT))
+            if (file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_directory(). EXT))
             {
                 array_unshift($segments, $this->fetch_directory());
 

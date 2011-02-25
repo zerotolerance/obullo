@@ -36,6 +36,15 @@ if( ! function_exists('Obullo_Exception_Handler'))
             $type = ucwords(strtolower($type));
             $err_level = config_item('error_reporting');
     
+            if(defined('CMD'))  // If Command Line Request.
+            {
+                echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";
+                
+                log_me('error', 'Php Error Type (Cmd): '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE);
+                
+                return;
+            }
+    
             if($err_level > 0)  // If user want to display all errors
             {
                 $sql = array();
@@ -48,6 +57,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
             }
             
             log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE); 
+             
         } 
         else
         {   
@@ -117,6 +127,11 @@ function show_http_error($heading, $message, $template = 'ob_general', $status_c
     set_status_header($status_code);
 
     $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
+    
+    if(defined('CMD'))  // If Command Line Request
+    {
+        return '['.$heading.']: The url ' .$message. ' you requested was not found.'."\n";
+    }
     
     ob_start();
     include(APP. 'core'. DS .'errors'. DS .$template. EXT);

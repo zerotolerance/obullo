@@ -32,7 +32,7 @@ Class OB_Exception {
     }
  
     /**
-    * Dsiplay all errors
+    * Display all errors
     * 
     * @param object $e
     * @param string $type
@@ -63,6 +63,15 @@ Class OB_Exception {
             }        
         }
         
+        if(defined('CMD'))  // If Command Line Request. 
+        {
+            echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";
+            
+            log_me('error', 'Php Error Type (Cmd): '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE); 
+            
+            return;
+        }
+        
         loader::base_helper('view');
         
         $data['e']    = $e;
@@ -70,18 +79,19 @@ Class OB_Exception {
         $data['type'] = $type;
         
         ob_start();
-        
         echo _load_view(APP .'core'. DS .'errors'. DS, 'ob_exception', $data, true);
-        
         $buffer = ob_get_contents();
         ob_get_clean();
 
+        // Shutdown Errors
+        //------------------------------------------------------------------------ 
+        
         $errors['1']     = 'E_ERROR';             // ERROR
         $errors['4']     = 'E_PARSE';             // PARSE ERROR
         $errors['64']    = 'E_COMPILE_ERROR';     // COMPILE ERROR
         $errors['256']   = 'E_USER_ERROR';        // USER FATAL ERROR   
         
-        // Shutdown Errors End
+        // User Friendly Php Errors
         //------------------------------------------------------------------------ 
         
         $errors['2']     = 'E_WARNING';           // WARNING
@@ -97,42 +107,121 @@ Class OB_Exception {
         $errors['16384'] = 'E_USER_DEPRECATED';   // USER DEPRECATED ERROR
         $errors['30719'] = 'E_ALL';               // ERROR
         
+        $errors['OB_1923'] = 'OB_EXCEPTION';      // OBULLO EXCEPTIONAL ERRORS
+        
+        log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE); 
+        
         $code  = $e->getCode();
         $level = config_item('error_reporting');
     
-        $error = (isset($errors[$code])) ? $errors[$code] : 'E_EXCEPTION';
-        
+        $error = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
+                   
         switch ($level) 
         {              
-           case -1: break; 
-           case 0: break; 
-           case 1: echo $buffer; break;
-           case 2:
-           if(in_array($error, array('E_EXCEPTION', 'E_ERROR', 'E_WARNING', 'E_PARSE', 'E_USER_ERROR'), TRUE)) { echo $buffer; }
-             break;
-             
-           case 3:
-           if(in_array($error, array('E_EXCEPTION', 'E_ERROR', 'E_WARNING', 'E_PARSE', 'E_USER_ERROR', 'E_NOTICE'), TRUE)) { echo $buffer; }
-             break;
-             
-           case 4:
-
-             break;
-             
-           case 5:
-
-             break;
-             
-           case 6:
-             break;
+           case -1: return; break; 
+           case  0: return; break; 
+           case  1: echo $buffer;  return; break;
+           break;
+        }  
         
-        } // end switch
-            
+        $rules = $this->parse_regex($level);
+           
+        if($rules == FALSE) return;
+       
+        if(count($rules['IN']) > 0)
+        {
+            $allow_errors = $rules['IN'];
+            $allowed_errors = array();
+           
+           if(in_array('E_ALL', $rules['IN'], true))
+           {
+               $allow_errors   = array_unique(array_merge($rules['IN'], array_values($errors)));
+           }
+           
+           if(count($rules['OUT']) > 0)
+           {
+               foreach($rules['OUT'] as $out_val)
+               {
+                   foreach($allow_errors as $in_val)
+                   {
+                       if($in_val != $out_val)
+                       {
+                           $allowed_errors[] = $in_val;
+                       }
+                    }
+                }
+           }
+           
+           unset($allow_errors);
+        }
         
-        log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE);   
-        
-    } // end func.
+       if(in_array($error, $allowed_errors, TRUE)) { echo $buffer; }
+    }
     
+    //------------------------------------------------------------------------
+    
+    /**
+    * Parse php native error notations 
+    * e.g. E_NOTICE | E_WARNING
+    * 
+    * @author Ersin Guvenc
+    * @param  mixed $string
+    * @return array
+    */
+    public function parse_regex($string)
+    {
+        if(strpos($string, '(') > 0)  // (E_NOTICE | E_WARNING)     
+        {
+            if(preg_match('/\(.*?\)/s', $string, $matches))
+            {
+               $rule = str_replace(array($matches[0], '^'), '', $string);
+               
+               $data = array('IN' => trim($rule) , 'OUT' => rtrim(ltrim($matches[0], '('), ')'));
+            }
+        }
+        elseif(strpos($string, '^') > 0) 
+        {
+            $items = explode('^', $string);
+            
+            $data = array('IN' => trim($items[0]) , 'OUT' => trim($items[1])); 
+        }
+        elseif(strpos($string, '|') > 0)
+        {
+            $data = array('IN' => array(trim($string)), 'OUT' => array());
+        }
+        else
+        {                        
+            $data = array('IN' => array(trim($string)), 'OUT' => array());
+        }
+        
+        if(isset($data['IN']))
+        {
+            if(strpos($data['IN'], '|') > 0)
+            {
+                $data['IN'] = explode('|', $data['IN']);    
+            }
+            else
+            {
+                $data['IN'] = array($data['IN']);
+            }
+            
+            if(strpos($data['OUT'], '^') > 0)
+            {
+                $data['OUT'] = explode('^', $data['OUT']); 
+            }
+            else
+            {
+                $data['OUT'] = array($data['OUT']);
+            }
+            
+            $data['IN']  = array_map('trim', $data['IN']);
+            $data['OUT'] = array_map('trim', $data['OUT']);
+            
+            return $data;
+        }
+        
+        return FALSE;
+    }
     
 }
 /* End of file Exception.php */
