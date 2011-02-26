@@ -158,7 +158,6 @@ Class OB_Exception {
        if(in_array($error, $allowed_errors, TRUE)) { echo $buffer; }
     }
     
-    
     //------------------------------------------------------------------------
     
     /**

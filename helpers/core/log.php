@@ -49,7 +49,12 @@ if( ! function_exists('log_write') )
 
         $_config    = get_config();
         $_log_path  = ($_config['log_path'] != '') ? $_config['log_path'] : APP .'core'. DS .'logs'. DS;
-
+        
+        if(defined('CMD'))  // Command Line Request 
+        {
+           $_log_path = ($_config['cmd_log_path'] != '') ? $_config['cmd_log_path'] : APP .'core'. DS .'logs'. DS . 'cmd' . DS;
+        }
+        
         if ( ! is_dir($_log_path) OR ! is_really_writable($_log_path))
         {
             $_enabled = FALSE;
@@ -77,27 +82,28 @@ if( ! function_exists('log_write') )
             return FALSE;
         }
 
-        $filepath = $_log_path.'log-'.date('Y-m-d').EXT;
-        $message  = '';
+        $filepath = $_log_path .'log-'. date('Y-m-d').EXT;
+        $message  = '';  
         
         if ( ! file_exists($filepath))
         {
-            $message .= "<"."?php  if ( ! defined('BASE')) exit('Access Denied!'); ?".">\n\n";
+            $message .= "<"."?php defined('BASE') or exit('Access Denied!'); ?".">\n\n";
         }
-            
+
+        $message .= $level.' '.(($level == 'INFO') ? ' -' : '-').' '.date($_date_fmt). ' --> '.$msg."\n";  
+    
         if ( ! $fp = @fopen($filepath, FOPEN_WRITE_CREATE))
         {
             return FALSE;
         }
-
-        $message .= $level.' '.(($level == 'INFO') ? ' -' : '-').' '.date($_date_fmt). ' --> '.$msg."\n";
-        
+    
         flock($fp, LOCK_EX);    
         fwrite($fp, $message);
         flock($fp, LOCK_UN);
         fclose($fp);
 
-        @chmod($filepath, FILE_WRITE_MODE);         
+        @chmod($filepath, FILE_WRITE_MODE);
+                 
         return TRUE;
     }
 }

@@ -50,7 +50,7 @@ function core_register($realname, $new_object = NULL, $params_or_no_ins = '')
         
         return $new_object;
     }
-
+    
     $getObject = $registry->get_object($Class);   
                                                    
     if ($getObject !== NULL)
@@ -576,7 +576,7 @@ function log_me($level = 'error', $message, $php_error = FALSE)
     {
         return;
     }
-    
+               
     log_write($level, $message, $php_error);
     
     return;
