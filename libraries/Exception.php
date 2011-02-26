@@ -82,7 +82,7 @@ Class OB_Exception {
         echo _load_view(APP .'core'. DS .'errors'. DS, 'ob_exception', $data, true);
         $buffer = ob_get_contents();
         ob_get_clean();
-
+                      
         // Shutdown Errors
         //------------------------------------------------------------------------ 
         
@@ -115,26 +115,28 @@ Class OB_Exception {
         $level = config_item('error_reporting');
     
         $error = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
-                   
-        switch ($level) 
-        {              
-           case -1: return; break; 
-           case  0: return; break; 
-           case  1: echo $buffer;  return; break;
-           break;
-        }  
-        
+         
+        if(is_numeric($level)) 
+        {
+            switch ($level) 
+            {              
+               case -1: return; break; 
+               case  0: return; break; 
+               case  1: echo $buffer;  return; break;
+            }   
+        }       
+                         
         $rules = $this->parse_regex($level);
-           
+        // var_dump($rules);
         if($rules == FALSE) return;
        
         if(count($rules['IN']) > 0)
         {
             $allow_errors = $rules['IN'];
             $allowed_errors = array();
-           
+                                      
            if(in_array('E_ALL', $rules['IN'], true))
-           {
+           {                          
                $allow_errors   = array_unique(array_merge($rules['IN'], array_values($errors)));
            }
            

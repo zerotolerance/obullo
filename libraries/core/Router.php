@@ -283,7 +283,10 @@ Class OB_Router {
         {          
             if($segments[0] != 'tasks')
             {
-                $folder = 'tasks'; 
+                if(is_dir(MODULES .$segments[0]. DS .'tasks'))
+                {
+                    $folder = 'tasks';
+                }  
             }   
         }                    
                                         

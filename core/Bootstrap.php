@@ -88,7 +88,10 @@ if( ! function_exists('ob_system_run'))
         {                
             if($GLOBALS['d'] != 'tasks')
             {
-                $folder = 'tasks'; 
+                if(is_dir(MODULES .$GLOBALS['d']. DS .'tasks'))
+                {
+                    $folder = 'tasks';
+                } 
             }
         }
         

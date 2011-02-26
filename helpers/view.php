@@ -321,6 +321,7 @@ if ( ! function_exists('_set_view_data'))
 * @param array $filenames
 * @param array $data
 */
+/*
 if ( ! function_exists('view_render'))
 {
     function view_render($filenames = array(), $data = '')
@@ -336,7 +337,7 @@ if ( ! function_exists('view_render'))
         return $var;
     }
 }
-
+*/
 // ------------------------------------------------------------------------
 
 /**
