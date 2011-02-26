@@ -87,7 +87,7 @@ if( ! function_exists('ob_system_run'))
         if(defined('CMD'))  // Command Line Request
         {                
             if($GLOBALS['d'] != 'tasks')
-            {
+            {                      
                 if(is_dir(MODULES .$GLOBALS['d']. DS .'tasks'))
                 {
                     $folder = 'tasks';

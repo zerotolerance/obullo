@@ -169,7 +169,6 @@ Class OB_Router {
 
             // Turn the default route into an array.  We explode it in the event that
             // the controller is located in a subfolder
-            //$segments = $this->_validate_request(explode('/', $this->default_controller));
             $segments = $this->_validate_request(explode('/', $this->default_controller));
 
             if($this->hmvc)
@@ -279,16 +278,17 @@ Class OB_Router {
                                         
         $folder = 'controllers';
         
-        if($this->hmvc == FALSE AND defined('CMD'))  // Command Line Request
-        {          
-            if($segments[0] != 'tasks')
+        if(defined('CMD') AND $this->hmvc == FALSE)  // Command Line Request
+        {
+            if(is_dir(MODULES .$segments[0]. DS .'tasks')) 
+            {                   
+                $folder = 'tasks'; 
+            }
+            else
             {
-                if(is_dir(MODULES .$segments[0]. DS .'tasks'))
-                {
-                    $folder = 'tasks';
-                }  
-            }   
-        }                    
+                array_unshift($segments, 'tasks');
+            }
+        }                 
                                         
         if (is_dir(MODULES . $segments[0]))  // Check module
         {
@@ -306,19 +306,18 @@ Class OB_Router {
 
                     if (is_dir(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder()))
                     {
-
                         if( file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$this->fetch_subfolder(). EXT)
                             AND ! file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$segments[2]. EXT))
                         {
                             array_unshift($segments, $this->fetch_directory());
                         }
-
-                         $segments[1] = $segments[2];     // change class
-
-                         if(isset($segments[3]))          // change method
-                         {
-                            $segments[2] = $segments[3];
-                         }
+                        
+                        $segments[1] = $segments[2];      // change class
+                        
+                        if(isset($segments[3]))          
+                        {
+                            $segments[2] = $segments[3];  // change method
+                        }
 
                         return $segments;
                     }
@@ -357,13 +356,13 @@ Class OB_Router {
             return FALSE;
         }
         else
-        {
+        {        
             show_404(); // security fix.
         }
     }
-
+               
     // --------------------------------------------------------------------
-
+    
     /**
     * Parse Routes
     *
