@@ -62,7 +62,7 @@ Class OB_Exception {
                }
             }        
         }
-        
+                      
         if(defined('CMD'))  // If Command Line Request. 
         {
             echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";
@@ -77,12 +77,12 @@ Class OB_Exception {
         $data['e']    = $e;
         $data['sql']  = $sql;
         $data['type'] = $type;
-        
+                                                                          
         ob_start();
         echo _load_view(APP .'core'. DS .'errors'. DS, 'ob_exception', $data, true);
         $buffer = ob_get_contents();
         ob_get_clean();
-                      
+                       
         // Shutdown Errors
         //------------------------------------------------------------------------ 
         
@@ -110,7 +110,7 @@ Class OB_Exception {
         $errors['OB_1923'] = 'OB_EXCEPTION';      // OBULLO EXCEPTIONAL ERRORS
         
         log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE); 
-        
+                              
         $code  = $e->getCode();
         $level = config_item('error_reporting');
     

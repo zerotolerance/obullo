@@ -464,10 +464,10 @@ function error_debug_backtrace($e)
 
     if ($e instanceof ErrorException)
     {
-        if (version_compare(PHP_VERSION, '5.3', '<'))
-        {
+         if (version_compare(PHP_VERSION, '5.3', '<'))
+         {
             // Workaround for a bug in ErrorException::getTrace() that exists in
-            // all PHP 5.2 versions. @see http://bugs.php.net/bug.php?id=45895
+            // all PHP 5.2 versions. @see http://bugs.php.net/bug.php?id=45895  
             for ($i = count($trace) - 1; $i > 0; --$i)
             {
                 if (isset($trace[$i - 1]['args']))
@@ -477,7 +477,7 @@ function error_debug_backtrace($e)
                     unset($trace[$i - 1]['args']); // Remove the args
                 }
             }
-        }
+         }
     }
     
     return $trace;
