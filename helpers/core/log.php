@@ -52,11 +52,11 @@ if( ! function_exists('log_write') )
         
         if(defined('CMD') AND defined('TASK'))   // Internal Task Request
         {
-           $_log_path = rtrim($_log_path, DS) . DS .'cmd' . DS;
+           $_log_path = rtrim($_log_path, DS) . DS .'tasks' . DS;
         } 
         elseif(defined('CMD'))  // Command Line Task Request
         {
-           $_log_path = rtrim($_log_path, DS) . DS .'tasks' . DS; 
+           $_log_path = rtrim($_log_path, DS) . DS .'cmd' . DS; 
         }         
         
         if ( ! is_dir($_log_path) OR ! is_really_writable($_log_path))
