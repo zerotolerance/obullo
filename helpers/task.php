@@ -35,18 +35,26 @@ defined('BASE') or exit('Access Denied!');
 */
 if ( ! function_exists('task_run'))
 {
-  function task_run($uri)
+  function task_run($uri, $debug= FALSE)
   {
-      $uri = explode('/', $uri);
+    $uri = explode('/', $uri);
 
-      $module= array_shift($uri);
+    $module= array_shift($uri);
 
-      foreach($uri AS $i => $section)
-        if(!$section) $uri[$i]= 'false';
+    foreach($uri AS $i => $section)
+      if(!$section) $uri[$i]= 'false';
 
-      $shell = PHP_PATH.' '.FPATH.'/task.php '.$module.' '.implode('/', $uri);
+    $shell = PHP_PATH.' '.FPATH.'/task.php '.$module.' '.implode('/', $uri).' OB_TASK_REQUEST';
 
-      exec(escapeshellcmd($shell) .' > /dev/null &');
+    $output= shell_exec($shell);
+
+    if($debug)
+    {
+        echo "<pre>$output</pre>";
+    }
+
+    log_me('debug', 'Task function command -> '. $shell);
+    log_me('debug', 'Task function output -> '. $output);
   }
 }
 
