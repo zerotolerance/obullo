@@ -9,6 +9,7 @@ defined('BASE') or exit('Access Denied!');
  * @package         obullo
  * @author          obullo.com
  * @copyright       Ersin Guvenc (c) 2009.
+ * @updated by         CJ Lazell
  * @license         public
  * @since           Version 1.0
  * @filesource
@@ -38,7 +39,12 @@ if ( ! function_exists('task_run'))
   {
       $uri = explode('/', $uri);
 
-      $shell = PHP_PATH.' '.FPATH.'/task.php '.array_shift($uri).' '.implode('/', $uri);
+      $module= array_shift($uri);
+
+      foreach($uri AS $i => $section)
+        if(!$section) $uri[$i]= 'false';
+
+      $shell = PHP_PATH.' '.FPATH.'/task.php '.$module.' '.implode('/', $uri);
 
       exec(escapeshellcmd($shell) .' > /dev/null &');
   }
