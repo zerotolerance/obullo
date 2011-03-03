@@ -26,7 +26,7 @@ defined('BASE') or exit('Access Denied!');
  * @link        
  */
  
-/**
+ /**
 * Run Command Line Tasks
 * 
 * @param  array $uri
@@ -34,16 +34,31 @@ defined('BASE') or exit('Access Denied!');
 */ 
 if ( ! function_exists('task_run'))
 {
-  function task_run($uri)
-  {
-      $uri = explode('/', $uri);
-      
-      $shell = PHP_PATH.' '.FPATH.'/task.php '.array_shift($uri).' '.implode(' ', $uri);
-      
-      exec(escapeshellcmd($shell) .' > /dev/null &');
-  }
-}
+    function task_run($uri, $debug = FALSE)
+    {
+        $uri    = explode('/', $uri);
+        $module = array_shift($uri);
 
+        foreach($uri as $i => $section)
+        {
+            if( ! $section) 
+            {
+                $uri[$i] = 'false';
+            }
+        }
+
+        $shell  = PHP_PATH .' '. FPATH .'/task.php '. $module .' '. implode('/', $uri) .' OB_TASK_REQUEST';
+        $output = shell_exec($shell);
+
+        if($debug)
+        {
+            echo "<pre>$output</pre>";
+        }
+
+        log_me('debug', 'Task function command -> '. $shell);
+        log_me('debug', 'Task function output -> '. $output);
+    }
+}
 
 /* End of file task.php */
 /* Location: ./obullo/helpers/task.php */

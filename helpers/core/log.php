@@ -50,10 +50,14 @@ if( ! function_exists('log_write') )
         $_config    = get_config();
         $_log_path  = ($_config['log_path'] != '') ? $_config['log_path'] : APP .'core'. DS .'logs'. DS;
         
-        if(defined('CMD'))  // Command Line Request 
+        if(defined('CMD') AND defined('TASK'))   // Internal Task Request
         {
-           $_log_path = ($_config['cmd_log_path'] != '') ? $_config['cmd_log_path'] : APP .'core'. DS .'logs'. DS . 'cmd' . DS;
-        }
+           $_log_path = rtrim($_log_path, DS) . DS .'cmd' . DS;
+        } 
+        elseif(defined('CMD'))  // Command Line Task Request
+        {
+           $_log_path = rtrim($_log_path, DS) . DS .'tasks' . DS; 
+        }         
         
         if ( ! is_dir($_log_path) OR ! is_really_writable($_log_path))
         {
