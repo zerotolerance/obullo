@@ -42,14 +42,15 @@ if ( ! function_exists('task_run'))
 
         foreach($uri as $i => $section)
         {
-            if( ! $section) 
+            if( ! $section)
             {
                 $uri[$i] = 'false';
             }
         }
 
         $shell  = PHP_PATH .' '. FPATH .'/task.php '. $module .' '. implode('/', $uri) .' OB_TASK_REQUEST';
-        $output = shell_exec($shell);
+
+        $output = shell_exec($shell.' > /dev/null &');
 
         if($debug)
         {
