@@ -71,9 +71,6 @@ Class OB_HMVC
 
     public function __construct()
     {
-         // register __destruct method as shutdown function
-        // register_shutdown_function(array(&$this, "__destruct"));
-        
         log_me('debug', "HMVC Class Initialized");
     }
 
@@ -332,8 +329,9 @@ Class OB_HMVC
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
-        // a Hmvc uri must be unique otherwise may collission with standart uri.
-        $URI->uri_string = $URI->uri_string.'__ID__'. $this->_get_id();
+        // A Hmvc uri must be unique otherwise may collission with standart uri, 
+        // also we need it for cache functionality.
+        $URI->uri_string = rtrim($URI->uri_string, '/').'/__ID__'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
 
         ob_start();
@@ -357,7 +355,7 @@ Class OB_HMVC
             // Check the sub controller exists or not
             if ( ! file_exists(MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT))
             {
-                $this->set_response('Hmvc request not found: '.$hmvc_uri);
+                $this->set_response('404 - Hmvc request not found: '.$hmvc_uri);
 
                 $this->_reset_router();
 
@@ -398,7 +396,7 @@ Class OB_HMVC
               OR in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods('Controller')))
             )
         {
-            $this->set_response('Hmvc request not found: '.$hmvc_uri);
+            $this->set_response('404 - Hmvc request not found: '.$hmvc_uri);
 
             $this->_reset_router();
 
@@ -415,7 +413,7 @@ Class OB_HMVC
         // Check method exist or not
         if ( ! in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods($OB))))
         {
-            $this->set_response('Hmvc request not found: '.$hmvc_uri);
+            $this->set_response('404 - Hmvc request not found: '.$hmvc_uri);
 
             $this->_reset_router();
 

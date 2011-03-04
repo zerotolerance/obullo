@@ -161,9 +161,10 @@ if( ! function_exists('ob_system_run'))
         if(defined('CMD'))  // Command Line Request Boolean Support
         {
             foreach($arguments as $k => $v)
-            {
+            {                                           
                 if($v == 'true') { $arguments[$k] = TRUE; }
                 if($v == 'false') { $arguments[$k] = FALSE; }
+                if($v == 'null') { $arguments[$k] = NULL; }
             }
         }
         
