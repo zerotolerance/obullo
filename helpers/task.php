@@ -54,6 +54,8 @@ if ( ! function_exists('task_run'))
         {
             $output = shell_exec($shell); 
             echo "<pre>$output</pre>";
+            
+            log_me('debug', 'Task function output -> '. $output);
         } 
         else   // continious task
         {
@@ -61,7 +63,7 @@ if ( ! function_exists('task_run'))
         }
 
         log_me('debug', 'Task function command -> '. $shell);
-        log_me('debug', 'Task function output -> '. $output);
+        
     }
 }
 
