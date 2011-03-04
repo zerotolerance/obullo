@@ -52,16 +52,17 @@ if ( ! function_exists('task_run'))
 
         if($debug)
         {
-            $output = shell_exec($shell); 
+            $output = shell_exec($shell);
             echo "<pre>$output</pre>";
-        } 
+
+            log_me('debug', 'Task function command -> '. $shell);
+            log_me('debug', 'Task function output -> '. $output);
+        }
         else   // continious task
         {
-            shell_exec($shell.' > /dev/null &');     
+            shell_exec($shell.' > /dev/null &');
         }
 
-        log_me('debug', 'Task function command -> '. $shell);
-        log_me('debug', 'Task function output -> '. $output);
     }
 }
 
