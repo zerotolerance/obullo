@@ -156,10 +156,21 @@ if( ! function_exists('ob_system_run'))
             show_404($page_uri);
         }
         
+        $arguments = array_slice($OB->uri->rsegments, $arg_slice);
+        
+        if(defined('CMD'))  // Command Line Request Boolean Support
+        {
+            foreach($arguments as $k => $v)
+            {
+                if($v == 'true') { $arguments[$k] = TRUE; }
+                if($v == 'false') { $arguments[$k] = FALSE; }
+            }
+        }
+        
         // Call the requested method.                1       2       3
         // Any URI segments present (besides the directory/class/method) 
         // will be passed to the method for convenience
-        call_user_func_array(array($OB, $GLOBALS['m']), array_slice($OB->uri->rsegments, $arg_slice));
+        call_user_func_array(array($OB, $GLOBALS['m']), $arguments);
         
         benchmark_mark('execution_time_( '.$page_uri.' )_end');  // Mark a benchmark end point 
         

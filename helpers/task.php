@@ -50,11 +50,14 @@ if ( ! function_exists('task_run'))
 
         $shell  = PHP_PATH .' '. FPATH .'/task.php '. $module .' '. implode('/', $uri) .' OB_TASK_REQUEST';
 
-        $output = shell_exec($shell.' > /dev/null &');
-
         if($debug)
         {
+            $output = shell_exec($shell); 
             echo "<pre>$output</pre>";
+        } 
+        else   // continious task
+        {
+            shell_exec($shell.' > /dev/null &');     
         }
 
         log_me('debug', 'Task function command -> '. $shell);
