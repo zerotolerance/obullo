@@ -177,14 +177,18 @@ Class OB_Output {
             $this->_write_cache($output, $URI);
         }
         
-        // Are there any server headers to send?
-        if (count($this->headers) > 0)
-        {
-            foreach ($this->headers as $header)
+        // Are there any server headers to send ?
+        // --------------------------------------------------------------------
+        if( ! headers_sent()) 
+        {       
+            if (count($this->headers) > 0)
             {
-                @header($header[0], $header[1]);
-            }
-        }  
+                foreach ($this->headers as $header)
+                {
+                    @header($header[0], $header[1]);
+                }
+            }        
+        } 
         
         // Does the controller contain a function named _hmvc_output() ?
         // If so send the output there.
@@ -260,9 +264,9 @@ Class OB_Output {
             $output = str_replace('{memory_usage}', $memory, $output);
         }       
 
+        // Is compression requested?  
         // --------------------------------------------------------------------
         
-        // Is compression requested?
         if (config_item('compress_output', 'cache') === TRUE)
         {
             if (extension_loaded('zlib'))
@@ -276,17 +280,19 @@ Class OB_Output {
             }
         }
 
+        // Are there any server headers to send ?
         // --------------------------------------------------------------------
-        
-        // Are there any server headers to send?
-        if (count($this->headers) > 0)
-        {
-            foreach ($this->headers as $header)
+        if( ! headers_sent()) 
+        {       
+            if (count($this->headers) > 0)
             {
-                @header($header[0], $header[1]);
-            }
-        }        
-
+                foreach ($this->headers as $header)
+                {
+                    @header($header[0], $header[1]);
+                }
+            }        
+        }
+        
         // --------------------------------------------------------------------
         
         // Does the this() function exist?
