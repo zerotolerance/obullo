@@ -12,13 +12,13 @@ defined('BASE') or exit('Access Denied!');
  * @since           Version 1.0
  * @filesource
  * @license
- */  
-
+ */
  
 /**
-* Catch Exceptions
+* Catch All Exceptions
 * 
-* @param object $e
+* @param  object $e
+* @return void
 */
 if( ! function_exists('Obullo_Exception_Handler')) 
 {
@@ -31,27 +31,55 @@ if( ! function_exists('Obullo_Exception_Handler'))
         'USER FATAL ERROR' => 'USER FATAL ERROR', // E_USER_ERROR
         );
         
-        if(isset($shutdown_errors[$type]))  // We couldn't use object
+        if(isset($shutdown_errors[$type]))  // We couldn't use any object for shutdown errors.
         {
-            $type = ucwords(strtolower($type));
-            $err_level = config_item('error_reporting');
+            $type  = ucwords(strtolower($type));
+            $code  = $e->getCode();
+            $level = config_item('error_reporting');
     
             if(defined('CMD'))  // If Command Line Request.
             {
                 echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";
                 
-                log_me('error', 'Php Error Type (Cmd): '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE);
+                $cmd_type = (defined('TASK')) ? 'Task' : 'Cmd';
+                
+                log_me('error', 'Php Error Type ('.$cmd_type.'): '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE);
                 
                 return;
             }
     
-            if($err_level > 0)  // If user want to display all errors
+            if($level > 0 OR is_string($level))  // If user want to display all errors
             {
                 $sql = array();
+                $errors = error_get_defined_errors();
+                $error  = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
+                 
+                if(is_numeric($level)) 
+                {
+                    switch ($level) 
+                    {              
+                       case -1: return; break; 
+                       case  0: return; break; 
+                       case  1: 
+                       include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+                       return;
+                       break;
+                    }   
+                }       
+                                 
+                $rules = error_parse_regex($level); 
                 
-                include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+                if($rules == FALSE) 
+                {
+                    return;
+                }
+                
+                if(in_array($error, error_get_allowed_errors($rules), TRUE))
+                { 
+                    include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+                }
             }
-            else  // If display_errors = false, we show a blank page template.
+            else  // If error_reporting = 0, we show a blank page template.
             {
                 include(APP .'core'. DS .'errors'. DS .'ob_disabled_error'. EXT);
             }
@@ -59,12 +87,12 @@ if( ! function_exists('Obullo_Exception_Handler'))
             log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE); 
              
         } 
-        else
+        else  // Is It Exception ?
         {   
             $exception = base_register('Exception');
             
             if(is_object($exception)) 
-            {            
+            {           
                 $exception->write($e, $type);
             }
         }
@@ -72,73 +100,6 @@ if( ! function_exists('Obullo_Exception_Handler'))
         return;
     }    
 }   
-
-// -------------------------------------------------------------------- 
- 
-/**
-* 404 Page Not Found Handler
-*
-* @access   private
-* @param    string
-* @return   string
-*/
-function show_404($page = '')
-{   
-    log_me('error', '404 Page Not Found --> '.$page);
-    echo show_http_error('404 Page Not Found', $page, 'ob_404', 404);
-
-    exit;
-}
-
-// -------------------------------------------------------------------- 
-
-/**
-* Manually Set General Http Errors
-* 
-* @param string $message
-* @param int    $status_code
-* @param int    $heading
-* 
-* @version 0.1
-* @version 0.2  added custom $heading params for users
-*/
-function show_error($message, $status_code = 500, $heading = 'An Error Was Encountered')
-{
-    log_me('error', 'HTTP Error --> '.$message); 
-    echo show_http_error($heading, $message, 'ob_general', $status_code);
-    
-    exit;
-}
-                   
-// --------------------------------------------------------------------
-
-/**
- * General Http Errors
- *
- * @access   private
- * @param    string    the heading
- * @param    string    the message
- * @param    string    the template name
- * @param    int       header status code
- * @return   string
- */
-function show_http_error($heading, $message, $template = 'ob_general', $status_code = 500)
-{
-    set_status_header($status_code);
-
-    $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
-    
-    if(defined('CMD'))  // If Command Line Request
-    {
-        return '['.$heading.']: The url ' .$message. ' you requested was not found.'."\n";
-    }
-    
-    ob_start();
-    include(APP. 'core'. DS .'errors'. DS .$template. EXT);
-    $buffer = ob_get_clean();
-    
-    return $buffer;
-}
 
 // --------------------------------------------------------------------
 
@@ -260,8 +221,10 @@ function error_secure_path($file)
  
 /**
 * Dump arguments
-* This function borrowed from Kohana Php Framework.
+* Some of the codes borrowed from Kohana Php Framework
+* and Pear Var_Dump Package.
 * 
+* @author Ersin Guvenc
 * @param  mixed $var
 * @param  integer $length
 * @param  integer $level
@@ -366,22 +329,63 @@ function error_dump_argument(& $var, $length = 128, $level = 0)
     }
     elseif (is_object($var))
     {
-        ob_start();
-        var_dump($var);
-        $object_dump = ob_get_contents();
-        ob_clean();
+        $object_dump = var_export($var, true);
         
-        $object_dump = str_replace("=>", '=><br />', $object_dump);
-        $object_dump = str_replace("{", '{<br /><br />', $object_dump);
+        // Original Package @--> http://pear.php.net/package/Var_Dump
+        preg_match_all(
+            '!^
+              (\s*)                                 # 2 spaces for each depth level
+              (?:                                   #
+                (?:\[("?)(.*?)\\2\]=>)              # Key [2-3]
+                  |                                 #   or
+                (?:(&?string\((\d+)\))\s+"(.*))     # String [4-6]
+                  |                                 #   or
+                (                                   # Value [7-11]
+                  (&?)                              #   - reference [8]
+                  (bool|int|float|resource|         #   - type [9]
+                  NULL|\*RECURSION\*|UNKNOWN:0)     #
+                  (?:\((.*?)\))?                    #   - complement [10]
+                  (?:\sof\stype\s\((.*?)\))?        #   - resource [11]
+                )                                   #
+                  |                                 #   or
+                (})                                 # End of array/object [12]
+                  |                                 #   or
+                (?:(&?(array|object)\((.+)\).*)\ {) # Start of array/object [13-15]
+                  |                                 #   or
+                (.*)                                # String (additional lines) [16]
+              )                                     #
+            $!Smx',
+            $object_dump,
+            $matches,
+            PREG_SET_ORDER
+        );
         
-        return '<small>object '.$object_dump.'</small>';
-        // .implode("\n", $output);
+        $depth = 0;
+        $output = '';
+        foreach($matches as $val)
+        {
+            $item = end($val);
+        
+            if(strpos($item, '::') > 0)
+            {
+                $obj = explode('::', $item);
+                
+                $output.= str_repeat('&nbsp;', $depth);
+                $output.= '<small><span class="object_name">'.$obj[0].'</span>->'.$obj[1].'</small><br />';
+                ++$depth;
+            } 
+            else 
+            {
+                $output.= str_repeat('&nbsp;', $depth).'<small>'.$item.'</small><br />';
+            }
+        }
+        
+        return $output;
     }
     else
     {
         return '<small>'.gettype($var).'</small> '.htmlspecialchars(print_r($var, TRUE), ENT_NOQUOTES, config_item('charset'));
     }
-    
 }
 
 // -------------------------------------------------------------------- 
@@ -448,7 +452,6 @@ function error_write_file_source($trace, $key = 0, $prefix = '')
     $display = ($key > 0) ? ' class="collapsed" ' : '';
     
     return '<div id="error_toggle_'.$prefix.$key.'" '.$display.'><pre class="source"><code>'.$source.'</code></pre></div>';
-    
 }
 
 // -------------------------------------------------------------------- 
@@ -482,11 +485,225 @@ function error_debug_backtrace($e)
     
     return $trace;
 }
+
+//-----------------------------------------------------------------------
+
+/**
+* Get Defined Obullo Errors
+* 
+* @return array
+*/
+function error_get_defined_errors()
+{
+    // Shutdown Errors
+    //------------------------------------------------------------------------ 
+    $errors['1']     = 'E_ERROR';             // ERROR
+    $errors['4']     = 'E_PARSE';             // PARSE ERROR
+    $errors['64']    = 'E_COMPILE_ERROR';     // COMPILE ERROR
+    $errors['256']   = 'E_USER_ERROR';        // USER FATAL ERROR   
+    
+    // User Friendly Php Errors
+    //------------------------------------------------------------------------ 
+    $errors['2']     = 'E_WARNING';           // WARNING
+    $errors['8']     = 'E_NOTICE';            // NOTICE
+    $errors['16']    = 'E_CORE_ERROR';        // CORE ERROR
+    $errors['32']    = 'E_CORE_WARNING';      // CORE WARNING
+    $errors['128']   = 'E_COMPILE_WARNING';   // COMPILE WARNING
+    $errors['512']   = 'E_USER_WARNING';      // USER WARNING
+    $errors['1024']  = 'E_USER_NOTICE';       // USER NOTICE
+    $errors['2048']  = 'E_STRICT';            // STRICT ERROR
+    $errors['4096']  = 'E_RECOVERABLE_ERROR'; // RECOVERABLE ERROR
+    $errors['8192']  = 'E_DEPRECATED';        // DEPRECATED ERROR
+    $errors['16384'] = 'E_USER_DEPRECATED';   // USER DEPRECATED ERROR
+    $errors['30719'] = 'E_ALL';               // ERROR
+    
+    $errors['OB_1923'] = 'OB_EXCEPTION';      // OBULLO EXCEPTIONAL ERRORS
+    
+    return $errors;
+}
+
+//-----------------------------------------------------------------------
+
+/**
+* Parse php native error notations 
+* e.g. E_NOTICE | E_WARNING
+* 
+* @author Ersin Guvenc
+* @param  mixed $string
+* @return array
+*/
+function error_parse_regex($string)
+{
+    if(strpos($string, '(') > 0)  // (E_NOTICE | E_WARNING)     
+    {
+        if(preg_match('/\(.*?\)/s', $string, $matches))
+        {
+           $rule = str_replace(array($matches[0], '^'), '', $string);
+           
+           $data = array('IN' => trim($rule) , 'OUT' => rtrim(ltrim($matches[0], '('), ')'));
+        }
+    }
+    elseif(strpos($string, '^') > 0) 
+    {
+        $items = explode('^', $string);
+        
+        $data = array('IN' => trim($items[0]) , 'OUT' => trim($items[1])); 
+    }
+    elseif(strpos($string, '|') > 0)
+    {
+        $data = array('IN' => trim($string), 'OUT' => '');
+    }
+    else
+    {                        
+        $data = array('IN' => trim($string), 'OUT' => '');
+    }
+    
+    if(isset($data['IN']))
+    {
+        if(strpos($data['IN'], '|') > 0)
+        {
+            $data['IN'] = explode('|', $data['IN']);    
+        }
+        else
+        {
+            $data['IN'] = array($data['IN']);
+        }
+        
+        if(strpos($data['OUT'], '^') > 0)
+        {
+            $data['OUT'] = explode('^', $data['OUT']); 
+        }
+        else
+        {
+            $data['OUT'] = array($data['OUT']);
+        }
+        
+        $data['IN']  = array_map('trim', $data['IN']);
+        $data['OUT'] = array_map('trim', $data['OUT']);
+        
+        return $data;
+    }
+    
+    return FALSE;
+}
+
+//-----------------------------------------------------------------------
+
+/**
+* Parse allowed errors
+* 
+* @param array $rules
+*/
+function error_get_allowed_errors($rules) 
+{
+    if( ! isset($rules['IN'])) return array();
+    
+    if(count($rules['IN']) > 0)
+    {
+        $allow_errors = $rules['IN'];
+        $allowed_errors = array();
+        
+        if(in_array('E_ALL', $rules['IN'], true))
+        {
+            $allow_errors = array_unique(array_merge($rules['IN'], array_values($errors)));
+        }
+        
+        if(count($rules['OUT']) > 0)
+        {
+            foreach($rules['OUT'] as $out_val)
+            {
+                foreach($allow_errors as $in_val)
+                {
+                    if($in_val != $out_val)
+                    {
+                       $allowed_errors[] = $in_val;
+                    }
+                }
+            }
+        }
+        
+        unset($allow_errors);
+        return $allowed_errors;
+    }
+}
+                        
+//----------------------------------------------------------------------- 
+ 
+/**
+* 404 Page Not Found Handler
+*
+* @access   private
+* @param    string
+* @return   string
+*/
+function show_404($page = '')
+{   
+    log_me('error', '404 Page Not Found --> '.$page);
+    
+    echo show_http_error('404 Page Not Found', $page, 'ob_404', 404);
+
+    exit;
+}
+
+// -------------------------------------------------------------------- 
+
+/**
+* Manually Set General Http Errors
+* 
+* @param string $message
+* @param int    $status_code
+* @param int    $heading
+* 
+* @version 0.1
+* @version 0.2  added custom $heading params for users
+*/
+function show_error($message, $status_code = 500, $heading = 'An Error Was Encountered')
+{
+    log_me('error', 'HTTP Error --> '.$message);
+    
+    echo show_http_error($heading, $message, 'ob_general', $status_code);
+    
+    exit;
+}
+                   
+// --------------------------------------------------------------------
+
+/**
+ * General Http Errors
+ *
+ * @access   private
+ * @param    string    the heading
+ * @param    string    the message
+ * @param    string    the template name
+ * @param    int       header status code
+ * @return   string
+ */
+function show_http_error($heading, $message, $template = 'ob_general', $status_code = 500)
+{
+    set_status_header($status_code);
+
+    $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
+    
+    if(defined('CMD'))  // If Command Line Request
+    {
+        return '['.$heading.']: The url ' .$message. ' you requested was not found.'."\n";
+    }
+    
+    ob_start();
+    include(APP. 'core'. DS .'errors'. DS .$template. EXT);
+    $buffer = ob_get_clean();
+    
+    return $buffer;
+}
+
+// --------------------------------------------------------------------                
                                            
 if(config_item('error_reporting') != -1)  // Native error handler switch
 {           
     set_error_handler('Obullo_Error_Handler'); 
-    register_shutdown_function('Obullo_Shutdown_Handler');    // Enable the Obullo shutdown handler, which catches E_FATAL errors.
+    register_shutdown_function('Obullo_Shutdown_Handler');    
+    
+    // Enable the Obullo shutdown handler, which catches E_FATAL errors.
 }  
 
 set_exception_handler('Obullo_Exception_Handler');

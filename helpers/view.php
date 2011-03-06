@@ -244,7 +244,7 @@ if ( ! function_exists('view'))
         
         profiler_set('views', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return _load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
+        return load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
     }
 }
 
@@ -279,7 +279,7 @@ if ( ! function_exists('view_layout'))
         
         profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return _load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
+        return load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
     }
 }
 
@@ -316,31 +316,6 @@ if ( ! function_exists('_set_view_data'))
 // ------------------------------------------------------------------------
 
 /**
-* Render multiple view files.
-*
-* @param array $filenames
-* @param array $data
-*/
-/*
-if ( ! function_exists('view_render'))
-{
-    function view_render($filenames = array(), $data = '')
-    {
-        $_ob = base_register('Storage');
-
-        $var = '';
-        foreach($filenames as $filename)
-        {
-            $var .= view($filename, $data, TRUE);
-        }
-
-        return $var;
-    }
-}
-*/
-// ------------------------------------------------------------------------
-
-/**
 * Load inline script file.
 *
 * @param string $file_url
@@ -364,7 +339,7 @@ if( ! function_exists('script') )
         
         profiler_set('scripts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return _load_view($file_info['path'], $file_info['filename'], $data, TRUE, $return, __FUNCTION__);
+        return load_view($file_info['path'], $file_info['filename'], $data, TRUE, $return, __FUNCTION__);
     }
 }
 
@@ -385,7 +360,7 @@ if( ! function_exists('script_base') )
 
         profiler_set('scripts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return _load_view($file_info['path'], $file_info['filename'], $data, TRUE, FALSE, 'script');
+        return load_view($file_info['path'], $file_info['filename'], $data, TRUE, FALSE, 'script');
     }
 }
 
@@ -408,9 +383,9 @@ if( ! function_exists('script_base') )
 * @version  0.4 added added short_open_tag support
 * @return   void
 */
-if ( ! function_exists('_load_view'))
+if ( ! function_exists('load_view'))
 {
-    function _load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
+    function load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
 	    $_ob = base_register('Storage');
 		

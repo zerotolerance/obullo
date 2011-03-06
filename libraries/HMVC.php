@@ -443,6 +443,8 @@ Class OB_HMVC
         $this->set_response($content); 
 
         $this->_reset_router();    
+                       
+        log_me('debug', 'Hmvc process completed succesfully.');
                             
         return $this;
     }
