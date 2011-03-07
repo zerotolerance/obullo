@@ -50,9 +50,11 @@ if( ! function_exists('Obullo_Exception_Handler'))
     
             if($level > 0 OR is_string($level))  // If user want to display all errors
             {
-                $sql = array();
+                $sql    = array();
                 $errors = error_get_defined_errors();
                 $error  = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
+                
+                $http_request = i_server('HTTP_X_REQUESTED_WITH');
                  
                 if(is_numeric($level)) 
                 {
@@ -60,8 +62,15 @@ if( ! function_exists('Obullo_Exception_Handler'))
                     {              
                        case -1: return; break; 
                        case  0: return; break; 
-                       case  1: 
-                       include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+                       case  1:
+                       if($http_request == 'XMLHttpRequest')  // Ajax Friendly Errors
+                       {
+                           echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";   
+                       }
+                       else
+                       {
+                           include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+                       }   
                        return;
                        break;
                     }   
@@ -76,7 +85,14 @@ if( ! function_exists('Obullo_Exception_Handler'))
                 
                 if(in_array($error, error_get_allowed_errors($rules), TRUE))
                 { 
-                    include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+                    if($http_request == 'XMLHttpRequest')  // Ajax friendly errors
+                    {
+                        echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";    
+                    }
+                    else
+                    {
+                        include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
+                    }
                 }
             }
             else  // If error_reporting = 0, we show a blank page template.

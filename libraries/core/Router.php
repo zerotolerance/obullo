@@ -558,6 +558,25 @@ Class OB_Router {
         return request($method, $uri, $params)->no_loop($no_loop)->exec()->response();
     }
     
+    // --------------------------------------------------------------------
+    
+    /**
+    * Check Router Request Is Ajax.
+    * 
+    * @return boolean
+    */
+    public function is_ajax()
+    {
+        $http_request = i_server('HTTP_X_REQUESTED_WITH');
+        
+        if($http_request == 'XMLHttpRequest')
+        {
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
 }
 // END Router Class
 

@@ -46,7 +46,6 @@ Class OB_Exception {
         
         // Database Errors
         //-----------------------------------------------------------------------
-        
         if(substr($e->getMessage(),0,3) == 'SQL') 
         {
             $ob   = this();
@@ -92,14 +91,15 @@ Class OB_Exception {
         // Log Php Errors
         //-----------------------------------------------------------------------
         log_me('error', 'Php Error Type: '.$type.'  --> '.$e->getMessage(). ' '.$e->getFile().' '.$e->getLine(), TRUE); 
-              
+             
         // Displaying Errors
         //-----------------------------------------------------------------------                
-        $code  = $e->getCode();
-        $level = config_item('error_reporting');
-    
+        $code   = $e->getCode();
+        $level  = config_item('error_reporting');
         $errors = error_get_defined_errors();
         $error  = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
+        
+        $http_request = i_server('HTTP_X_REQUESTED_WITH');
          
         if(is_numeric($level)) 
         {
@@ -107,7 +107,16 @@ Class OB_Exception {
             {              
                case -1: return; break; 
                case  0: return; break; 
-               case  1: echo $error_msg; return; break;
+               case  1:
+               if($http_request == 'XMLHttpRequest')  // Ajax Friendly Errors Errors
+               {
+                   echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";    
+               }
+               else
+               {
+                   echo $error_msg;
+               }   
+               return; break;
             }   
         }       
                          
@@ -120,7 +129,14 @@ Class OB_Exception {
         
         if(in_array($error, error_get_allowed_errors($rules), TRUE))
         { 
-            echo $error_msg;
+           if($http_request == 'XMLHttpRequest')  // Ajax Friendly Errors Errors
+           {
+               echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";    
+           }
+           else
+           {
+               echo $error_msg;
+           }   
         }
     }
 
