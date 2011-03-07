@@ -345,7 +345,9 @@ function error_dump_argument(& $var, $length = 128, $level = 0)
     }
     elseif (is_object($var))
     {
-        $object_dump = var_export($var, true);
+        ob_start();
+        var_dump($var);
+        $object_dump = ob_get_clean();
         
         // Original Package @--> http://pear.php.net/package/Var_Dump
         preg_match_all(
@@ -382,12 +384,12 @@ function error_dump_argument(& $var, $length = 128, $level = 0)
         {
             $item = end($val);
         
-            if(strpos($item, '::') > 0)
+            if(strpos($item, '#') > 0)
             {
-                $obj = explode('::', $item);
+                $obj = explode('#', $item);
                 
                 $output.= str_repeat('&nbsp;', $depth);
-                $output.= '<small><span class="object_name">'.$obj[0].'</span>->'.$obj[1].'</small><br />';
+                $output.= '<small><span class="object_name">'.substr($obj[0], 0, -1).'</span> #'.$obj[1].'</small><br />';
                 ++$depth;
             } 
             else 
