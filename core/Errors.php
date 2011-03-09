@@ -238,7 +238,6 @@ function error_secure_path($file)
 /**
 * Dump arguments
 * Some of the codes borrowed from Kohana Php Framework
-* and Pear Var_Dump Package.
 * 
 * @author Ersin Guvenc
 * @param  mixed $var
@@ -344,61 +343,69 @@ function error_dump_argument(& $var, $length = 128, $level = 0)
         return '<small>array</small><span>('.count($var).')</span> '.implode("\n", $output);
     }
     elseif (is_object($var))
-    {
-        ob_start();
-        var_dump($var);
-        $object_dump = ob_get_clean();
+    {    
+        // Copy the object as an array
+        $array = (array) $var;
         
-        // Original Package @--> http://pear.php.net/package/Var_Dump
-        preg_match_all(
-            '!^
-              (\s*)                                 # 2 spaces for each depth level
-              (?:                                   #
-                (?:\[("?)(.*?)\\2\]=>)              # Key [2-3]
-                  |                                 #   or
-                (?:(&?string\((\d+)\))\s+"(.*))     # String [4-6]
-                  |                                 #   or
-                (                                   # Value [7-11]
-                  (&?)                              #   - reference [8]
-                  (bool|int|float|resource|         #   - type [9]
-                  NULL|\*RECURSION\*|UNKNOWN:0)     #
-                  (?:\((.*?)\))?                    #   - complement [10]
-                  (?:\sof\stype\s\((.*?)\))?        #   - resource [11]
-                )                                   #
-                  |                                 #   or
-                (})                                 # End of array/object [12]
-                  |                                 #   or
-                (?:(&?(array|object)\((.+)\).*)\ {) # Start of array/object [13-15]
-                  |                                 #   or
-                (.*)                                # String (additional lines) [16]
-              )                                     #
-            $!Smx',
-            $object_dump,
-            $matches,
-            PREG_SET_ORDER
-        );
-        
-        $depth = 0;
-        $output = '';
-        foreach($matches as $val)
+        $output = array();
+
+        // Indentation for this variable
+        $space = str_repeat($s = '    ', $level);
+
+        if(function_exists('spl_object_hash'))
         {
-            $item = end($val);
-        
-            if(strpos($item, '#') > 0)
-            {
-                $obj = explode('#', $item);
-                
-                $output.= str_repeat('&nbsp;', $depth);
-                $output.= '<small><span class="object_name">'.substr($obj[0], 0, -1).'</span> #'.$obj[1].'</small><br />';
-                ++$depth;
-            } 
-            else 
-            {
-                $output.= str_repeat('&nbsp;', $depth).'<small>'.$item.'</small><br />';
-            }
+            $hash = spl_object_hash($var);
+        }
+        else
+        {
+            $hash = uniqid("\x00");    
         }
         
-        return $output;
+        // Objects that are being dumped
+        static $objects = array();
+
+        if (empty($var))
+        {
+            // Do nothing
+        }
+        elseif (isset($objects[$hash]))
+        {
+            $output[] = "{\n$space$s*RECURSION*\n$space}";
+        }
+        elseif ($level < 10)
+        {
+            $output[] = "<pre>{";
+
+            $objects[$hash] = TRUE;
+            foreach ($array as $key => & $val)
+            {
+                if ($key[0] === "\x00")
+                {
+                    // Determine if the access is protected or protected
+                    $access = '<small>'.(($key[1] === '*') ? 'protected' : 'private').'</small>';
+
+                    // Remove the access level from the variable name
+                    $key = substr($key, strrpos($key, "\x00") + 1);
+                }
+                else
+                {
+                    $access = '<small>public</small>';
+                }
+
+                $output[] = "$space$s$access $key => ".error_dump_argument($val, $length, $level + 1);
+            }
+            unset($objects[$hash]);
+
+            $output[] = "$space}</pre>";
+        }
+        else
+        {
+            // Depth too great
+            $output[] = "{\n$space$s...\n$space}";
+        }
+        
+        return '<small>object</small> <span class="object_name">'.get_class($var).'('.count($array).')</span> '.implode("<br />", $output);
+        
     }
     else
     {

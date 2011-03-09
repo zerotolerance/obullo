@@ -162,9 +162,9 @@ if( ! function_exists('ob_system_run'))
         {
             foreach($arguments as $k => $v)
             {                                           
-                if($v == 'true') { $arguments[$k] = TRUE; }
+                if($v == 'true')  { $arguments[$k] = TRUE; }
                 if($v == 'false') { $arguments[$k] = FALSE; }
-                if($v == 'null') { $arguments[$k] = NULL; }
+                if($v == 'null')  { $arguments[$k] = NULL; }
             }
         }
         
