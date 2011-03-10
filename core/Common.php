@@ -190,35 +190,42 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
         $prefix      = config_item('subclass_prefix');  // MY_
         $module      = core_register('Router')->fetch_directory();
         $extensions  = get_config('extensions');
-        $extension_lib_override = FALSE;
         
         //------------------ OVERRIDE SUPPORT ------------------//
         
         if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
         {
+            $extension_lib_override = FALSE;
+            
             if(is_array($extensions))
             {
-                foreach($extensions as $name => $val)   // Extension Override Support
+                foreach($extensions as $name => $array)   // Extension Override Support
                 {
-                    if(isset($val['lib_override']))
+                    foreach($array as $ext_name => $options)           // Parse values.
                     {
-                        if($val['lib_override'] == $Class)
+                        if(count($options['lib_override']) > 0)
                         {
-                            $extension_lib_override = TRUE;
-                            $extension = $name;
-                        }
+                            foreach($options['lib_override'] as $lib_override)
+                            {
+                                if($lib_override == $Class)
+                                {
+                                    $extension_lib_override = TRUE;
+                                    $extension = $ext_name;
+                                }
+                            }
+                        }                            
                     }
                 }
             }                            
 
             if($extension_lib_override)
             {
-                if(is_extension($extension))  // if extension enabled .. 
+                if(is_extension($extension, $module))  // if extension enabled .. 
                 { 
                     $module = $extension;
                 }
             }
-        
+            
             if(file_exists(MODULES .$module. DS .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
             {
                 if( ! isset($new_objects[$Class]) )  // check new object instance
@@ -383,7 +390,7 @@ function ob_autoload($real_name)
     return;
 }
 
-spl_autoload_register('ob_autoload',true);
+spl_autoload_register('ob_autoload', true);
 
 // --------------------------------------------------------------------
 
@@ -429,6 +436,7 @@ function core_helper($helper)
         include(BASE .'helpers'. DS .'core'. DS .$helper. EXT);
 
         profiler_set('loaded_helpers', $helper, $helper);
+        
         return;
     }
 
@@ -459,7 +467,7 @@ function get_static($filename = 'config', $var = '', $folder = '')
     {
         if ( ! file_exists($folder. DS .$filename. EXT))
         {
-            throw new CommonException('The static file '. DS .$folder. DS .$filename. EXT .' does not exist.');
+            throw new CommonException('The static file '. $folder. DS .$filename. EXT .' does not exist.');
         }
 
         require($folder. DS .$filename. EXT);
@@ -468,7 +476,7 @@ function get_static($filename = 'config', $var = '', $folder = '')
 
         if ( ! isset($$var) OR ! is_array($$var))
         {
-            throw new CommonException('The static file '. DS .$folder. DS .$filename. EXT .' file does
+            throw new CommonException('The static file '. $folder. DS .$filename. EXT .' file does
             not appear to be formatted correctly.');
         }
 
@@ -490,14 +498,7 @@ function get_static($filename = 'config', $var = '', $folder = '')
 */
 function get_config($filename = 'config', $var = '')
 {
-    $path = APP .'config';
-    
-    if($filename == 'extensions')
-    {
-        $path = rtrim(MODULES, DS);
-    }
-    
-    return get_static($filename, $var, $path);
+    return get_static($filename, $var, APP .'config');
 }
 
 // --------------------------------------------------------------------
@@ -580,19 +581,6 @@ function log_me($level = 'error', $message, $php_error = FALSE)
     log_write($level, $message, $php_error);
     
     return;
-}
-
-// -------------------------------------------------------------------- 
-
-/**
-* Codeigniter Backward Compatibility.
-* Please use log_me() function instead of log_message();
-*
-* @access public
-*/
-function log_message($level = 'error', $message, $php_error = FALSE)
-{
-    return log_me($level, $message, $php_error);
 }
 
 // --------------------------------------------------------------------
@@ -791,28 +779,47 @@ function set_status_header($code = 200, $text = '')
 * Check the string is a Obullo extension 
 * which is defined in config/extensions.php
 * 
-* @param mixed $name
+* @param  string $name
+* @return boolean
 */
-function is_extension($name = '')
+function is_extension($name = '', $current_module = '')
 {                         
     static $enabled_extensions = array();
     if($name == '') return FALSE;
-                     
-    if(isset($enabled_extensions[$name]))
-    {
-        return TRUE;
-    }
-                     
-    $extensions = get_config('extensions'); 
+    
+    $extensions = get_config('extensions');
+    $module     = ( $current_module != '') ? $current_module : $GLOBALS['d'];
     
     if(is_array($extensions))
     {
-        if(isset($extensions[$name]) AND is_dir(MODULES . $name))           
-        {             
-            if($extensions[$name]['enabled'])   // Check extension is enabled.
+        $defined_extensions = array_keys($extensions);
+
+        if(count($defined_extensions) > 0) 
+        {
+            foreach($defined_extensions as $ext_key)
             {
-                $enabled_extensions[$name] = $name;
-                return TRUE;
+                if(isset($enabled_extensions[$ext_key][$name]))
+                {
+                    return TRUE;
+                }
+                
+                if(isset($extensions[$ext_key][$name]) AND is_dir(MODULES . $name))           
+                {         
+                    if($extensions[$ext_key][$name]['enabled'])   // Check extension is enabled.
+                    {
+                        if($ext_key == 'application') // If extension configured for application.
+                        {
+                            $enabled_extensions[$ext_key][$name] = $name;
+                            return TRUE;
+                        }
+                        elseif($ext_key == $module)   // If extension configured for current module.
+                        {
+                            $enabled_extensions[$ext_key][$name] = $name;
+                            return TRUE;
+                        }
+                        
+                    }
+                }                
             }
         }
     }
@@ -827,15 +834,16 @@ function is_extension($name = '')
 * 
 * @param   string $name
 * @param   string $item
+* @param   string $index
 * @return  mixed | NULL
 */
-function ext_item($name, $item)
+function ext_item($name, $item, $index = 'application')
 {
     $extensions = get_config('extensions');
 
-    if(isset($extensions[$name][$item]))
+    if(isset($extensions[$index][$name][$item]))
     {
-        return $extensions[$name][$item];
+        return $extensions[$index][$name][$item];
     }
     
     return NULL;
@@ -864,18 +872,12 @@ if( ! function_exists('_get_public_path') )
         $OB = this();
         
         $file_url  = strtolower($file_url);
-        $extension = FALSE;
         
         if(strpos($file_url, '../') === 0)   // if ../modulename/public folder request 
         {
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
-            
-            if(is_extension($modulename))
-            {
-                $extension = TRUE; 
-            }
         }
         else    // if current modulename/public request
         {
@@ -927,16 +929,9 @@ if( ! function_exists('_get_public_path') )
         // .site/modules/welcome/public/css/welcome.css    (public/{site removed}/css/welcome.css)
         // .admin/modules/welcome/public/css/welcome.css
 
-        $pure_path  = $modulename . '/'. $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+        $pure_path  = $modulename .'/'. $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
         $full_path  = $public_url . $pure_path;
 
-        if($extension)  // If its a extension file
-        {                         
-            $public_folder = (ext_item($modulename, 'public_folder') != NULL) ? ext_item($modulename, 'public_folder') : $public_folder;
-            
-            return $public_url . $modulename . '/'. $public_folder .'/'. $folder . $sub_path . $filename;  
-        }
-        
         // if file located in another server fetch it from outside /public folder.
         if(strpos($OB->config->public_url(), '://') !== FALSE)
         {

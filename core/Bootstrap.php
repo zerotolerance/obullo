@@ -63,7 +63,7 @@ if( ! function_exists('ob_set_headers'))
 if( ! function_exists('ob_system_run'))
 {
     function ob_system_run()
-    {    
+    {   
         $uri       = core_register('URI'); 
         $router    = core_register('Router');
         

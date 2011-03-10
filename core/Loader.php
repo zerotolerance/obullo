@@ -521,18 +521,24 @@ Class OB_Loader {
             
             if(is_array($extensions))
             {
-                foreach($extensions as $name => $val)   // Extension Override Support
+                foreach($extensions as $name => $array)   // Extension Override Support
                 {
-                    if(isset($val['helper_override']))
+                    foreach($array as $ext_name => $options)           // Parse values.
                     {
-                        if($val['helper_override'] == $helper)
+                        if(count($options['helper_override']) > 0)
                         {
-                            $extension_helper_override = TRUE;
-                            $extension = $name;
-                        }
+                            foreach($options['helper_override'] as $helper_override)
+                            {
+                                if($helper_override == $helper)
+                                {
+                                    $extension_helper_override = TRUE;
+                                    $extension = $ext_name;
+                                }
+                            }
+                        }                            
                     }
-                } 
-            }                            
+                }
+            }                             
                        
             $module = $GLOBALS['d'];
                        
