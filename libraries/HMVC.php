@@ -44,7 +44,7 @@ Class OB_HMVC
     public $empty;                 // Clone original Empty Class;
     public $_this         = NULL;  // Clone original this(); ( Controller instance)
 
-    // Request and Response
+    // Request, Response, Reset
     public $uri_string       = '';
     public $query_string     = '';
     public $response         = '';
@@ -52,6 +52,7 @@ Class OB_HMVC
     public $request_method   = 'GET';
     public $no_loop          = FALSE;
     public $cache_time       = '';
+    public $is_reset         = FALSE;
 
     // Global variables
     public $_GET_BACKUP      = '';
@@ -60,9 +61,9 @@ Class OB_HMVC
     public $_SERVER_BACKUP   = '';
 
     // Cache and Connection
-    public $hmvc_connect     = TRUE;
-    private $_conn_string    = '';       // Unique HMVC connection string that we need to convert it to conn_id.
-    private static $_conn_id = array();  // Static HMVC Connection ids.
+    public $hmvc_connect         = TRUE;
+    protected $_conn_string      = '';       // Unique HMVC connection string that we need to convert it to conn_id.
+    protected static $_conn_id   = array();  // Static HMVC Connection ids.
 
     // Profiler and Benchmark
     public static $request_times = array();   // request time for profiler
@@ -77,11 +78,11 @@ Class OB_HMVC
     // --------------------------------------------------------------------
 
     /**
-    * Call HMVC Request (Set the URI String).
+    * Prepare HMVC Request (Set the URI String).
     *
     * @access    private
-    * @param     $hvmc  boolean
-    * @param     $cache_time integer
+    * @param     string $hvmc_uri
+    * @param     int $cache_time
     * @return    void
     */
     public function hmvc_request($hmvc_uri = '', $cache_time = 0)
@@ -173,7 +174,8 @@ Class OB_HMVC
     * HMVC request will be in a unlimited loop, no_loop() function
     * will prevent this loop and any possible http server crashes (ersin).
     *
-    * @param mixed $default
+    * @param  bool $default
+    * @return void
     */
     public function no_loop($default = TRUE)
     {
@@ -189,6 +191,7 @@ Class OB_HMVC
     *
     * @param    string $method
     * @param    mixed  $params_or_data
+    * @return   void
     */
     public function set_method($method = 'GET' , $params_or_data = '')
     {
@@ -216,12 +219,17 @@ Class OB_HMVC
 
         $GLOBALS['PUT'] = $_SERVER = $_POST = $_GET = $_REQUEST = array();   // reset global variables
         
-        $_server = $this->_SERVER_BACKUP;
-        
-        // Don't touch global server items
-        $_SERVER['HTTP_USER_AGENT']     = isset($_server['HTTP_USER_AGENT']) ? $_server['HTTP_USER_AGENT'] : array();
-        $_SERVER['HTTP_ACCEPT_CHARSET'] = isset($_server['HTTP_ACCEPT_CHARSET']) ? $_server['HTTP_ACCEPT_CHARSET'] : array();
-        
+        foreach($this->_SERVER_BACKUP as $_key => $_val)  // Don't touch global server items
+        {
+            if(isset($this->_SERVER_BACKUP[$_key]))
+            {
+                if($_key != 'REQUEST_METHOD')
+                {
+                    $_SERVER[$_key] = $_val; 
+                }
+            }
+        }
+    
         switch ($method)
         {
            case 'POST':
@@ -452,14 +460,14 @@ Class OB_HMVC
     // --------------------------------------------------------------------
 
     /**
-    * Reset router for mutiple internal
-    * hmvc requests.
+    * Reset router for mutiple hmvc requests
+    * or who want to close the hmvc connection.
     *
+    * @param    boolean $no_loop anti loop
     * @return   void
     */
-    private function _reset_router($no_loop = FALSE)
+    protected function _reset_router($no_loop = FALSE)
     {
-        // do not close buffers in here !!
         $GLOBALS['PUT'] = $_SERVER = $_POST = $_GET = $_REQUEST = array();
         $_GET     = $this->_GET_BACKUP;           // Assign global variables we copied before ..
         $_POST    = $this->_POST_BACKUP;
@@ -492,7 +500,11 @@ Class OB_HMVC
             self::$request_times[$URI->uri_string] = $end_time - self::$start_time;
 
             profiler_set('hmvc_requests', 'request_time', self::$request_times);
-        }              
+        }
+        
+        $this->is_reset = TRUE;  // This means hmvc process completed succesfully without any errors.
+                                 // If is_reset == FALSE we say to destruct method reset the router
+                                 // variables and turn back to orginial vars of obullo which we had reset them before.        
     }
 
     // --------------------------------------------------------------------
@@ -544,7 +556,7 @@ Class OB_HMVC
     *
     * @param    mixed $id
     */
-    private function _set_conn_string($id)
+    protected function _set_conn_string($id)
     {
         $this->_conn_string .= $id;
     }
@@ -557,11 +569,35 @@ Class OB_HMVC
     *
     * @return   string
     */
-    private function _get_id()
+    protected function _get_id()
     {
         return md5(trim($this->_conn_string));
     }
 
+    // --------------------------------------------------------------------
+    
+    /**
+    * Close HMVC Connection
+    * 
+    * If we have any possible hmvc exceptions
+    * reset router variables, complete to HMVC process
+    * and turn back to originals.
+    * 
+    * @return void
+    */
+    public function __destruct()
+    {                 
+        if($this->is_reset == FALSE)         
+        {                                   
+            $this->_reset_router($this->no_loop);
+            
+            return;
+        }
+
+        $this->is_reset = FALSE;
+    }
+    
+    
 }
 // END HMVC Class
 
