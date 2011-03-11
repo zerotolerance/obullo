@@ -217,18 +217,10 @@ Class OB_HMVC
         $this->_SERVER_BACKUP  = $_SERVER;
         $this->_REQUEST_BACKUP = $_REQUEST;
 
-        $GLOBALS['PUT'] = $_SERVER = $_POST = $_GET = $_REQUEST = array();   // reset global variables
+        $GLOBALS['PUT'] = $_POST = $_GET = $_REQUEST = array();   // reset global variables
         
-        foreach($this->_SERVER_BACKUP as $_key => $_val)  // Don't touch global server items
-        {
-            if(isset($this->_SERVER_BACKUP[$_key]))
-            {
-                if($_key != 'REQUEST_METHOD')
-                {
-                    $_SERVER[$_key] = $_val; 
-                }
-            }
-        }
+        unset($_SERVER['HTTP_ACCEPT']);    // Don't touch global server items 
+        unset($_SERVER['REQUEST_METHOD']);
     
         switch ($method)
         {

@@ -203,7 +203,7 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
                 {
                     foreach($array as $ext_name => $options)           // Parse values.
                     {
-                        if(count($options['lib_override']) > 0)
+                        if(isset($options['lib_override']) AND is_array($options['lib_override']))
                         {
                             foreach($options['lib_override'] as $lib_override)
                             {

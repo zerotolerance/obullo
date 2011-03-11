@@ -525,7 +525,7 @@ Class OB_Loader {
                 {
                     foreach($array as $ext_name => $options)           // Parse values.
                     {
-                        if(count($options['helper_override']) > 0)
+                        if(isset($options['helper_override']) AND is_array($options['helper_override']))
                         {
                             foreach($options['helper_override'] as $helper_override)
                             {
