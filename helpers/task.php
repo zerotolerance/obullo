@@ -39,14 +39,22 @@ if ( ! function_exists('task_run'))
     {
         $uri    = explode('/', $uri);
         $module = array_shift($uri);
-        
+
+        foreach($uri as $i => $section)
+        {
+            if( ! $section)
+            {
+                $uri[$i] = 'false';
+            }
+        }
+
         $shell  = PHP_PATH .' '. FPATH .'/task.php '. $module .' '. implode('/', $uri) .' OB_TASK_REQUEST';
 
         if($debug)
         {
             $output = shell_exec($shell);
             echo "<pre>$output</pre>";
-            
+
             log_me('debug', 'Task function output -> '. $output);
         }
         else   // continious task
