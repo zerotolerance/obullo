@@ -164,9 +164,23 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
         }
 
         // make sure is it bind value, if not ...
+        /*
         if($this->prepare == TRUE && (strpos($str, ':') === FALSE || strpos($str, ':') > 0))
         {
              $str = $this->quote($str, PDO::PARAM_STR);
+        }*/
+        
+        // make sure is it bind value, if not ... 
+        if($this->prepare === TRUE)
+        {
+            if(strpos($str, ':') === FALSE)
+            {
+                $str = $this->quote($str, PDO::PARAM_STR);
+            } 
+        } 
+        else 
+        {
+           $str = $this->quote($str, PDO::PARAM_STR); 
         }
 
         return $str;
