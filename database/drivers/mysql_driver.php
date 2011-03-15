@@ -5,16 +5,16 @@ defined('BASE') or exit('Access Denied!');
  * Obullo Framework (c) 2009.
  *
  * PHP5 MVC Based Minimalist Software.
- * 
+ *
  *
  * @package         Obullo
- * @author          Obullo.com  
- * @subpackage      Base.database        
+ * @author          Obullo.com
+ * @subpackage      Base.database
  * @copyright       Copyright (c) 2009 Ersin Guvenc.
  * @license         public
  * @since           Version 1.0
  * @filesource
- */ 
+ */
 // ------------------------------------------------------------------------
 
 /**
@@ -23,33 +23,33 @@ defined('BASE') or exit('Access Denied!');
  * @package       Obullo
  * @subpackage    Drivers
  * @category      Database
- * @author        Ersin Guvenc 
- * @link                              
+ * @author        Ersin Guvenc
+ * @link
  */
 
 Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
 {
     /**
     * The character used for escaping
-    * 
+    *
     * @var string
     */
     public $_escape_char = '`';
-    
-    
+
+
     // clause and character used for LIKE escape sequences - not used in MySQL
     public $_like_escape_str = '';
-    public $_like_escape_chr = '';     
-     
+    public $_like_escape_chr = '';
+
     public function __construct($param, $db_var = 'db')
-    {   
+    {
         parent::__construct($param, $db_var);
     }
-    
+
     /**
     * Connect to PDO
-    * 
-    * @author   Ersin Guvenc 
+    *
+    * @author   Ersin Guvenc
     * @param    string $dsn  Dsn
     * @param    string $user Db username
     * @param    mixed  $pass Db password
@@ -60,22 +60,22 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
     {
         // If connection is ok .. not need to again connect..
         if ($this->_conn) { return; }
-        
+
         $port = empty($this->dbh_port) ? '' : ';port='.$this->dbh_port;
         $dsn  = empty($this->dsn) ? 'mysql:host='.$this->hostname.$port.';dbname='.$this->database : $this->dsn;
 
         // array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES $this->char_set") it occurs an error !
         $this->_pdo  = $this->pdo_connect($dsn, $this->username, $this->password, $this->options);
-             
+
         if( ! empty($this->char_set) )
         $this->_conn->exec("SET NAMES '" . $this->char_set . "'");
-        
+
         // We set exception attribute for always showing the pdo exceptions errors. (ersin)
         $this->_conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-    } 
+    }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Escape the SQL Identifiers
      *
@@ -96,28 +96,28 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
         {
             if (strpos($item, '.'.$id) !== FALSE)
             {
-                $str = $this->_escape_char. str_replace('.', $this->_escape_char.'.', $item);  
-                
+                $str = $this->_escape_char. str_replace('.', $this->_escape_char.'.', $item);
+
                 // remove duplicates if the user already included the escape
                 return preg_replace('/['.$this->_escape_char.']+/', $this->_escape_char, $str);
-            }        
+            }
         }
-        
+
         if (strpos($item, '.') !== FALSE)
         {
-            $str = $this->_escape_char.str_replace('.', $this->_escape_char.'.'.$this->_escape_char, $item).$this->_escape_char;            
+            $str = $this->_escape_char.str_replace('.', $this->_escape_char.'.'.$this->_escape_char, $item).$this->_escape_char;
         }
         else
         {
             $str = $this->_escape_char.$item.$this->_escape_char;
         }
-    
+
         // remove duplicates if the user already included the escape
         return preg_replace('/['.$this->_escape_char.']+/', $this->_escape_char, $str);
     }
-            
+
     // --------------------------------------------------------------------
-    
+
     /**
     * Escape String
     *
@@ -127,8 +127,8 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
     * @param    bool    whether or not the string will be used in a LIKE condition
     * @return   string
     */
-    public function escape_str($str, $like = FALSE, $side = 'both')    
-    {    
+    public function escape_str($str, $like = FALSE, $side = 'both')
+    {
         if (is_array($str))
         {
             foreach($str as $key => $val)
@@ -138,7 +138,7 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
 
             return $str;
         }
-    
+
         // escape LIKE condition wildcards
         if ($like === TRUE)
         {
@@ -149,35 +149,35 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
                case 'before':
                  $str = "%{$str}";
                  break;
-                 
+
                case 'after':
                  $str = "{$str}%";
                  break;
-                 
+
                default:
                  $str = "%{$str}%";
             }
-            
+
             // not need to quote for who use prepare and :like bind.
-            if($this->prepare == TRUE AND $this->is_like_bind)   
+            if($this->prepare == TRUE AND $this->is_like_bind)
             return $str;
-        } 
-        
-        // make sure is it bind value, if not ... 
-        if( strpos($str, ':') === FALSE || strpos($str, ':') > 0)
+        }
+
+        // make sure is it bind value, if not ...
+        if($this->prepare == TRUE && (strpos($str, ':') === FALSE || strpos($str, ':') > 0))
         {
              $str = $this->quote($str, PDO::PARAM_STR);
         }
-        
+
         return $str;
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
     * Platform specific pdo quote
     * function.
-    *                 
+    *
     * @author  Ersin Guvenc.
     * @param   string $str
     * @param   int    $type
@@ -187,9 +187,9 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
     {
          return $this->_conn->quote($str, $type);
     }
-    
+
     // --------------------------------------------------------------------
-    
+
     /**
     * From Tables
     *
@@ -206,12 +206,12 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
         {
             $tables = array($tables);
         }
-        
+
         return '('.implode(', ', $tables).')';
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Insert statement
      *
@@ -224,10 +224,10 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
      * @return   string
      */
     public function _insert($table, $keys, $values)
-    {    
+    {
         return "INSERT INTO ".$table." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
     }
-    
+
     // --------------------------------------------------------------------
 
     /**
@@ -249,20 +249,20 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
         {
             $valstr[] = $key." = ".$val;
         }
-        
+
         $limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
-        
+
         $orderby = (count($orderby) >= 1)?' ORDER BY '.implode(", ", $orderby):'';
-    
+
         $sql = "UPDATE ".$table." SET ".implode(', ', $valstr);
 
         $sql .= ($where != '' AND count($where) >=1) ? " WHERE ".implode(" ", $where) : '';
 
         $sql .= $orderby.$limit;
-        
+
         return $sql;
     }
-    
+
     // --------------------------------------------------------------------
 
     /**
@@ -275,7 +275,7 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
      * @param    array    the where clause
      * @param    string    the limit clause
      * @return   string
-     */    
+     */
     public function _delete($table, $where = array(), $like = array(), $limit = FALSE)
     {
         $conditions = '';
@@ -293,7 +293,7 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
         }
 
         $limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
-    
+
         return "DELETE FROM ".$table.$conditions.$limit;
     }
 
@@ -311,7 +311,7 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
      * @return   string
      */
     public function _limit($sql, $limit, $offset)
-    {    
+    {
         if ($offset == 0)
         {
             $offset = '';
