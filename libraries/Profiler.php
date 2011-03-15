@@ -488,19 +488,6 @@ Class OB_Profiler {
                 $base_helpers .= $base_helper .', ';
             }
         }
-        
-        $loaded_helpers  = '';
-        foreach(profiler_get('loaded_helpers') as $loaded_helper) 
-        { 
-            if(strpos($loaded_helper, $helper_prefix) === 0)
-            {
-                $loaded_helpers .= str_replace($helper_prefix, "<span class='subhelper_prefix'>$helper_prefix</span>", $loaded_helper).'<br />';
-            } 
-            else 
-            {
-                $loaded_helpers .= $loaded_helper .', ';
-            }
-        }
                     
         $app_helpers  = '';
         foreach(loader::$_app_helpers as $app_helper) { $app_helpers .= $app_helper .'<br />'; }
@@ -545,7 +532,6 @@ Class OB_Profiler {
         
         $base_helpers   = (isset($base_helpers{2}))   ? $base_helpers : '-';
         $app_helpers    = (isset($app_helpers{2}))    ? $app_helpers : '-';
-        $loaded_helpers = (isset($loaded_helpers{2})) ? $loaded_helpers : '-';
         $helpers        = (isset($helpers{2}))        ? $helpers : '-';
         $libraries      = (isset($libraries{2}))      ? $libraries : '-';
         $models         = (isset($models{2}))         ? $models : '-';
@@ -558,9 +544,8 @@ Class OB_Profiler {
         $output .= "<tr><td class=\"td\">Config Files&nbsp;&nbsp;</td><td class=\"td_val\">".$config_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Lang Files&nbsp;&nbsp;</td><td class=\"td_val\">".$lang_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Base Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$base_helpers."</td></tr>";  
-        $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>";    
-        $output .= "<tr><td class=\"td\">Loaded Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$loaded_helpers."</td></tr>";    
-        $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$helpers."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>";  
+        $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$helpers."</td></tr>";
         $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";    
         $output .= "<tr><td class=\"td\">Models&nbsp;&nbsp;</td><td class=\"td_val\">".$models."</td></tr>";    
         $output .= "<tr><td class=\"td\">Databases&nbsp;&nbsp;</td><td class=\"td_val\">".$databases."</td></tr>";    

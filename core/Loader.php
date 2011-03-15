@@ -55,33 +55,25 @@ Class LoaderException extends CommonException {}
 Class OB_Loader {
 
     /**
-    * Prevent Duplication
-    * memory of the "local" helper files.
-    *
+    * Track "local" helper files.
     * @var array
     */
     public static $_helpers      = array();
 
     /**
-    * Prevent Duplication
-    * memory of the "base" helper files.
-    *
+    * Track "base" helper files.
     * @var array
     */
     public static $_base_helpers = array();
-
+    
     /**
-    * Prevent Duplication
-    * memory of the "application" helper files.
-    *
+    * Track "application" helper files.
     * @var array
     */
     public static $_app_helpers  = array();
 
     /**
-    * Prevent Duplication
-    * memory of the "external" files.
-    *
+    * Track "external" files.
     * @var array
     */
     public static $_files        = array();
@@ -494,6 +486,22 @@ Class OB_Loader {
     }
 
     // --------------------------------------------------------------------
+    
+    /**
+    * loader::core_helper();
+    * 
+    * Load the Obullo core helpers
+    * 
+    * @access   private
+    * @version  0.1
+    * @param    string $helper
+    */
+    public static function core_helper($helper)
+    {
+        self::base_helper($helper, TRUE);
+    }
+
+    // --------------------------------------------------------------------
 
     /**
     * loader::base_helper();
@@ -505,14 +513,16 @@ Class OB_Loader {
     * @version  0.3 added extend support for base helpers
     * @return   void
     */
-    public static function base_helper($helper)
+    public static function base_helper($helper, $core = FALSE)
     {
         if( isset(self::$_base_helpers[$helper]) )
         {
             return;
         }
                
-        if(file_exists(BASE .'helpers'. DS .$helper. EXT))
+        $core_path = ($core) ? 'core'. DS : '';
+               
+        if(file_exists(BASE .'helpers'. DS . $core_path . $helper. EXT))
         {
             $prefix = config_item('subhelper_prefix');
 
@@ -540,7 +550,7 @@ Class OB_Loader {
                 }
             }                             
                        
-            $module = $GLOBALS['d'];
+            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : 'undefined';
                        
             if($extension_helper_override)
             {
@@ -563,14 +573,16 @@ Class OB_Loader {
                 self::$_base_helpers[$prefix . $helper] = $prefix . $helper;
             }
 
-            include(BASE .'helpers'. DS .$helper. EXT);
+            include(BASE .'helpers'. DS .$core_path . $helper. EXT);
 
             self::$_base_helpers[$helper] = $helper;
 
             return;
         }
 
-        throw new LoaderException('Unable to locate the base helper: ' .$helper. EXT);
+        $type = ($core) ? 'core' : 'base';
+        
+        throw new LoaderException('Unable to locate the '.$type.' helper: ' .$helper. EXT);
     }
 
     // --------------------------------------------------------------------

@@ -366,6 +366,12 @@ function ob_autoload($real_name)
         require(BASE .'database'. DS .'drivers'. DS .$class.'_driver'. EXT);
         return;
     }
+    
+    if($real_name == 'Model' OR $real_name == 'ORM')
+    {
+        require(BASE .'core'. DS .$real_name. EXT);
+        return;
+    }
 
     $class = $real_name;
 
@@ -409,38 +415,6 @@ if( ! function_exists('lib'))
     {
         return base_register(strtolower($class), $new_object, $params_or_no_instance);
     }
-}
-
-// --------------------------------------------------------------------
-
-/**
-* Load system helpers
-*
-* @access   private
-* @param    mixed $filename
-* @param    mixed $folder
-*/
-function core_helper($helper)
-{
-    if(file_exists(BASE .'helpers'. DS .'core'. DS .$helper. EXT))
-    {
-        $prefix = config_item('subhelper_prefix');
-
-        if(file_exists(APP .'helpers'. DS .$prefix. $helper. EXT))  // If user helper file exist .. 
-        {
-            include(APP .'helpers'. DS .$prefix. $helper. EXT);
-            
-            profiler_set('loaded_helpers', $prefix . $helper, $prefix . $helper);
-        }
-
-        include(BASE .'helpers'. DS .'core'. DS .$helper. EXT);
-
-        profiler_set('loaded_helpers', $helper, $helper);
-        
-        return;
-    }
-
-    throw new CommonException('Unable to locate the core helper: ' .$helper. EXT);
 }
 
 // --------------------------------------------------------------------

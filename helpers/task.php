@@ -9,7 +9,6 @@ defined('BASE') or exit('Access Denied!');
  * @package         obullo
  * @author          obullo.com
  * @copyright       Ersin Guvenc (c) 2009.
- * @updated by         CJ Lazell
  * @license         public
  * @since           Version 1.0
  * @filesource
@@ -30,6 +29,7 @@ defined('BASE') or exit('Access Denied!');
 /**
 * Run Command Line Tasks
 *
+* @author CJ Lazell
 * @param  array $uri
 * @return void
 */

@@ -36,9 +36,9 @@ if( ! function_exists('ob_include_files'))
         require (BASE .'constants'. DS .'file'. EXT);
         require (APP  .'config'. DS .'constants'. EXT);  // Your constants ..
         require (BASE .'core'. DS .'Registry'. EXT);
-        require (BASE .'core'. DS .'Common'. EXT);      
-        require (BASE .'core'. DS .'Errors'. EXT);
-        
+        require (BASE .'core'. DS .'Common'. EXT);
+        require (BASE .'core'. DS .'Loader'. EXT);
+        require (APP  .'core'. DS .'Loader'. EXT);
     }
 }
 
@@ -47,14 +47,15 @@ if( ! function_exists('ob_include_files'))
 if( ! function_exists('ob_set_headers'))
 {
     function ob_set_headers()
-    {
-        if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }   // Kill magic quotes 
-            
-        if(config_item('log_threshold') > 0) core_helper('log');
+    {   
+        loader::core_helper('error');
         
-        core_helper('input');
-        core_helper('lang');
-        core_helper('benchmark');        
+        if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }   // Kill magic quotes 
+        if(config_item('log_threshold') > 0) { loader::core_helper('log'); } 
+        
+        loader::core_helper('input');
+        loader::core_helper('lang');
+        loader::core_helper('benchmark');        
     }
 }
 
@@ -129,10 +130,8 @@ if( ! function_exists('ob_system_run'))
             $arg_slice  = 3;
         }
         
-        require (BASE .'core'. DS .'Loader'. EXT);
-        require (APP  .'core'. DS .'Loader'. EXT);
-        require (BASE .'core'. DS .'Controller'. EXT);
-        require (BASE .'core'. DS .'Model'. EXT);
+        require (BASE .'core'. DS .'Controller'. EXT);  // We load Model File with a 'ob_autoload' function which is
+                                                        // located in obullo/core/common.php.
                                                                    
         benchmark_mark('loading_time_base_classes_end');  // Set a mark point for benchmarking  
         benchmark_mark('execution_time_( '.$page_uri.' )_start');  // Mark a start point so we can benchmark the controller 
@@ -168,8 +167,8 @@ if( ! function_exists('ob_system_run'))
             }
         }
         
-        // Call the requested method.                1       2       3
-        // Any URI segments present (besides the directory/class/method) 
+        //                                                                     0       1       2
+        // Call the requested method. Any URI segments present (besides the directory/class/method) 
         // will be passed to the method for convenience
         call_user_func_array(array($OB, $GLOBALS['m']), $arguments);
         
