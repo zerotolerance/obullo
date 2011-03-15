@@ -56,7 +56,6 @@ Class Model {
             } 
             else 
             {
-                $this->$db_var = NULL;
                 $this->$db_var = &$OB->$db_var;    
             }
         }
