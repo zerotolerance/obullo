@@ -46,7 +46,7 @@ Class OB_Pager
     
         $classname = 'Pager_' . $mode;
                                          
-        core_helper('driver');
+        loader::core_helper('driver');
                                             
         return driver_lib($folder = 'pager', $classname, $options);
     }

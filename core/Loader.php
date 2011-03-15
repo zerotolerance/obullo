@@ -554,7 +554,7 @@ Class OB_Loader {
                        
             if($extension_helper_override)
             {
-                if(is_extension($extension))  // if extension enabled .. 
+                if(is_extension($extension, $module))  // if extension enabled .. 
                 { 
                     $module = $extension;
                 }    
