@@ -35,7 +35,7 @@ define('OBULLO_VERSION', '1.0.1');
  *
  * @package         Obullo 
  * @subpackage      Obullo.core     
- * @category        Libraries
+ * @category        Core
  * @version         0.1
  * @version         0.2 added extends App_controller
  */

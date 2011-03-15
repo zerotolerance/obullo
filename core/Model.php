@@ -22,7 +22,7 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         Obullo 
  * @subpackage      Obullo.core     
- * @category        Libraries
+ * @category        Core Model
  * @version         0.1
  * @version         0.2 added extend to ob
  * @version         0.3 depreciated get_object_vars, added _assing_db_objects
@@ -50,7 +50,14 @@ Class Model {
         
         foreach(profiler_get('databases') as $db_name => $db_var)
         {
-            $this->$db_var = &$OB->$db_var;
+            if(method_exists($this, '__get') OR method_exists($this, '__set'))
+            {
+                $this->$db_var = $OB->$db_var;  // to prevent some reference errors
+            } 
+            else 
+            {
+                $this->$db_var = &$OB->$db_var;    
+            }
         }
     
     }
