@@ -262,6 +262,8 @@ Class OB_HMVC
         }
 
         $_SERVER['REQUEST_METHOD'] = $method;  // Set request method ..
+        $_SERVER['HMVC_REQUEST']     = TRUE;
+        $_SERVER['HMVC_REQUEST_URI'] = $this->uri_string;
     }
 
     // --------------------------------------------------------------------

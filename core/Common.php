@@ -551,9 +551,9 @@ function log_me($level = 'error', $message, $php_error = FALSE)
     {
         return;
     }
-               
-    log_write($level, $message, $php_error);
     
+    log_write($level, $message, $php_error);
+
     return;
 }
 
@@ -762,7 +762,6 @@ function is_extension($name = '', $current_module = '')
     if($name == '') return FALSE;
     
     $extensions = get_config('extensions');
-    $module     = ( $current_module != '') ? $current_module : $GLOBALS['d'];
     
     if(is_array($extensions))
     {
@@ -786,7 +785,7 @@ function is_extension($name = '', $current_module = '')
                             $enabled_extensions[$ext_key][$name] = $name;
                             return TRUE;
                         }
-                        elseif($ext_key == $module)   // If extension configured for current module.
+                        elseif($ext_key == $current_module)   // If extension configured for current module.
                         {
                             $enabled_extensions[$ext_key][$name] = $name;
                             return TRUE;
@@ -921,6 +920,85 @@ if( ! function_exists('_get_public_path') )
         return $full_path;
     }
 }
+
+//----------------------------------------------------------------------- 
+ 
+/**
+* 404 Page Not Found Handler
+*
+* @access   private
+* @param    string
+* @return   string
+*/
+if( ! function_exists('show_404')) 
+{
+    function show_404($page = '')
+    {   
+        log_me('error', '404 Page Not Found --> '.$page);
+        
+        echo show_http_error('404 Page Not Found', $page, 'ob_404', 404);
+
+        exit;
+    }
+}
+
+// -------------------------------------------------------------------- 
+
+/**
+* Manually Set General Http Errors
+* 
+* @param string $message
+* @param int    $status_code
+* @param int    $heading
+* 
+* @version 0.1
+* @version 0.2  added custom $heading params for users
+*/
+if( ! function_exists('show_error')) 
+{
+    function show_error($message, $status_code = 500, $heading = 'An Error Was Encountered')
+    {
+        log_me('error', 'HTTP Error --> '.$message);
+        
+        echo show_http_error($heading, $message, 'ob_general', $status_code);
+        
+        exit;
+    }
+}
+                   
+// --------------------------------------------------------------------
+
+/**
+ * General Http Errors
+ *
+ * @access   private
+ * @param    string    the heading
+ * @param    string    the message
+ * @param    string    the template name
+ * @param    int       header status code
+ * @return   string
+ */
+if( ! function_exists('show_http_error')) 
+{
+    function show_http_error($heading, $message, $template = 'ob_general', $status_code = 500)
+    {
+        set_status_header($status_code);
+
+        $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
+        
+        if(defined('CMD'))  // If Command Line Request
+        {
+            return '['.$heading.']: The url ' .$message. ' you requested was not found.'."\n";
+        }
+        
+        ob_start();
+        include(APP. 'core'. DS .'errors'. DS .$template. EXT);
+        $buffer = ob_get_clean();
+        
+        return $buffer;
+    }
+}
+
 
 // END Common.php File
 

@@ -224,7 +224,7 @@ Class OB_URI
             // will be parsed as a regex pattern
             if ( ! preg_match("|^[".str_replace(array('\\-', '\-'), '-', preg_quote(config_item('permitted_uri_chars'), '-'))."]+$|i", $str))
             {
-                show_error('The URI you submitted has disallowed characters.', 400);
+                show_404('The URI you submitted has disallowed characters.');
             }
         }
 

@@ -163,7 +163,7 @@ Class OB_Router {
                 }
                 else
                 {
-                    throw new RouterException('Unable to determine what should be displayed. A default route has not been specified in the routing file.');
+                    show_404('Unable to determine what should be displayed. A default route has not been specified in the routing file.');
                 }
             }
 

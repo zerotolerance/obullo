@@ -39,6 +39,11 @@ if( ! function_exists('ob_include_files'))
         require (BASE .'core'. DS .'Common'. EXT);
         require (BASE .'core'. DS .'Loader'. EXT);
         require (APP  .'core'. DS .'Loader'. EXT);
+        
+        if(config_item('log_threshold') > 0) 
+        { 
+            require(BASE .'helpers'. DS .'core'. DS .'log'. EXT); 
+        } 
     }
 }
 
@@ -48,14 +53,15 @@ if( ! function_exists('ob_set_headers'))
 {
     function ob_set_headers()
     {   
-        loader::core_helper('error');
-        
         if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }   // Kill magic quotes 
-        if(config_item('log_threshold') > 0) { loader::core_helper('log'); } 
         
+        core_register('URI');
+        core_register('Router');
+        
+        loader::core_helper('error');
         loader::core_helper('input');
         loader::core_helper('lang');
-        loader::core_helper('benchmark');        
+        loader::core_helper('benchmark');
     }
 }
 
