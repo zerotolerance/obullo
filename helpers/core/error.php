@@ -686,9 +686,6 @@ register_shutdown_function('Obullo_Shutdown_Handler');
 
 // Enable the Obullo shutdown handler, which catches E_FATAL errors.
 
-// restore_error_handler();
-// restore_exception_handler(); 
-
 // END error.php File
 
 /* End of file error.php */

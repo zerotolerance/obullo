@@ -92,9 +92,7 @@ if ( ! function_exists('current_url'))
 {
     function current_url()
     {
-        $ob = this();
-        
-	    return $ob->config->site_url($ob->uri->uri_string());
+	    return tihs()->config->site_url(this()->uri->uri_string());
     }
 }             
 // ------------------------------------------------------------------------
@@ -110,7 +108,16 @@ if ( ! function_exists('module'))
 {
     function module($uri = '')
     {        
-        return (string)$GLOBALS['d'] .'/'. ltrim($uri, '/');
+        if(isset($GLOBALS['d']))
+        {
+            $module = $GLOBALS['d'];
+        }
+        else
+        {
+            $module = core_register('Router')->fetch_directory();  
+        }
+        
+        return $module .'/'. ltrim($uri, '/');
     }
 }
 // ------------------------------------------------------------------------ 
