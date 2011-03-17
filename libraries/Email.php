@@ -375,7 +375,12 @@ class OB_Email {
     public function attach($filename, $disposition = 'attachment')
     {
         $this->_attach_name[] = $filename;
-        $this->_attach_type[] = $this->_mime_types(next(explode('.', basename($filename))));
+        
+        $file  = basename($filename);
+        $mimes = explode('.', $file);
+        $mimes = next($mimes);
+        
+        $this->_attach_type[] = $this->_mime_types($mimes);
         $this->_attach_disp[] = $disposition; // Can also be 'inline'  Not sure if it matters
     }
 
