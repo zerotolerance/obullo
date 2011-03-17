@@ -482,7 +482,9 @@ if( ! function_exists('_view_load_file'))
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
             
-            if(is_extension($modulename))
+            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_module();
+            
+            if(is_extension($modulename, $module))
             {
                 $extension = TRUE; 
             }

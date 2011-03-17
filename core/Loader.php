@@ -519,7 +519,7 @@ Class OB_Loader {
         {
             return;
         }
-               
+        
         $core_path = ($core) ? 'core'. DS : '';
                
         if(file_exists(BASE .'helpers'. DS . $core_path . $helper. EXT))
@@ -549,9 +549,9 @@ Class OB_Loader {
                     }
                 }
             }                             
-                       
-            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : 'undefined';
-                       
+            
+            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_register('Router')->fetch_directory();
+               
             if($extension_helper_override)
             {
                 if(is_extension($extension, $module))  // if extension enabled .. 
@@ -623,7 +623,7 @@ Class OB_Loader {
 
     public static function config($file, $use_sections = FALSE, $fail_gracefully = FALSE)
     {
-        this()->config->load($file, $use_sections, $fail_gracefully);
+        core_register('Config')->load($file, $use_sections, $fail_gracefully);
     }
 
     // --------------------------------------------------------------------

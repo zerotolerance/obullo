@@ -52,6 +52,8 @@ if ( ! function_exists('task_run'))
 
         if($debug)
         {
+            // @todo escapeshellcmd();
+            
             $output = shell_exec($shell);
             echo "<pre>$output</pre>";
 
@@ -59,6 +61,8 @@ if ( ! function_exists('task_run'))
         }
         else   // continious task
         {
+            // @todo escapeshellcmd();
+            
             shell_exec($shell.' > /dev/null &');
         }
 

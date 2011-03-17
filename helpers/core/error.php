@@ -54,7 +54,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
                 $errors = error_get_defined_errors();
                 $error  = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
                 
-                $http_request = i_server('HTTP_X_REQUESTED_WITH');
+                $http_request = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : '';
                  
                 if(is_numeric($level)) 
                 {
@@ -678,84 +678,6 @@ if( ! function_exists('error_get_allowed_errors'))
     }
 }
                
-//----------------------------------------------------------------------- 
- 
-/**
-* 404 Page Not Found Handler
-*
-* @access   private
-* @param    string
-* @return   string
-*/
-if( ! function_exists('show_404')) 
-{
-    function show_404($page = '')
-    {   
-        log_me('error', '404 Page Not Found --> '.$page);
-        
-        echo show_http_error('404 Page Not Found', $page, 'ob_404', 404);
-
-        exit;
-    }
-}
-
-// -------------------------------------------------------------------- 
-
-/**
-* Manually Set General Http Errors
-* 
-* @param string $message
-* @param int    $status_code
-* @param int    $heading
-* 
-* @version 0.1
-* @version 0.2  added custom $heading params for users
-*/
-if( ! function_exists('show_error')) 
-{
-    function show_error($message, $status_code = 500, $heading = 'An Error Was Encountered')
-    {
-        log_me('error', 'HTTP Error --> '.$message);
-        
-        echo show_http_error($heading, $message, 'ob_general', $status_code);
-        
-        exit;
-    }
-}
-                   
-// --------------------------------------------------------------------
-
-/**
- * General Http Errors
- *
- * @access   private
- * @param    string    the heading
- * @param    string    the message
- * @param    string    the template name
- * @param    int       header status code
- * @return   string
- */
-if( ! function_exists('show_http_error')) 
-{
-    function show_http_error($heading, $message, $template = 'ob_general', $status_code = 500)
-    {
-        set_status_header($status_code);
-
-        $message = implode('<br />', ( ! is_array($message)) ? array($message) : $message);
-        
-        if(defined('CMD'))  // If Command Line Request
-        {
-            return '['.$heading.']: The url ' .$message. ' you requested was not found.'."\n";
-        }
-        
-        ob_start();
-        include(APP. 'core'. DS .'errors'. DS .$template. EXT);
-        $buffer = ob_get_clean();
-        
-        return $buffer;
-    }
-}
-
 // --------------------------------------------------------------------                
   
 set_error_handler('Obullo_Error_Handler');   
@@ -763,9 +685,6 @@ set_exception_handler('Obullo_Exception_Handler');
 register_shutdown_function('Obullo_Shutdown_Handler');  
 
 // Enable the Obullo shutdown handler, which catches E_FATAL errors.
-
-// restore_error_handler();
-// restore_exception_handler(); 
 
 // END error.php File
 
