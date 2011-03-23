@@ -77,7 +77,7 @@ Class OB_URI
     */
     public function set_uri_string($uri = '')
     {
-        $this->uri_string = $this->_parse_request_extension($uri);
+        $this->uri_string = $this->_parse_segment_extension($uri);
     }
 
     // --------------------------------------------------------------------
