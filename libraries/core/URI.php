@@ -33,7 +33,7 @@ Class OB_URI
     public $rsegments   = array();
 
     public $cache_time  = '';  // HMVC library just use this variable.
-    public $extension   = '';
+    public $extension   = 'php';
 
     /**
     * Constructor
@@ -65,7 +65,7 @@ Class OB_URI
         $this->segments   = array();
         $this->rsegments  = array();
         $this->cache_time = '';
-        $this->extension  = '';
+        $this->extension  = 'php';
     }
 
     // --------------------------------------------------------------------
@@ -77,7 +77,7 @@ Class OB_URI
     */
     public function set_uri_string($uri = '')
     {
-        $this->uri_string = $this->_parse_segment_extension($uri);
+        $this->uri_string = $uri;
     }
 
     // --------------------------------------------------------------------
