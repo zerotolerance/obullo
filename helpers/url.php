@@ -92,7 +92,7 @@ if ( ! function_exists('current_url'))
 {
     function current_url()
     {
-	    return tihs()->config->site_url(this()->uri->uri_string());
+	    return this()->config->site_url(this()->uri->uri_string());
     }
 }             
 // ------------------------------------------------------------------------
