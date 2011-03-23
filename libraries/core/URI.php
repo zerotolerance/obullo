@@ -175,7 +175,7 @@ Class OB_URI
 
         $request_uri = preg_replace("|/(.*)|", "\\1", str_replace("\\", "/", $_SERVER['REQUEST_URI']));
         $request_uri = $this->_parse_request_extension($request_uri);
-        
+
         if ($request_uri == '' OR $request_uri == SELF)
         {
             return '';
@@ -209,34 +209,34 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
-    * Parse uri for controller for file 
+    * Parse uri for controller for file
     * extensions
-    * 
+    *
     * @param  string $request_uri
     * @return string
     */
     public function _parse_request_extension($request_uri)
     {
-        preg_match('/.+\.(\w+)(?:\/|)$/', $request_uri, $matches);
+        preg_match('/.+\.([\w\d\_]+)(?:\/(?:[\w\d\_]*?)|)$/', $request_uri, $matches);
         // preg_match('/(?:\/.+?)(?:\.)([\w\_\d]+?)(?=(?:\?|$))/', $request_uri, $matches);
-        
+
         $this->extension = 'php';
-    
-        if(count($matches) > 1) 
+
+        if(count($matches) > 1)
         {
             $this->extension = end($matches);
         }
-        
-        return str_replace('.'.$this->extension, '', $request_uri); 
+
+        return str_replace('.'.$this->extension, '', $request_uri);
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
     * Get extension of uri
-    * 
+    *
     * @return  string
     */
     public function extension()
@@ -245,10 +245,10 @@ Class OB_URI
         {
             return $this->extension;
         }
-        
+
         return(NULL);
     }
-    
+
     // --------------------------------------------------------------------
 
     /**
