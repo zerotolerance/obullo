@@ -75,7 +75,7 @@ Class OB_URI
     */
     public function set_uri_string($uri = '')
     {
-        $this->uri_string = $uri;
+        $this->uri_string = $this->_parse_request_extension($uri);
     }
 
     // --------------------------------------------------------------------
@@ -139,10 +139,12 @@ Class OB_URI
             if ($uri == 'REQUEST_URI')
             {
                 $this->uri_string = $this->_parse_request_uri();
+                $this->uri_string = $this->_parse_request_extension($this->uri_string);
                 return;
             }
 
             $this->uri_string = (isset($_SERVER[$uri])) ? $_SERVER[$uri] : @getenv($uri);
+            $this->uri_string = $this->_parse_request_extension($this->uri_string);
         }
 
         // If the URI contains only a slash we'll kill it
@@ -172,7 +174,8 @@ Class OB_URI
         }
 
         $request_uri = preg_replace("|/(.*)|", "\\1", str_replace("\\", "/", $_SERVER['REQUEST_URI']));
-
+        $request_uri = $this->_parse_request_extension($request_uri);
+        
         if ($request_uri == '' OR $request_uri == SELF)
         {
             return '';
@@ -205,6 +208,47 @@ Class OB_URI
         return $parsed_uri;
     }
 
+    // --------------------------------------------------------------------
+    
+    /**
+    * Parse uri for controller for file 
+    * extensions
+    * 
+    * @param  string $request_uri
+    * @return string
+    */
+    public function _parse_request_extension($request_uri)
+    {
+        preg_match('/.+\.(\w+)(?:\/|)$/', $request_uri, $matches);
+        // preg_match('/(?:\/.+?)(?:\.)([\w\_\d]+?)(?=(?:\?|$))/', $request_uri, $matches);
+        
+        $this->extension = 'php';
+    
+        if(count($matches) > 1) 
+        {
+            $this->extension = end($matches);
+        }
+        
+        return str_replace('.'.$this->extension, '', $request_uri); 
+    }
+
+    // --------------------------------------------------------------------
+    
+    /**
+    * Get extension of uri
+    * 
+    * @return  string
+    */
+    public function extension()
+    {
+        if(isset($this->extension))
+        {
+            return $this->extension;
+        }
+        
+        return(NULL);
+    }
+    
     // --------------------------------------------------------------------
 
     /**
