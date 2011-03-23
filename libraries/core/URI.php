@@ -33,6 +33,7 @@ Class OB_URI
     public $rsegments   = array();
 
     public $cache_time  = '';  // HMVC library just use this variable.
+    public $extension   = '';
 
     /**
     * Constructor
@@ -64,6 +65,7 @@ Class OB_URI
         $this->segments   = array();
         $this->rsegments  = array();
         $this->cache_time = '';
+        $this->extension  = '';
     }
 
     // --------------------------------------------------------------------
@@ -139,12 +141,10 @@ Class OB_URI
             if ($uri == 'REQUEST_URI')
             {
                 $this->uri_string = $this->_parse_request_uri();
-                $this->uri_string = $this->_parse_request_extension($this->uri_string);
                 return;
             }
 
             $this->uri_string = (isset($_SERVER[$uri])) ? $_SERVER[$uri] : @getenv($uri);
-            $this->uri_string = $this->_parse_request_extension($this->uri_string);
         }
 
         // If the URI contains only a slash we'll kill it
@@ -174,7 +174,6 @@ Class OB_URI
         }
 
         $request_uri = preg_replace("|/(.*)|", "\\1", str_replace("\\", "/", $_SERVER['REQUEST_URI']));
-        $request_uri = $this->_parse_request_extension($request_uri);
 
         if ($request_uri == '' OR $request_uri == SELF)
         {
@@ -209,7 +208,7 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
-
+    
     /**
     * Parse uri for controller for file
     * extensions
@@ -217,19 +216,24 @@ Class OB_URI
     * @param  string $request_uri
     * @return string
     */
-    public function _parse_request_extension($request_uri)
+    public function _parse_segment_extension($segment)
     {
-        preg_match('/.+\.([\w\d\_]+)(?:\/(?:[\w\d\_]*?)|)$/', $request_uri, $matches);
-        // preg_match('/(?:\/.+?)(?:\.)([\w\_\d]+?)(?=(?:\?|$))/', $request_uri, $matches);
-
-        $this->extension = 'php';
-
+        static $matched = FALSE;
+        
+        if($matched)
+        {
+            return $segment;
+        }
+            
+        preg_match('/.+\.([\w\d\_]+)(?:\/(?:[\w\d\_]*?)|)$/', $segment, $matches);
+        
         if(count($matches) > 1)
         {
             $this->extension = end($matches);
+            $matched = TRUE;
         }
-
-        return str_replace('.'.$this->extension, '', $request_uri);
+            
+        return str_replace('.'.$this->extension, '', $segment);
     }
 
     // --------------------------------------------------------------------
@@ -313,7 +317,7 @@ Class OB_URI
 
             if ($val != '')
             {
-                $this->segments[] = $val;
+                $this->segments[] = $this->_parse_segment_extension($val);
             }
         }
     }
@@ -332,13 +336,13 @@ Class OB_URI
      */
     public function _reindex_segments()
     {
-      /////////////
-      //
-      // THIS SEEMS TO BREAK A LOT OF STUFF
-      // I REMOVED IT AND EVERYTHING WORKS MUCH BETTER
-      // IN ROUTES.
-      //
-      ////////////
+        /////////////
+        //
+        // THIS SEEMS TO BREAK A LOT OF STUFF
+        // I REMOVED IT AND EVERYTHING WORKS MUCH BETTER
+        // IN ROUTES.
+        //
+        ////////////
         // array_unshift($this->segments, NULL);
         // array_unshift($this->rsegments, NULL);
         // unset($this->segments[0]);
