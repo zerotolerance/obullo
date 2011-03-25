@@ -107,24 +107,12 @@ Class OB_Exception {
         $errors = error_get_defined_errors();
         $error  = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
         
-        $http_request = i_server('HTTP_X_REQUESTED_WITH');
-         
         if(is_numeric($level)) 
         {
             switch ($level) 
-            {              
-               case -1: return; break; 
+            {               
                case  0: return; break; 
-               case  1:
-               if($http_request == 'XMLHttpRequest')  // Ajax Friendly Errors Errors
-               {
-                   echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";    
-               }
-               else
-               {
-                   echo $error_msg;
-               }   
-               return; break;
+               case  1: echo $error_msg; return; break;
             }   
         }       
                          
@@ -136,15 +124,8 @@ Class OB_Exception {
         }
         
         if(in_array($error, error_get_allowed_errors($rules), TRUE))
-        { 
-           if($http_request == 'XMLHttpRequest')  // Ajax Friendly Errors Errors
-           {
-               echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";    
-           }
-           else
-           {
-               echo $error_msg;
-           }   
+        {
+            echo $error_msg; 
         }
     }
 

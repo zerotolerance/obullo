@@ -53,26 +53,13 @@ if( ! function_exists('Obullo_Exception_Handler'))
                 $sql    = array();
                 $errors = error_get_defined_errors();
                 $error  = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
-                
-                $http_request = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : '';
-                 
+
                 if(is_numeric($level)) 
                 {
                     switch ($level) 
                     {              
-                       case -1: return; break; 
                        case  0: return; break; 
-                       case  1:
-                       if($http_request == 'XMLHttpRequest')  // Ajax Friendly Errors
-                       {
-                           echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";   
-                       }
-                       else
-                       {
-                           include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
-                       }   
-                       return;
-                       break;
+                       case  1: include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT); return; break;
                     }   
                 }       
                                  
@@ -84,15 +71,8 @@ if( ! function_exists('Obullo_Exception_Handler'))
                 }
                 
                 if(in_array($error, error_get_allowed_errors($rules), TRUE))
-                { 
-                    if($http_request == 'XMLHttpRequest')  // Ajax friendly errors
-                    {
-                        echo $type .': '. $e->getMessage(). ' File: ' .$e->getFile(). ' Line: '. $e->getLine(). "\n";    
-                    }
-                    else
-                    {
-                        include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
-                    }
+                {
+                    include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
                 }
             }
             else  // If error_reporting = 0, we show a blank page template.
