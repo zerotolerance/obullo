@@ -314,8 +314,7 @@ Class OB_Config
     
         return $this->slash_item('base_url');
     }
-    
-    
+
     // --------------------------------------------------------------------
     
     /**
@@ -353,7 +352,7 @@ Class OB_Config
     * @access    public
     * @return    string
     */
-    function base_folder()
+    public function base_folder()
     {
         $x = explode("/", preg_replace("|/*(.+?)/*$|", "\\1", trim(BASE, DS)));
         return $this->base_url() . end($x).'/';
@@ -370,6 +369,20 @@ Class OB_Config
     * @return   void
     */
     public function set_item($item, $value)
+    {
+        echo 'This function deprecated please use $this->config->set() function !';
+    }
+    
+    /**
+    * Set a config file item
+    * alias of config_item we will deprecicate it later.
+    *
+    * @access   public
+    * @param    string    the config item key
+    * @param    string    the config item value
+    * @return   void
+    */
+    public function set($item, $value)
     {
         $this->config[$item] = $value;
     }

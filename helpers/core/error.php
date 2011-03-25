@@ -104,7 +104,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
              
         } 
         else  // Is It Exception ?
-        {   
+        {             
             $exception = base_register('Exception');
             
             if(is_object($exception)) 

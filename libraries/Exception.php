@@ -44,6 +44,14 @@ Class OB_Exception {
         $type = ($type != '') ? ucwords(strtolower($type)) : 'Exception Error';
         $sql  = array();
         
+        // If user want to close error_reporting in some parts of the application.
+        //-----------------------------------------------------------------------  
+        if(core_register('Config')->item('error_reporting') == '0')
+        {
+            log_me('debug', 'You closed the error_reporting.');
+            return;
+        }
+        
         // Database Errors
         //-----------------------------------------------------------------------
         if(substr($e->getMessage(),0,3) == 'SQL') 
