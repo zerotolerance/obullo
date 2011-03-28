@@ -28,7 +28,7 @@ if( ! function_exists('_sess_start') )
         }
 
         // _unserialize func. use strip_slashes() func.
-        loader::base_helper('string');
+        loader::helper('ob/string');
 
         $_ob->session->now = _get_time();
 

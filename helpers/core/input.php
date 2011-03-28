@@ -156,7 +156,7 @@ if( ! function_exists('_clean_input_data') )
         // Should we filter the input data?
         if ($_ob->input->use_xss_clean === TRUE)
         {
-            loader::base_helper('security');
+            loader::helper('ob/security');
             
             $str = xss_clean($str);
         }
@@ -219,7 +219,7 @@ if( ! function_exists('_fetch_from_array') )
 
         if ($xss_clean === TRUE)
         {
-            loader::base_helper('security');
+            loader::helper('ob/security');
             
             return xss_clean($array[$index]);
         }

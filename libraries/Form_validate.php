@@ -43,7 +43,7 @@ Class OB_Form_validate {
         $this->_config_rules = $rules;
         
         // Automatically load the form helper
-        loader::base_helper('form');
+        loader::helper('ob/form');
             
         // Set the character encoding in MB.
         if (function_exists('mb_internal_encoding'))
@@ -1219,7 +1219,7 @@ Class OB_Form_validate {
      */    
     public function strip_image_tags($str)
     {
-        loader::base_helper('security');
+        loader::helper('ob/security');
         
         return strip_image_tags($str);
     }
@@ -1235,7 +1235,7 @@ Class OB_Form_validate {
      */    
     public function xss_clean($str)
     {
-        loader::base_helper('security');
+        loader::helper('ob/security');
         
         return xss_clean($str);
     }

@@ -199,8 +199,15 @@ if( ! function_exists('Obullo_Shutdown_Handler'))
 */
 if( ! function_exists('error_secure_path')) 
 {
-    function error_secure_path($file)
+    function error_secure_path($file, $search_paths = FALSE)
     {
+        if($search_paths)
+        {
+            $replace = array('APP'. DS, 'BASE'. DS, 'MODULES'. DS, 'ROOT'. DS);
+            
+            return str_replace(array(APP, BASE, MODULES, ROOT), $replace, $file);
+        }
+        
         if (strpos($file, APP) === 0)
         {
             $file = 'APP'. DS . substr($file, strlen(APP));

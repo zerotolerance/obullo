@@ -51,7 +51,7 @@ Class OB_Cart {
             }
         }
 
-        loader::base_helper('session');
+        loader::helper('ob/session');
         
         sess_start($params);   
          

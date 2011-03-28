@@ -88,7 +88,7 @@ Class OB_Exception {
         
         // Load Error Template
         //-----------------------------------------------------------------------
-        loader::base_helper('view');
+        loader::helper('ob/view');
         
         $data['e']    = $e;
         $data['sql']  = $sql;

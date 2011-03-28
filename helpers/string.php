@@ -234,7 +234,7 @@ if( ! function_exists('random_string') )
               break;
             case 'encrypt'    : 
             case 'sha1'       : 
-                        loader::base_helper('security');
+                        loader::helper('ob/security');
         
                         return do_hash(uniqid(mt_rand(), TRUE), 'sha1');
               break;

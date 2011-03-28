@@ -794,7 +794,7 @@ Class OB_Upload {
      */    
     public function do_xss_clean()
     {        
-        loader::base_helper('security');
+        loader::helper('ob/security');
         
         $file = $this->upload_path.$this->file_name;
         

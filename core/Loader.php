@@ -17,37 +17,6 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Loader Class (Obullo Loader) (c) 2009 - 2010
  * Load Obullo library, model, config, lang and any other files ...
- *
- * @version         0.1
- * @version         0.2 added model and load db function
- * @version         0.3 added static properties for database(),model(),library()
- *                      added load_DB variable (Model database load on/off).
- *                      added asn_to_models(),helper(),dir()
- * @version         0.4 renamed static functions ob::instance(),ob::register()..
- *                  added static param to library func.Added __construct support
- *                  to library.
- * @version         0.5 changed directory structure added $GLOBALS['d'] (directory)
- * @version         0.6 loader::database() and libraries _asn_lib() instanceof problem fixed.
- * @version         0.7 added base(), _library(), base_helper(), base_view() functions.
- * @version         0.8 added js(), base_js(), script(), base_script() functions.Removed dir() function.
- * @version         0.9 added __autoloader() functionality, moved __autoloader to User.php
- * @version         1.0 added loader::css(), loader::base_css()
- * @version         1.1 renamed base "libraries" folder as base
- * @version         1.2 added loader::script(, $compress = true) functionality, added views/base_views folder
- * @version         1.3 added js compression, removed Library class functions
- * @version         1.4 removed compress, moved all view functions to Content class.
- * @version         1.5 database function changes, added _assign_db_objects func, removed old funcs.
- * @version         1.6 database function changes, changed DBFactory, added loader::_model object_name var
- *                  and $params support for model files.
- * @version         1.7 added $x_helpers .. private static vars and added self::$_x_helpers static functions.
- * @version         1.8 updated db functions, @deprecated register_static(),
- *                      we use spl_autoload_register() func. because of performance :), added loader::file() func.
- * @version         1.9 added profiler class Ssc::instance()->_profiler_ functions.
- * @version         2.0 loader::model('blog/model_filename'); bug fixed.
- * @version         2.1 added profiler_set(); functions and removed old $ssc->_profiler_ variables, renamed OB_DBFactory::init()
- *                      func as OB_DBFactory::Connect in loader::database();
- * @version         2.2 added  app_model and model('../outside_folder/model_name') and model('subfolder/model_name') support
- *                      added  app_helper and helper('../outside_folder/helper_name') - helper('subfolder/helper_name') support
  */
 
 Class LoaderException extends CommonException {}
@@ -91,6 +60,21 @@ Class OB_Loader {
     */
     public static function lib($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
     {
+        if(strpos($class, 'ob/') === 0)
+        {                              
+            return lib(substr($class, 3), $params_or_no_ins, $new_instance);
+        }
+        
+        if(strpos($class, 'app/') === 0)
+        {
+            return self::app_lib(substr($class, 4), $params_or_no_ins, $object_name, $new_instance); 
+        }
+        
+        if(strpos($class, 'ext/') === 0)
+        {
+            return self::ext(substr($class, 4), $params_or_no_ins, $object_name, $new_instance);
+        }
+        
         self::_library($class, $params_or_no_ins, $object_name, $new_instance);
     }
 
@@ -139,11 +123,7 @@ Class OB_Loader {
     * @param    string $class class name
     * @param    array | boolean $params_or_no_ins __construct() params  | or | No Instantiate
     * @param    boolean $new_instance create new instance
-    *  
-    * @version  0.1
-    * @version  0.2  added register_static functions
-    * @version  0.3  removed class_exists, removed asn_to_models()
-    * @version  0.4  added profiler_set() func.
+    *
     * @return   void
     */
     private static function _library($class, $params_or_no_ins = '', $object_name = '', $new_instance = FALSE, $app_folder = FALSE, $ext = FALSE)
@@ -248,22 +228,15 @@ Class OB_Loader {
     * @param     string $model
     * @param     string $object_name
     * @param     array | boolean $params (construct params) | or | Not Instantiate just include file
-    * @param     boolean $new_instance create new instance 
-    * @version   0.1
-    * @version   0.2 added directory support
-    * @version   0.3 changed $GLOBALS['c'] as $GLOBALS['d']
-    * @version   0.4 removed old current path support added
-    *                new model directory structure support
-    * @version   0.5 added multiple load support
-    * @version   0.5 added $object_name and $params variables
-    * @version   0.6 changed $params as $params_or_no_ins
-    * @version   0.7 loading from another path bug fixed. added 'models' string and DS.
-    * @version   0.8 added  model('.outside_folder/model_name') and model('subfolder/model_name') support
-    * @version   0.9 added $new_instance variable, user can create new instance for each models.
     * @return    void
     */
     public static function model($model, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
     {
+        if(strpos($model, 'app/') === 0)
+        {
+            return loader::app_model(substr($model, 4), $object_name, $params_or_no_ins, $new_instance);
+        }
+        
         $data = self::_load_file($model, $folder = 'models', FALSE);
 
         self::_model($data['file'], $data['file_name'], $object_name, $params_or_no_ins, $new_instance);
@@ -342,21 +315,6 @@ Class OB_Loader {
     * @param    mixed $db_name for manual connection
     * @param    boolean $return_object return to db object switch
     * @param    boolean $use_active_record active record switch
-    * @version  0.1
-    * @version  0.2 multiple models load::database function support.
-    *               Loading model inside again model bug fixed.
-    * @version  0.3 Deprecated debug_backtrace(); function
-    *               added asn_to_libraries();, asn_to_models();
-    * @version  0.4 added DBFactory() Actice Record Switch
-    *               added $ac param.
-    *
-    * @version  0.5 added $db_name param for multiple connection
-    * @version  0.6 @deprecated asn_to_models();, removed unecessarry functions.
-    *               added self::_assign_db_objects() func.
-    * @version  0.7 changed DBFactory, moved db_var into DBFactory
-    * @version  0.8 changed DBFactory class as static, added $return_object param
-    * @version  0.9 renamed OB_DBFactory::init() func as OB_DBFactory::Connect()
-    * @version  1.0 added profiler_set('databases') function, added $use_active_record
     * @return   void
     */
     public static function database($db_name = 'db', $return_object = FALSE, $use_active_record = TRUE)
@@ -405,11 +363,7 @@ Class OB_Loader {
     *
     * loader::app_helper('subfolder/helper_name')  local sub folder load
     * loader::app_helper('../outside_folder/helper_name')  outside directory load
-    *
-    * @version  0.1
-    * @version  0.2 added self::$_app_helpers static var
-    * @version  0.3 added loader::app_helper('subfolder/helper_name') and
-    *               loader::app_helper('.outside_folder/helper_name') support
+    * 
     * @param    string $helper
     */
     public static function app_helper($helper)
@@ -448,17 +402,20 @@ Class OB_Loader {
     *
     * @author   Ersin Guvenc
     * @param    string $helper
-    * @version  0.1
-    * @version  0.2 changed $GLOBALS['c'] as $GLOBALS['d']
-    * @version  0.3 changed base helper functionality as base_helper()
-    * @version  0.4 added multiple helper load functionality
-    * @version  0.5 added self::$_helpers static var
-    * @version  0.6 loader::helper('subfolder/helper_name')  local sub folder load support
-    *               loader::helper('.outside_folder/helper_name')  outside directory  load support
     * @return   void
     */
     public static function helper($helper, $func = 'helper', $is_extension = FALSE)
     {
+        if(strpos($helper, 'ob/') === 0)
+        {
+            return loader::base_helper(substr($helper, 3));
+        }
+        
+        if(strpos($helper, 'app/') === 0)
+        {
+            return loader::app_helper(substr($helper, 4));
+        }
+        
         if( isset(self::$_helpers[$helper]) )
         {
             return;
@@ -493,7 +450,6 @@ Class OB_Loader {
     * Load the Obullo core helpers
     * 
     * @access   private
-    * @version  0.1
     * @param    string $helper
     */
     public static function core_helper($helper)
@@ -508,9 +464,6 @@ Class OB_Loader {
     *
     * @author   Ersin Guvenc
     * @param    string $helper
-    * @version  0.1
-    * @version  0.2 added self::$_base_helpers static var
-    * @version  0.3 added extend support for base helpers
     * @return   void
     */
     public static function base_helper($helper, $core = FALSE)
@@ -602,6 +555,11 @@ Class OB_Loader {
 
     public static function lang($file, $folder = '', $return = FALSE)
     {
+        if(strpos($file, 'ob/') === 0)
+        {
+            return self::base_lang(substr($file, 3), $folder, $return);
+        }
+        
         lang_load($file, $folder, NULL, $return);
     }
 
@@ -633,10 +591,6 @@ Class OB_Loader {
     *
     * @access   public
     * @param    string $file filename
-    * @version  0.1
-    * @version  0.2  added storing files to profiler class functionality.
-    *                removed EXT constant
-    * @version  0.3  added profiler set func.
     * @return   void
     */
     public static function file($path, $string = FALSE, $ROOT = APP)
@@ -763,13 +717,6 @@ Class OB_Loader {
     *
     * @author  Ersin Guvenc
     * @param   string $db_var
-    *
-    * @version 0.1
-    * @version 0.2  @deprecated old functions, we assign
-    *               just db objects ..
-    * @version 0.3  changed ob::instance()->_mods as
-    *               Ssc::instance()->_profiler_mods;
-    * @version 0.4  added profiler_get func.
     * @return  void
     */
     private static function _assign_db_objects($db_var = '')

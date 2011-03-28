@@ -384,7 +384,7 @@ Class OB_Zip {
             $filename .= '.zip';
         }
         
-        loader::base_helper('download');
+        loader::helper('ob/download');
 
         $get_zip = $this->get_zip();
 

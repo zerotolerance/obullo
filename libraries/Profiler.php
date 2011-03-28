@@ -31,7 +31,7 @@ Class OB_Profiler {
      public function __construct()
      {
          lang_load('profiler', '', 'base');
-         loader::base_helper('view');
+         loader::helper('ob/view');
      }
      
     // --------------------------------------------------------------------
@@ -164,7 +164,7 @@ Class OB_Profiler {
         }
         
         // Load the text helper so we can highlight the SQL
-        loader::base_helper('text');
+        loader::helper('ob/text');
 
         // Key words we want bolded
         $highlight = array('SELECT', 'DISTINCT', 'FROM', 'WHERE', 'AND', 'LEFT&nbsp;JOIN', 'ORDER&nbsp;BY', 'GROUP&nbsp;BY', 'LIMIT', 'INSERT', 'INTO', 'VALUES', 'UPDATE', 'OR', 'HAVING', 'OFFSET', 'NOT&nbsp;IN', 'IN', 'LIKE', 'NOT&nbsp;LIKE', 'COUNT', 'MAX', 'MIN', 'ON', 'AS', 'AVG', 'SUM', '(', ')');

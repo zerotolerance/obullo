@@ -27,7 +27,7 @@ if( ! function_exists('_sess_start') )
         }
 
         // _unserialize func. use strip_slashes() func. We can add it later if we need it in Native Library. ?
-        // loader::base_helper('string');
+        // loader::helper('ob/string');
                 
         if($_ob->session->sess_die_cookie)
         {

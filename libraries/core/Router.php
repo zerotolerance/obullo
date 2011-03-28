@@ -547,7 +547,7 @@ Class OB_Router {
     */
     public function forward($uri, $method = 'GET', $no_loop = FALSE)
     {
-        loader::base_helper('request');
+        loader::helper('ob/request');
         
         $params = $_GET;
         if($method == 'POST')
