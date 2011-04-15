@@ -136,9 +136,9 @@ if( ! function_exists('ob_system_run'))
             
             if(defined('CMD'))  // call /app/tasks controller
             {
-                if(file_exists(APP .'tasks'. DS .'controllers'. DS .$GLOBALS['c']. EXT))
+                if(file_exists(APP .'tasks'. DS .$GLOBALS['c']. EXT))
                 {
-                    $controller = APP .'tasks'. DS .'controllers'. DS .$GLOBALS['c']. EXT;
+                    $controller = APP .'tasks'. DS .$GLOBALS['c']. EXT;
                 }
             }
             
