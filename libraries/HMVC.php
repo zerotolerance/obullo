@@ -354,8 +354,10 @@ Class OB_HMVC
         {
             $hmvc_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
 
+            $controller = MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
+            
             // Check the sub controller exists or not
-            if ( ! file_exists(MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT))
+            if ( ! file_exists($controller))
             {
                 $this->set_response('404 - Hmvc request not found: '.$hmvc_uri);
 
@@ -364,7 +366,6 @@ Class OB_HMVC
                 return $this;
             }
 
-            $controller = MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
             $arg_slice  = 4;
 
             // Call the requested method.                1        2       3       4
@@ -374,8 +375,10 @@ Class OB_HMVC
         {
             $hmvc_uri = "{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
 
+            $controller = MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
+            
             // Check the controller exists or not
-            if ( ! file_exists(MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT))
+            if ( ! file_exists($controller))
             {
                 $this->set_response('Hmvc unable to load your controller. Check your routes in Routes.php file is valid.');
 
@@ -383,8 +386,7 @@ Class OB_HMVC
 
                 return $this;
             }
-
-            $controller = MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
+            
             $arg_slice  = 3;
         }
 

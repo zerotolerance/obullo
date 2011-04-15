@@ -290,24 +290,39 @@ Class OB_Router {
             }
         }                 
                                         
-        if (is_dir(MODULES . $segments[0]))  // Check module
+        if (is_dir(MODULES . $segments[0]) OR defined('CMD'))  // Check module
         {
+            $ROOT = MODULES;
             $this->set_directory($segments[0]);
+            
+            if(defined('CMD'))  // if command line
+            {
+                $this->set_directory('tasks');
+            }
 
             if( ! empty($segments[1]))
             {
                 //----------- SUB FOLDER SUPPORT ----------//
-
-                if(is_dir(MODULES . $this->fetch_directory() . DS .$folder. DS .$segments[1]))   // If there is a subfolder ?
+                
+                if(defined('CMD'))
+                {
+                    if(is_dir(APP . $this->fetch_directory() . DS .'controllers'. DS .$segments[1]))
+                    {
+                        $ROOT   = APP;
+                        $folder = 'controllers';
+                    }
+                }
+                
+                if(is_dir($ROOT . $this->fetch_directory() . DS .$folder. DS .$segments[1]))   // If there is a subfolder ?
                 {
                     $this->set_subfolder($segments[1]);
 
                     if( ! isset($segments[2])) return $segments;
 
-                    if (is_dir(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder()))
+                    if (is_dir($ROOT .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder()))
                     {
-                        if( file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$this->fetch_subfolder(). EXT)
-                            AND ! file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$segments[2]. EXT))
+                        if( file_exists($ROOT .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$this->fetch_subfolder(). EXT)
+                            AND ! file_exists($ROOT .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$segments[2]. EXT))
                         {
                             array_unshift($segments, $this->fetch_directory());
                         }
@@ -327,15 +342,33 @@ Class OB_Router {
                 }
                 else
                 {
-                    if (file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$segments[1]. EXT))
+                    if(defined('CMD'))
+                    {
+                        if(file_exists(APP .$this->fetch_directory(). DS .'controllers'. DS .$segments[1]. EXT))
+                        {
+                            $ROOT   = APP;
+                            $folder = 'controllers';
+                        }
+                    }
+                    
+                    if (file_exists($ROOT .$this->fetch_directory(). DS .$folder. DS .$segments[1]. EXT))
                     {
                         return $segments; 
                     }
                 }
             }
 
+            if(defined('CMD'))
+            {
+                if(file_exists(APP .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_directory(). EXT))
+                {
+                    $ROOT   = APP;
+                    $folder = 'controllers';
+                }
+            }
+            
             // Merge Segments
-            if (file_exists(MODULES .$this->fetch_directory(). DS .$folder. DS .$this->fetch_directory(). EXT))
+            if (file_exists($ROOT .$this->fetch_directory(). DS .$folder. DS .$this->fetch_directory(). EXT))
             {
                 array_unshift($segments, $this->fetch_directory());
 

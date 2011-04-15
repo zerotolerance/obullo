@@ -403,7 +403,7 @@ if ( ! function_exists('load_view'))
                             // iphone, blackberry etc..
             }
 
-            throw new ViewException('Unable locate the '.$func.' file: '. $filename . EXT);
+            throw new ViewException('Unable locate the '.$func.' file: '. $path . $filename . EXT);
         }
 				
         if( empty($data) ) $data = array();
@@ -482,7 +482,7 @@ if( ! function_exists('_view_load_file'))
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
             
-            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_module();
+            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_register('Router')->fetch_directory();
             
             if(is_extension($modulename, $module))
             {

@@ -93,8 +93,8 @@ if( ! function_exists('ob_system_run'))
         
         if(defined('CMD'))  // Command Line Request
         {                
-            if($GLOBALS['d'] != 'tasks')
-            {                      
+            if($GLOBALS['d'] != 'tasks')    // Check module and application folders.
+            {                                      
                 if(is_dir(MODULES .$GLOBALS['d']. DS .'tasks'))
                 {
                     $folder = 'tasks';
@@ -106,15 +106,23 @@ if( ! function_exists('ob_system_run'))
         {
             $page_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
             
-            // Check the sub controller exists or not
-            if ( ! file_exists(MODULES .$GLOBALS['d']. DS .$folder. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT))
+            $controller = MODULES .$GLOBALS['d']. DS .$folder. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
+            
+            if(defined('CMD')) // call /app/tasks controller
+            {
+                if(file_exists(APP .'tasks'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT))
+                {
+                    $controller = APP .'tasks'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
+                }
+            }
+            
+            if ( ! file_exists($controller))  // Check the sub controller exists or not
             {
                 if(config_item('enable_query_strings') === TRUE) show_404();
                 
                 show_404($page_uri);
             }
             
-            $controller = MODULES .$GLOBALS['d']. DS .$folder. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;   
             $arg_slice  = 4;
             
             // Call the requested method.                1        2       3       4
@@ -124,15 +132,23 @@ if( ! function_exists('ob_system_run'))
         {
             $page_uri = "{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
             
-            // Check the controller exists or not
-            if ( ! file_exists(MODULES .$GLOBALS['d']. DS .$folder. DS .$GLOBALS['c']. EXT))
+            $controller = MODULES .$GLOBALS['d']. DS .$folder. DS .$GLOBALS['c']. EXT;
+            
+            if(defined('CMD'))  // call /app/tasks controller
+            {
+                if(file_exists(APP .'tasks'. DS .'controllers'. DS .$GLOBALS['c']. EXT))
+                {
+                    $controller = APP .'tasks'. DS .'controllers'. DS .$GLOBALS['c']. EXT;
+                }
+            }
+            
+            if ( ! file_exists($controller))   // Check the controller exists or not
             {
                 if(config_item('enable_query_strings') === TRUE) show_404();
                 
                 throw new Exception('Unable to load your default controller.Please make sure the controller specified in your Routes.php file is valid.');
             }
             
-            $controller = MODULES .$GLOBALS['d']. DS .$folder. DS .$GLOBALS['c']. EXT;
             $arg_slice  = 3;
         }
         
