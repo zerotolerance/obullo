@@ -294,22 +294,19 @@ Class OB_Router {
         {
             $ROOT = MODULES;
             $this->set_directory($segments[0]);
-            
-            if(defined('CMD'))  // if command line
-            {
-                $this->set_directory('tasks');
-            }
 
             if( ! empty($segments[1]))
             {
                 //----------- SUB FOLDER SUPPORT ----------//
                 
-                if(defined('CMD'))
+                if(defined('CMD')) // if we have a APP task subfolder ? 
                 {
-                    if(is_dir(APP . $this->fetch_directory() . DS .'controllers'. DS .$segments[1]))
+                    if(is_dir(APP . 'tasks' .DS .$segments[1]))
                     {
-                        $ROOT   = APP;
-                        $folder = 'controllers';
+                        $this->set_directory('');
+                        
+                        $ROOT   = rtrim(APP, DS);
+                        $folder = 'tasks';
                     }
                 }
                 
@@ -342,14 +339,18 @@ Class OB_Router {
                 }
                 else
                 {
-                    if(defined('CMD'))
+                    if(defined('CMD'))  // otherwise if we have just APP task controller ? 
                     {
-                        if(file_exists(APP .$this->fetch_directory(). DS .'controllers'. DS .$segments[1]. EXT))
+                        if(file_exists(APP .'tasks'. DS .$segments[1]. EXT))
                         {
-                            $ROOT   = APP;
-                            $folder = 'controllers';
+                            $this->set_directory('');
+                        
+                            $ROOT   = rtrim(APP, DS);
+                            $folder = 'tasks';
                         }
                     }
+                    
+                    // echo $ROOT .$this->fetch_directory(). DS .$folder. DS .$segments[1]. EXT;
                     
                     if (file_exists($ROOT .$this->fetch_directory(). DS .$folder. DS .$segments[1]. EXT))
                     {
@@ -358,12 +359,14 @@ Class OB_Router {
                 }
             }
 
-            if(defined('CMD'))
+            if(defined('CMD'))  // otherwise if we have just APP task controller ? 
             {
-                if(file_exists(APP .$this->fetch_directory(). DS .'controllers'. DS .$this->fetch_directory(). EXT))
+                if(file_exists(APP .'tasks'. DS .$segments[1]. EXT))
                 {
-                    $ROOT   = APP;
-                    $folder = 'controllers';
+                    $this->set_directory('');
+                
+                    $ROOT   = rtrim(APP, DS);
+                    $folder = 'tasks';
                 }
             }
             
