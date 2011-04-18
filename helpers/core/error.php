@@ -608,9 +608,13 @@ if( ! function_exists('error_parse_regex'))
             {
                 $data['OUT'] = explode('^', $data['OUT']); 
             }
+            elseif(strpos($data['OUT'], '|') > 0)
+            {
+                $data['OUT'] = explode('|', $data['OUT']);   
+            } 
             else
             {
-                $data['OUT'] = array($data['OUT']);
+                $data['OUT'] = array($data['OUT']);    
             }
             
             $data['IN']  = array_map('trim', $data['IN']);
@@ -622,6 +626,7 @@ if( ! function_exists('error_parse_regex'))
         return FALSE;
     }
 }
+
 //-----------------------------------------------------------------------
 
 /**
@@ -646,21 +651,12 @@ if( ! function_exists('error_get_allowed_errors'))
             {
                 $allow_errors = array_unique(array_merge($all_errors, array_values($rules['IN'])));
             }
-            
+        
             if(count($rules['OUT']) > 0)
             {
-                foreach($rules['OUT'] as $out_val)
-                {
-                    foreach($allow_errors as $in_val)
-                    {
-                        if($in_val != $out_val)   // remove from allowed errors ..
-                        {
-                           $allowed_errors[] = $in_val;
-                        }
-                    }
-                }
+                $allowed_errors = array_diff($allow_errors, $rules['OUT']);
             }
-            
+                             
             unset($allow_errors);
                         
             $error_result = array();     
