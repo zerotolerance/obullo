@@ -635,14 +635,16 @@ if( ! function_exists('error_get_allowed_errors'))
     {
         if( ! isset($rules['IN'])) return array();
         
+        $defined_errors = array_flip(error_get_defined_errors());
+        $all_errors     = array_keys($defined_errors);
+        
         if(count($rules['IN']) > 0)
         {
-            $allow_errors = $rules['IN'];
-            $allowed_errors = array();
+            $allow_errors = array_values($rules['IN']); 
             
-            if(in_array('E_ALL', $rules['IN'], true))
+            if(in_array('E_ALL', $rules['IN'], TRUE))
             {
-                $allow_errors = array_unique(array_merge($rules['IN'], array_values($errors)));
+                $allow_errors = array_unique(array_merge($all_errors, array_values($rules['IN'])));
             }
             
             if(count($rules['OUT']) > 0)
@@ -651,7 +653,7 @@ if( ! function_exists('error_get_allowed_errors'))
                 {
                     foreach($allow_errors as $in_val)
                     {
-                        if($in_val != $out_val)
+                        if($in_val != $out_val)   // remove from allowed errors ..
                         {
                            $allowed_errors[] = $in_val;
                         }
@@ -660,7 +662,19 @@ if( ! function_exists('error_get_allowed_errors'))
             }
             
             unset($allow_errors);
-            return $allowed_errors;
+                        
+            $error_result = array();     
+            foreach($allowed_errors as $error)
+            {
+                if(isset($defined_errors[$error]))
+                {
+                   $error_result[$defined_errors[$error]] = $error;
+                }
+            }
+            
+            unset($allowed_errors);
+            
+            return $error_result;
         }
     }
 }

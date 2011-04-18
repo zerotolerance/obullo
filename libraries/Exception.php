@@ -123,7 +123,9 @@ Class OB_Exception {
             return;
         }
         
-        if(in_array($error, error_get_allowed_errors($rules), TRUE))
+        $allowed_errors = error_get_allowed_errors($rules);  // Check displaying error enabled for current error.
+    
+        if(isset($allowed_errors[$code]))
         {
             echo $error_msg; 
         }
