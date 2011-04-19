@@ -52,7 +52,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
             {
                 $sql    = array();
                 $errors = error_get_defined_errors();
-                $error  = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
+                $error  = (isset($errors[$code])) ? $errors[$code] : '';
 
                 if(is_numeric($level)) 
                 {
@@ -70,10 +70,13 @@ if( ! function_exists('Obullo_Exception_Handler'))
                     return;
                 }
                 
-                if(in_array($error, error_get_allowed_errors($rules), TRUE))
+                $allowed_errors = error_get_allowed_errors($rules);  // Check displaying error enabled for current error.
+    
+                if(isset($allowed_errors[$code]))
                 {
                     include(APP .'core'. DS .'errors'. DS .'ob_exception'. EXT);
                 }
+                
             }
             else  // If error_reporting = 0, we show a blank page template.
             {
@@ -549,7 +552,7 @@ if( ! function_exists('error_get_defined_errors'))
         $errors['16384'] = 'E_USER_DEPRECATED';   // USER DEPRECATED ERROR
         $errors['30719'] = 'E_ALL';               // ERROR
         
-        $errors['OB_1923'] = 'OB_EXCEPTION';      // OBULLO EXCEPTIONAL ERRORS
+        $errors['0'] = 'E_EXCEPTION';      // OBULLO EXCEPTIONAL ERRORS
         
         return $errors;
     }
