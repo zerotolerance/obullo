@@ -522,7 +522,7 @@ if( ! function_exists('error_debug_backtrace'))
 //-----------------------------------------------------------------------
 
 /**
-* Get Defined Obullo Errors
+* Get Defined Php and Obullo Errors
 * 
 * @return array
 */
@@ -552,7 +552,10 @@ if( ! function_exists('error_get_defined_errors'))
         $errors['16384'] = 'E_USER_DEPRECATED';   // USER DEPRECATED ERROR
         $errors['30719'] = 'E_ALL';               // ERROR
         
-        $errors['0'] = 'E_EXCEPTION';      // OBULLO EXCEPTIONAL ERRORS
+        // Custom Errors
+        //------------------------------------------------------------------------
+        $errors['0']     = 'E_EXCEPTION';     // OBULLO EXCEPTIONAL ERRORS
+        $errors['42000'] = 'E_DATABASE';      // OBULLO DATABASE ERRORS
         
         return $errors;
     }
