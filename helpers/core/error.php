@@ -555,8 +555,8 @@ if( ! function_exists('error_get_defined_errors'))
         // Custom Errors
         //------------------------------------------------------------------------
         $errors['0']     = 'E_EXCEPTION';     // OBULLO EXCEPTIONAL ERRORS
-        $errors['42000'] = 'E_DATABASE';      // OBULLO DATABASE ERRORS
-        
+        $errors['SQL']   = 'E_DATABASE';      // OBULLO DATABASE ERRORS
+                
         return $errors;
     }
 }

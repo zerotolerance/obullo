@@ -54,10 +54,13 @@ Class OB_Exception {
         
         // Database Errors
         //-----------------------------------------------------------------------
+        $code = $e->getCode();
+        
         if(substr($e->getMessage(),0,3) == 'SQL') 
         {
             $ob   = this();
             $type = 'Database';
+            $code = 'SQL';  // We understand this a db error.
             
             foreach(profiler_get('databases') as $db_name => $db_var)
             {
@@ -102,10 +105,9 @@ Class OB_Exception {
              
         // Displaying Errors
         //-----------------------------------------------------------------------                
-        $code   = $e->getCode();
         $level  = config_item('error_reporting');
         $errors = error_get_defined_errors();
-        $error  = (isset($errors[$code])) ? $errors[$code] : 'OB_EXCEPTION';
+        $error  = (isset($errors[$code])) ? $errors[$code] : '';
         
         if(is_numeric($level)) 
         {
