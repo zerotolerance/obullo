@@ -613,6 +613,19 @@ Class OB_Router {
         return FALSE;
     }
     
+    // --------------------------------------------------------------------
+    
+    /**
+    * Check Router Request Is Hmvc.
+    * 
+    * @return boolean
+    */
+    public function is_hmvc()
+    {
+        return $this->hmvc;
+    }
+    
+    
 }
 // END Router Class
 
