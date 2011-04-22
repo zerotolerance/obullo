@@ -367,7 +367,7 @@ function ob_autoload($real_name)
         return;
     }
     
-    if($real_name == 'Model' OR $real_name == 'ORM')
+    if($real_name == 'Model' OR $real_name == 'VM')
     {
         require(BASE .'core'. DS .$real_name. EXT);
         return;

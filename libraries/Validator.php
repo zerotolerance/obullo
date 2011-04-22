@@ -18,7 +18,7 @@ Class FormException extends CommonException {}
 // ------------------------------------------------------------------------
 
 /**
- * Form Validation Class
+ * Validator Class
  *
  * @package       Obullo
  * @subpackage    Base
@@ -26,7 +26,7 @@ Class FormException extends CommonException {}
  * @author        Ersin Guvenc
  * @link        
  */
-Class OB_Form_validate {
+Class OB_Validator {
     
     public $_field_data         = array();    
     public $_config_rules       = array();
@@ -36,6 +36,8 @@ Class OB_Form_validate {
     public $_error_suffix       = '</p>';
     public $error_string        = '';
     public $_safe_form_data     = FALSE;
+    public $_globals            = array();  // $_POST, $_GET ,$_FILES
+    public $_callback_object    = NULL;
     
     public function __construct($rules = array())
     {    
@@ -51,10 +53,21 @@ Class OB_Form_validate {
             mb_internal_encoding(this()->config->item('charset'));
         }
     
-        log_me('debug', "Form Validation Class Initialized");
+        log_me('debug', "Validator Class Initialized");
     }
     
     // --------------------------------------------------------------------
+    
+    /**
+    * Set validator class properties.
+    * 
+    * @param mixed $key
+    * @param mixed $val
+    */
+    public function set($key, $val)
+    {
+        $this->$key = $val;
+    }
     
     /**
      * Set Rules
@@ -62,15 +75,18 @@ Class OB_Form_validate {
      * This function takes an array of field names and validation
      * rules as input, validates the info, and stores it
      *
-     * @access    public
+     * @access   public
      * @param    mixed
      * @param    string
-     * @return    void
+     * @return   void
      */
     public function set_rules($field, $label = '', $rules = '')
     {
-        // No reason to set rules if we have no POST data
-        if (count($_POST) == 0)
+        // Obullo Changes .. 
+        $this->_globals = (count($this->_globals) == 0) ? $_POST : $this->_globals;
+        
+        // No reason to set rules if we have no POST or GET data
+        if (count($this->_globals) == 0)
         {
             return;
         }
@@ -202,6 +218,11 @@ Class OB_Form_validate {
             return '';
         }
         
+        if($prefix == NULL AND $suffix == NULL)
+        {
+            return $this->_field_data[$field]['error'];
+        }
+        
         if ($prefix == '')
         {
             $prefix = $this->_error_prefix;
@@ -271,7 +292,7 @@ Class OB_Form_validate {
     public function run($group = '')
     {
         // Do we even have any data to process?  Mm?
-        if (count($_POST) == 0)
+        if (count($this->_globals) == 0)
         {
             return FALSE;
         }
@@ -307,24 +328,24 @@ Class OB_Form_validate {
         }
     
         // Load the language file containing error messages
-        lang_load('form_validate', '', 'base');
+        lang_load('validator', '', 'base');
                             
         // Cycle through the rules for each field, match the 
-        // corresponding $_POST item and test for errors
+        // corresponding $this->_globals item and test for errors
         foreach ($this->_field_data as $field => $row)
         {        
-            // Fetch the data from the corresponding $_POST array and cache it in the _field_data array.
+            // Fetch the data from the corresponding $this->_globals array and cache it in the _field_data array.
             // Depending on whether the field name is an array or a string will determine where we get it from.
             
             if ($row['is_array'] == TRUE)
             {
-                $this->_field_data[$field]['postdata'] = $this->_reduce_array($_POST, $row['keys']);
+                $this->_field_data[$field]['postdata'] = $this->_reduce_array($this->_globals, $row['keys']);
             }
             else
             {
-                if (isset($_POST[$field]) AND $_POST[$field] != "")
+                if (isset($this->_globals[$field]) AND $this->_globals[$field] != '')
                 {
-                    $this->_field_data[$field]['postdata'] = $_POST[$field];
+                    $this->_field_data[$field]['postdata'] = $this->_globals[$field];
                 }
             }
         
@@ -355,7 +376,7 @@ Class OB_Form_validate {
     // --------------------------------------------------------------------
     
     /**
-     * Traverse a multidimensional $_POST array index until the data is found
+     * Traverse a multidimensional $this->_globals array index until the data is found
      *
      * @access   private
      * @param    array
@@ -403,15 +424,15 @@ Class OB_Form_validate {
             {
                 if ($row['is_array'] == FALSE)
                 {
-                    if (isset($_POST[$row['field']]))
+                    if (isset($this->_globals[$row['field']]))
                     {
-                        $_POST[$row['field']] = $this->prep_for_form($row['postdata']);
+                        $this->_globals[$row['field']] = $this->prep_for_form($row['postdata']);
                     }
                 }
                 else
                 {
                     // start with a reference
-                    $post_ref =& $_POST;
+                    $post_ref =& $this->_globals;
                     
                     // before we assign values, make a reference to the right POST key
                     if (count($row['keys']) == 1)
@@ -459,7 +480,7 @@ Class OB_Form_validate {
      */    
     private function _execute($row, $rules, $postdata = NULL, $cycles = 0)
     {
-        // If the $_POST data is an array we will run a recursive call
+        // If the $this->_globals data is an array we will run a recursive call
         if (is_array($postdata))
         { 
             foreach ($postdata as $key => $val)
@@ -568,19 +589,28 @@ Class OB_Form_validate {
             if (preg_match("/(.*?)\[(.*?)\]/", $rule, $match))
             {
                 $rule    = $match[1];
-                $param    = $match[2];
+                $param   = $match[2];
             }
             
             // Call the function that corresponds to the rule
             if ($callback === TRUE)
             {
-                if ( ! method_exists(this(), $rule))
+                if(is_object($this->_callback_object))  // This is for OVM model class
+                {                                       // we set OVM object as callback
+                    $this->_this = $this->_callback_object;
+                }
+                else
+                {
+                    $this->_this = this();
+                }
+                
+                if ( ! method_exists($this->_this, $rule))
                 {         
                     continue;
                 }
                 
                 // Run the function and grab the result
-                $result = this()->$rule($postdata, $param);
+                $result = $this->_this->$rule($postdata, $param);
 
                 // Re-assign the result to the master data array
                 if ($_in_array == TRUE)
@@ -887,12 +917,12 @@ Class OB_Form_validate {
      */
     public function matches($str, $field)
     {
-        if ( ! isset($_POST[$field]))
+        if ( ! isset($this->_globals[$field]))
         {
             return FALSE;                
         }
         
-        $field = $_POST[$field];
+        $field = $this->_globals[$field];
 
         return ($str !== $field) ? FALSE : TRUE;
     }

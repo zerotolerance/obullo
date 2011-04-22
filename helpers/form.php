@@ -847,7 +847,7 @@ if( ! function_exists('form_error') )
 */
 if( ! function_exists('form_validate_errors') ) 
 { 
-    function form_validate_errors($prefix = '', $suffix = '')
+    function form_validate_errors($prefix = '', $suffix = '')  // Obullo changes ..
     {
 	    if (FALSE === ($OBJ = _get_validation_object()))
 	    {
@@ -969,12 +969,12 @@ if( ! function_exists('_get_validation_object') )
 { 
     function _get_validation_object()
     {
-        if ( ! class_exists('OB_Form_validate'))
+        if ( ! class_exists('OB_Validator'))  // Obullo Changes ..
         {
             return FALSE;
         }
         
-        return base_register('Form_validate');
+        return base_register('Validator');
     }
 }
 
