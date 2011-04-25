@@ -69,7 +69,7 @@ Class VM extends Model {
         {
             throw new VMException('Current model settings has no fields key.Check your model it must be contain $settings[\'fields\'] array.');
         }
-        
+                
         foreach($this->settings['fields'] as $key => $val)
         {
             if(is_array($val))
@@ -77,13 +77,6 @@ Class VM extends Model {
                 if(isset($_GLOBALS[$key]) AND isset($val['rules']))
                 {
                     $validator->set_rules($key, $val['label'], $val['rules']);
-                }
-            }
-            else
-            {
-                if(isset($_GLOBALS[$key]) AND isset($val['rules']))
-                {
-                    $validator->set_rules($key, $this->item($key, 'label'), $this->item($key));
                 }
             }
         }
@@ -116,6 +109,29 @@ Class VM extends Model {
             }
             
             return FALSE;
+        }
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Get Settings
+    * 
+    * @param mixed $item
+    * @param mixed $index
+    */
+    public function item($item)
+    {
+        if(strpos($item, '['))
+        {
+            $index = explode('[', $item);
+            $index_item = str_replace(']', '', $index[1]);
+            
+            return $this->settings[$index[0]][$index_item];
+        }
+        else
+        {
+           return $this->settings[$item];
         }
     }
     
@@ -159,26 +175,18 @@ Class VM extends Model {
     * Do update if ID exists otherwise
     * do insert.
     * 
-    * @return  boolean
+    * @return  FALSE | Integer
     */
-    public function save($use_where = TRUE)
+    public function save($val = '')
     {
         $data = array();
         $db   = $this->settings['database'];
-        $id   = '';
+        $id   = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
     
         lang_load('vm', '', 'base');  // Load the language file containing error messages
         
         foreach($this->settings['fields'] as $k => $v)
-        {
-            if(isset($v['type']))     // Determine primary key
-            {
-                if(strpos($v['type'], 'primary_key') > 0)
-                {
-                    $id = $k;
-                }
-            }
-        
+        {        
             if($this->$k != '')
             {
                 $data[$k] = $this->$k;
@@ -193,7 +201,7 @@ Class VM extends Model {
             {
                 unset($data[$id]);
                 
-                if($use_where)
+                if(count($this->{$db}->ar_where) == 0 AND count($this->{$db}->ar_wherein) == 0)
                 {
                     $this->{$db}->where($id, $this->$id);
                 }
@@ -226,7 +234,7 @@ Class VM extends Model {
                     
                     $this->values[$id] = $this->{$db}->insert_id();  // add last inserted id.
                     
-                    return TRUE;
+                    return $this->values[$id];
                 }
                 else
                 {
@@ -264,28 +272,17 @@ Class VM extends Model {
     * 
     * @return boolean
     */
-    public function delete($use_where = TRUE)
+    public function delete()
     {
         $data = array();
         $db   = $this->settings['database'];
-        $id   = '';
+        $id   = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
         
         lang_load('vm', '', 'base');  // Load the language file containing error messages
         
-        $data = array();
-        foreach($this->settings['fields'] as $k => $v)
+        if($this->$id != '')
         {
-            if(isset($v['type']))    // Determine primary key
-            {
-                if(strpos($v['type'], 'primary_key') > 0)
-                {
-                    $id = $k;
-                    if($this->$k != '')
-                    {
-                        $data[$k] = $this->$k;
-                    }
-                }
-            }
+            $data[$id] = $this->$id;
         }
         
         $validator = $this->validator($data);
@@ -294,7 +291,7 @@ Class VM extends Model {
         {
             if($this->$id != '')    // do delete ..
             {
-                if($use_where)
+                if(count($this->{$db}->ar_where) == 0 AND count($this->{$db}->ar_wherein) == 0)
                 {
                     $this->{$db}->where($id, $this->$id);
                 }
@@ -336,6 +333,12 @@ Class VM extends Model {
         $db = $this->settings['database'];
         
         return $this->{$db}->last_query($prepare);
+    }
+    
+    
+    public function save_join()
+    {
+            
     }
     
 }
