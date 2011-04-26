@@ -8,7 +8,6 @@ defined('BASE') or exit('Access Denied!');
  * 
  * @package         obullo    
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
  * @since           Version 1.0
  * @filesource
  * @license
