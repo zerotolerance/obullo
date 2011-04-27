@@ -29,51 +29,68 @@ defined('BASE') or exit('Access Denied!');
 
 /**
 * GET
+* Do GET query throught to OB QUERY models.
+* 
+* @param string $query Query SQL
+* @param array  $options
 */
 if( ! function_exists('query') ) 
 {
-    function query()
+    function query($query, $options = array())
     {
-        
+        return ob_query('GET', $query, $options);
     }
 }
+
+// ------------------------------------------------------------------------
 
 /**
 * INSERT
 */
 if( ! function_exists('post') ) 
 {
-    function post()
+    function post($table, $data, $options = array())
     {
-        
+        return ob_query('POST', array($table => $data), $options);
     }
 }
+
+// ------------------------------------------------------------------------
 
 /**
 * UPDATE
 */
 if( ! function_exists('put') ) 
 {
-    function put()
+    function put($table, $data, $options = array())
     {
-        
+        return ob_query('PUT', array($table => $data), $options);
     }
 }
 
+// ------------------------------------------------------------------------
 
 /**
 * DELETE
 */
 if( ! function_exists('delete') ) 
 {
-    function delete()
+    function delete($table, $data, $options = array())
     {
-        
+        return ob_query('DELETE', array($table => $data), $options);
     }
 }
 
+// ------------------------------------------------------------------------
+
 /**
-* Object Query Function
+* Main Object Query Function
+* 
+* @param string $type
+* @param string $query
+* @param array  $options
+* 
+* @return mixed
 */
 if( ! function_exists('ob_query') ) 
 {
@@ -83,29 +100,30 @@ if( ! function_exists('ob_query') )
         
         $request_type = config_item('ob_query_request_type');
         
+        $debug = FALSE;
+        if(count($options) > 0)
+        {
+            foreach($options as $key => $val)
+            {
+                if($key == 'debug')
+                {
+                    $debug = TRUE;
+                }
+                
+                $query->set_var($key, $val);
+            }
+        }
+        
+        $query->exec($type, $query);
+        
+        if($debug)
+        {
+            $query->debug();
+        }
+        
+        return $query->response('json', true);
     }
 }
 
-
-
-  function api_process($type= '', $query, $sets= array())
-  {
-    $sets= (array)$sets;
-    loader::lib('../api/process');
-    $api= new process();
-    $api->init();
-
-    if(!empty($sets))
-      foreach($sets AS $key => $value)
-      {
-        if($key == 'debug') $debug= TRUE;
-        if($key == 'superuser' && API_REQUEST_TYPE == 'HMVC')
-        {
-          $api->set('key', this()->_generate_api_key());
-        }
-        $api->set($key, $value);
-      }
-    $api->run($type, $query);
-    if($debug) $api->debug();
-    return $api->response;
-  }
+/* End of file query.php */
+/* Location: ./obullo/helpers/query.php */

@@ -50,8 +50,7 @@ Class OB_Query {
     public function __construct()
     {
         $this->url = base_url() . config_item('ob_query_service_url');
-        $this->request_type   = config_item('ob_query_request_type');
-        $this->request_method = 'GET';
+        $this->request_type = config_item('ob_query_request_type');
                 
         $this->username = isset($_REQUEST['username']) ? $_REQUEST['username'] == '' ? 'false' : $_REQUEST['username'] : '';
         $this->password = isset($_REQUEST['password']) ? md5($_REQUEST['password']) : '';
@@ -82,7 +81,7 @@ Class OB_Query {
     * @param string $query
     * @param mixed $is_object
     */
-    public function exec($method = 'GET', $query = '', $is_object = FALSE)
+    public function exec($method = 'GET', $query = '', $data = array())
     {
         $query = urlencode(json_encode($query));
         $multi_queries = is_array($query) ? TRUE : FALSE;
@@ -116,7 +115,7 @@ Class OB_Query {
                     break;
                     
                     default:
-                    throw new InvalidArgumentException('Current verb (' . $this->verb . ') is an invalid REST method.');
+                    throw new QueryException('Current method (' . $this->request_method . ') is an invalid REST method.');
                 }
             }
             catch (InvalidArgumentException $e)
@@ -129,37 +128,15 @@ Class OB_Query {
                 curl_close($ch);
                 throw $e;
             }
-            
-            $response = $this->get_response_body($is_object);
-            
-            $this->response = $response;   // HMVC - CURL switch
         }
         elseif($this->request_type == 'HMVC')
         {
             loader::helper('ob/request');
             
-            $data = array();
-
             $request = request(strtoupper($this->request_method), $this->url, array_merge($this->data, $data))->no_loop();
 
             $this->response_body = $request->exec()->response();
-
-            $response = $this->get_response_body($is_object);
-
-            $this->response = $response;   // HMVC - CURL switch
         }
-
-        /* DISABLED FOR SECURITY
-        if(isset($_REQUEST['sql']) || isset($_REQUEST['benchmark']) || isset($_REQUEST['debug']))
-        {
-            $this->debug();
-        }
-        
-        if(isset($_REQUEST['__TEST__']))
-        {
-            echo $this->get_response_body();
-        }
-        */
     }
     
     // --------------------------------------------------------------------
@@ -195,7 +172,7 @@ Class OB_Query {
             {
                 foreach($value as $id => $data)
                 {
-                    if($id != 'PHPSESSID' AND $id != config_item('sess_cookie_name') AND $id != 'APE_Cookie' $id != 'file') 
+                    if($id != 'PHPSESSID' AND $id != config_item('sess_cookie_name') AND $id != 'APE_Cookie' AND $id != 'file')
                     {
                         $this->data[$id] = $data;
                     }
@@ -267,13 +244,13 @@ Class OB_Query {
     * 
     * @param mixed $data
     */
-    public function build_post_body ($data = NULL)
+    public function build_post_body($data = NULL)
     {
         $this->data = ($this->data !== NULL) ? $this->data : $this->request_body;
         
         if ( ! is_array($this->data))
         {
-            throw new InvalidArgumentException('Invalid data input for post body. Array expected !');
+            throw new QueryException('Invalid data input for post body. Array expected !');
         }
         
         $this->data = http_build_query($this->data, '', '&');
@@ -383,8 +360,8 @@ Class OB_Query {
     {
         curl_setopt($curl_handle, CURLOPT_TIMEOUT, 50);
         curl_setopt($curl_handle, CURLOPT_URL, str_replace(' ','%20',$this->url));
-        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array ('Accept: ' . $this->acceptType));
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array ('Accept: ' . $this->accept_type));
     }
     
     // --------------------------------------------------------------------
@@ -396,7 +373,7 @@ Class OB_Query {
     */
     protected function set_auth (&$curl_handle)
     {
-        if ($this->username !== NULL && $this->password !== NULL)
+        if ($this->username !== NULL AND $this->password !== NULL)
         {
             curl_setopt($curl_handle, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
             curl_setopt($curl_handle, CURLOPT_USERPWD, $this->username . ':' . $this->password);
@@ -409,7 +386,7 @@ Class OB_Query {
     * GET Accepted Format
     * 
     */
-    public function get_accept_type ()
+    public function get_accept_type()
     {
         return $this->accept_type;
     }
@@ -417,13 +394,13 @@ Class OB_Query {
     // --------------------------------------------------------------------
     
     /**
-    * put your comment there...
+    * Set Defult Accepted Response Format
     * 
-    * @param mixed $acceptType
+    * @param mixed $accept_type
     */
-    public function set_accept_type ($acceptType)
+    public function set_accept_type($accept_type)
     {
-        $this->accept_type = $acceptType;
+        $this->accept_type = $accept_type;
     }
     
     // --------------------------------------------------------------------
@@ -432,7 +409,7 @@ Class OB_Query {
     * Get CURL Password
     * 
     */
-    public function get_password ()
+    public function get_password()
     {
         return $this->password;
     }
@@ -444,7 +421,7 @@ Class OB_Query {
     * 
     * @param mixed $password
     */
-    public function set_password ($password)
+    public function set_password($password)
     {
         $this->password = $password;
     }
@@ -454,29 +431,19 @@ Class OB_Query {
     /**
     * Decode and Fetch Response Body
     * 
-    * @param mixed $decode
+    * @param  bool $json_decode
     * @return mixed
     */
-    public function get_response_body ($decode = FALSE)
-    {
-        $response_header = $this->get_response_info();
-        
-        if($decode)
-        {
-            $response_body = json_decode($this->response_body, TRUE);
-        }
-        else 
-        {
-            $response_body = $this->response_body;
-        }
-        
-        return $response_body;
+    public function get_response_body()
+    {        
+        return $this->response_body;
     }
     
     // --------------------------------------------------------------------
 
     /**
-    * put your comment there...
+    * GET Curl Response Header
+    * messages.
     * 
     */
     public function get_response_info ()
@@ -486,44 +453,68 @@ Class OB_Query {
     
     // --------------------------------------------------------------------
     
-    public function get_url ()
+    public function get_url()
     {
         return $this->url;
     }
     
     // --------------------------------------------------------------------
     
-    public function set_url ($url)
+    public function set_url($url)
     {
         $this->url = $url;
     }
     
     // --------------------------------------------------------------------
     
-    public function get_username ()
+    public function get_username()
     {
         return $this->username;
     }
     
     // --------------------------------------------------------------------
     
-    public function set_username ($username)
+    public function set_username($username)
     {
         $this->username = $username;
     }
     
     // --------------------------------------------------------------------
     
-    public function get_method ()
+    public function get_method()
     {
         return $this->request_method;
     }
     
     // --------------------------------------------------------------------
     
-    public function set_method ($method = 'GET')
+    public function set_method($method = 'GET')
     {
         $this->request_method = $method;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Fetch response of Query
+    * result.
+    * 
+    * @param  string $decode_format  none | json
+    * @return object | array
+    */
+    public function response($decode_format = '', $assoc = FALSE)
+    {
+        $result = $this->get_response_body();
+        
+        switch ($decode_format) 
+        {
+           case 'json':
+           return json_decode($result, $assoc);
+             break;
+             
+           default:
+           return $result;    
+        }
     }
     
     // --------------------------------------------------------------------
@@ -550,6 +541,7 @@ Class OB_Query {
     }
     
 }
+
 
 /* End of file Query.php */
 /* Location: ./obullo/libraries/Query.php */
