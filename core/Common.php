@@ -151,7 +151,17 @@ function core_register($realname, $new_object = NULL, $params_or_no_ins = '')
 function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
 {
     static $new_objects       = array();               
-    static $overriden_objects = array();               
+    static $overriden_objects = array();
+    
+    // Sub path support
+    // --------------------------------------------------------------------
+    $sub_path = '';
+    if(strpos($realname, '/') > 0)
+    {
+        $paths    = explode('/', $realname);
+        $realname = array_pop($paths);         // get file name
+        $sub_path = DS . implode(DS, $paths);  // build sub path  ( e.g ./drivers/pager/)
+    }
     
     $Class    = ucfirst($realname);
     $registry = OB_Registry::instance();
@@ -171,11 +181,11 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
     if ($getObject !== NULL)
     return $getObject;
                                                   
-    if(file_exists(BASE .'libraries'. DS . $Class. EXT))
+    if(file_exists(BASE .'libraries'. $sub_path . DS . $Class. EXT))
     {
         if( ! isset($new_objects[$Class]) )  // check new object instance
         {
-            require(BASE .'libraries'. DS . $Class. EXT);
+            require(BASE .'libraries'. $sub_path . DS . $Class. EXT);
         }
         
         $classname = $Class;    // prepare classname
@@ -226,11 +236,12 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
                 }
             }
             
-            if(file_exists(MODULES .$module. DS .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
+            // Modules extend support
+            if(file_exists(MODULES .$module. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  
             {
                 if( ! isset($new_objects[$Class]) )  // check new object instance
                 {
-                    require(MODULES .$module. DS .'libraries'. DS .$prefix. $Class. EXT);
+                    require(MODULES .$module. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT);
                 }
                 
                 $classname = $prefix. $Class;
@@ -239,11 +250,11 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
                 
                 $overriden_objects[$Class] = $Class;
             }  
-            elseif(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
+            elseif(file_exists(APP .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  // Application extend support
             {
                 if( ! isset($new_objects[$Class]) )  // check new object instance
                 {
-                    require(APP .'libraries'. DS .$prefix. $Class. EXT);
+                    require(APP .'libraries'. $sub_path . DS .$prefix. $Class. EXT);
                 }
                 
                 $classname = $prefix. $Class;
