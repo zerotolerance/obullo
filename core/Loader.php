@@ -34,7 +34,7 @@ Class OB_Loader {
     * @var array
     */
     public static $_base_helpers = array();
-    
+
     /**
     * Track "application" helper files.
     * @var array
@@ -50,31 +50,31 @@ Class OB_Loader {
     /**
     * loader::lib();
     *
-    * load libraries from /module folder. (current module) 
+    * load libraries from /module folder. (current module)
     *
     * @param    mixed $class
     * @param    mixed $params_or_no_ins array | null | false
     * @param    string $object_name
-    * @param    boolean $new_instance create new instance 
+    * @param    boolean $new_instance create new instance
     * @return   self::_library()
     */
     public static function lib($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
     {
         if(strpos($class, 'ob/') === 0)
-        {                              
+        {
             return lib(substr($class, 3), $params_or_no_ins, $new_instance);
         }
-        
+
         if(strpos($class, 'app/') === 0)
         {
-            return self::app_lib(substr($class, 4), $params_or_no_ins, $object_name, $new_instance); 
+            return self::app_lib(substr($class, 4), $params_or_no_ins, $object_name, $new_instance);
         }
-        
+
         if(strpos($class, 'ext/') === 0)
         {
             return self::ext(substr($class, 4), $params_or_no_ins, $object_name, $new_instance);
         }
-        
+
         self::_library($class, $params_or_no_ins, $object_name, $new_instance);
     }
 
@@ -88,7 +88,7 @@ Class OB_Loader {
     * @param    mixed $class
     * @param    mixed $params_or_no_ins array | null | false
     * @param    string $object_name
-    * @param    boolean $new_instance create new instance 
+    * @param    boolean $new_instance create new instance
     * @return   self::_library()
     */
     public static function app_lib($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
@@ -96,8 +96,8 @@ Class OB_Loader {
         self::_library($class, $params_or_no_ins, $object_name, $new_instance, TRUE);
     }
 
-    // -------------------------------------------------------------------- 
-    
+    // --------------------------------------------------------------------
+
     /**
     * loader::ext();
     *
@@ -106,16 +106,16 @@ Class OB_Loader {
     * @param    mixed $class
     * @param    mixed $params_or_no_ins array | null | false
     * @param    string $object_name
-    * @param    boolean $new_instance create new instance 
+    * @param    boolean $new_instance create new instance
     * @return   self::_library()
     */
     public static function ext($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
     {
         self::_library($class, $params_or_no_ins, $object_name, $new_instance, FALSE, $extension = TRUE);
     }
-    
+
     // --------------------------------------------------------------------
-                             
+
     /**
     * Obullo Library Loader.
     *
@@ -129,11 +129,11 @@ Class OB_Loader {
     private static function _library($class, $params_or_no_ins = '', $object_name = '', $new_instance = FALSE, $app_folder = FALSE, $ext = FALSE)
     {
         if($class == '') return FALSE;
-        
+
         if($params_or_no_ins === TRUE AND $ext == TRUE)  // extension helper file.
         {
             self::helper($class, 'helpers', TRUE);
-            
+
             return;  // If file helper extension return.
         }
 
@@ -141,13 +141,13 @@ Class OB_Loader {
 
         $profiler_type  = ($ext) ? 'extensions' : 'libraries';
         $case_sensitive = ($params_or_no_ins == FALSE) ? TRUE : FALSE;
-        
+
         $data = self::_load_file($class, $folder = 'libraries', $app_folder, $ext, $case_sensitive);
 
         $class_var = '';
 
         if( file_exists($data['file']))
-        {                    
+        {
             require_once($data['file']);
 
             $class_var = strtolower($data['file_name']);
@@ -162,7 +162,7 @@ Class OB_Loader {
                 {
                     if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
                 }
-                
+
                 if(class_exists($data['file_name']))
                 {
                     $OB->$class_var = new $data['file_name']($params_or_no_ins);
@@ -186,7 +186,7 @@ Class OB_Loader {
                 {
                     $OB->$class_var = new $data['file_name']();
                 }
-                
+
                 profiler_set($profiler_type, $class_var, $class_var);
 
                 return;
@@ -194,10 +194,10 @@ Class OB_Loader {
         }
 
         $type = ($ext) ? 'extension' : 'library';
-        
+
         throw new LoaderException('Unable to locate the '.$type.' file: '. $data['file']);
     }
-    
+
     // --------------------------------------------------------------------
 
     /**
@@ -207,7 +207,7 @@ Class OB_Loader {
     * @param    string $model
     * @param    string $object_name
     * @param    array | boolean $params_or_no_ins (construct params) | or | No Instantiate just include file
-    * @param    boolean $new_instance create new instance 
+    * @param    boolean $new_instance create new instance
     * @return   void
     */
     public static function app_model($model, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
@@ -236,7 +236,7 @@ Class OB_Loader {
         {
             return loader::app_model(substr($model, 4), $object_name, $params_or_no_ins, $new_instance);
         }
-        
+
         $data = self::_load_file($model, $folder = 'models', FALSE);
 
         self::_model($data['file'], $data['file_name'], $object_name, $params_or_no_ins, $new_instance);
@@ -331,7 +331,7 @@ Class OB_Loader {
         if (isset($OB->{$db_var}) AND is_object($OB->{$db_var}))
         {
             if($return_object)
-            return $OB->{$db_var};
+              return $OB->{$db_var};
 
             return;
         }
@@ -339,31 +339,32 @@ Class OB_Loader {
         if($return_object)
         {
             profiler_set('databases', $db_name, $db_var);  // Store db variables ..
-
             return OB_DBFactory::Connect($db_name, $db_var, $use_active_record); // Return to database object ..
         }
 
-        $OB->{$db_var} = OB_DBFactory::Connect($db_name, $db_var, $use_active_record);   // Connect to Database
+        if(!isset($GLOBALS['__DATABASE__'.$db_name]))
+        {
+          $GLOBALS['__DATABASE__'.$db_name] = OB_DBFactory::Connect($db_name, $db_var, $use_active_record);   // Connect to Database
+          profiler_set('databases', $db_name, $db_var);  // Store db variables
+          self::_assign_db_objects($db_var);
+        }
 
-        profiler_set('databases', $db_name, $db_var);  // Store db variables
-
-        self::_assign_db_objects($db_var);
-
+        $OB->{$db_var}= $GLOBALS['__DATABASE__'.$db_name];
     }
 
     // --------------------------------------------------------------------
 
     /**
-    * About App_ prefix we need to use it because of 
+    * About App_ prefix we need to use it because of
     * it prevent filename collisions in some loader functions.
     */
-    
+
     /**
     * loader::app_helper();
     *
     * loader::app_helper('subfolder/helper_name')  local sub folder load
     * loader::app_helper('../outside_folder/helper_name')  outside directory load
-    * 
+    *
     * @param    string $helper
     */
     public static function app_helper($helper)
@@ -410,12 +411,12 @@ Class OB_Loader {
         {
             return loader::base_helper(substr($helper, 3));
         }
-        
+
         if(strpos($helper, 'app/') === 0)
         {
             return loader::app_helper(substr($helper, 4));
         }
-        
+
         if( isset(self::$_helpers[$helper]) )
         {
             return;
@@ -423,11 +424,11 @@ Class OB_Loader {
 
         if($is_extension)
         {
-             $data = self::_load_file($helper, $folder = 'helpers', FALSE, TRUE); 
-        } 
-        else 
+             $data = self::_load_file($helper, $folder = 'helpers', FALSE, TRUE);
+        }
+        else
         {
-             $data = self::_load_file($helper, $folder = 'helpers'); 
+             $data = self::_load_file($helper, $folder = 'helpers');
         }
 
         if(file_exists($data['file']))
@@ -443,12 +444,12 @@ Class OB_Loader {
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
     * loader::core_helper();
-    * 
+    *
     * Load the Obullo core helpers
-    * 
+    *
     * @access   private
     * @param    string $helper
     */
@@ -472,16 +473,16 @@ Class OB_Loader {
         {
             return;
         }
-        
+
         $core_path = ($core) ? 'core'. DS : '';
-               
+
         if(file_exists(BASE .'helpers'. DS . $core_path . $helper. EXT))
         {
             $prefix = config_item('subhelper_prefix');
 
             $extensions = get_config('extensions');
             $extension_helper_override = FALSE;
-            
+
             if(is_array($extensions))
             {
                 foreach($extensions as $name => $array)   // Extension Override Support
@@ -498,21 +499,21 @@ Class OB_Loader {
                                     $extension = $ext_name;
                                 }
                             }
-                        }                            
+                        }
                     }
                 }
-            }                             
-            
+            }
+
             $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_register('Router')->fetch_directory();
-               
+
             if($extension_helper_override)
             {
-                if(is_extension($extension, $module))  // if extension enabled .. 
-                { 
+                if(is_extension($extension, $module))  // if extension enabled ..
+                {
                     $module = $extension;
-                }    
+                }
             }
-            
+
             if(file_exists(MODULES .$module. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
             {
                 include(MODULES .$module. DS .'helpers'. DS .$prefix. $helper. EXT);
@@ -534,7 +535,7 @@ Class OB_Loader {
         }
 
         $type = ($core) ? 'core' : 'base';
-        
+
         throw new LoaderException('Unable to locate the '.$type.' helper: ' .$helper. EXT);
     }
 
@@ -559,7 +560,7 @@ Class OB_Loader {
         {
             return self::base_lang(substr($file, 3), $folder, $return);
         }
-        
+
         lang_load($file, $folder, NULL, $return);
     }
 
@@ -569,7 +570,7 @@ Class OB_Loader {
     {
         lang_load($file, $folder, 'base' ,$return);
     }
-    
+
     // ------------------------------------------------------------------
 
     public static function ob_lang($file = '', $folder = '', $return = FALSE)
@@ -624,7 +625,7 @@ Class OB_Loader {
         throw new LoaderException('Unable to locate the external file: ' .$path);
     }
 
-                               
+
     // --------------------------------------------------------------------
 
     /**
@@ -642,16 +643,16 @@ Class OB_Loader {
     private static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE, $extension = FALSE, $case_sensitive = FALSE)
     {
         $real_name  = ($case_sensitive) ? $filename : strtolower($filename);
-        $root       = rtrim(MODULES, DS); 
+        $root       = rtrim(MODULES, DS);
 
         if($extension)  // main extension library or helper file.
         {
             $return['file_name'] = $real_name;
             $return['file']      = MODULES . $real_name . DS . $real_name. EXT;
 
-            return $return; 
+            return $return;
         }
-        
+
         $sub_root   = $GLOBALS['d']. DS .$folder. DS;
         if($app_folder)
         {
@@ -670,9 +671,9 @@ Class OB_Loader {
             {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
-            
+
             $file = MODULES . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;
-            
+
             $return['file_name'] = $file_name;
             $return['file']      = $file;
 
@@ -696,20 +697,20 @@ Class OB_Loader {
     }
 
     // --------------------------------------------------------------------
-    
+
     public static function req($file = '')
     {
         if($file == '') return;
-        
+
         self::_library($file, FALSE, '', FALSE);
     }
-    
+
     // @todo
-    public static function inc($file = '') 
-    { 
-        
+    public static function inc($file = '')
+    {
+
     }
-    
+
     // --------------------------------------------------------------------
 
     /**

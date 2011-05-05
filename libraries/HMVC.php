@@ -218,10 +218,10 @@ Class OB_HMVC
         $this->_REQUEST_BACKUP = $_REQUEST;
 
         $GLOBALS['PUT'] = $_POST = $_GET = $_REQUEST = array();   // reset global variables
-        
-        unset($_SERVER['HTTP_ACCEPT']);    // Don't touch global server items 
+
+        unset($_SERVER['HTTP_ACCEPT']);    // Don't touch global server items
         unset($_SERVER['REQUEST_METHOD']);
-    
+
         switch ($method)
         {
            case 'POST':
@@ -331,7 +331,7 @@ Class OB_HMVC
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
-        // A Hmvc uri must be unique otherwise may collission with standart uri, 
+        // A Hmvc uri must be unique otherwise may collission with standart uri,
         // also we need it for cache functionality.
         $URI->uri_string = rtrim($URI->uri_string, '/').'/__ID__'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
@@ -340,7 +340,7 @@ Class OB_HMVC
 
         if($output->_display_cache($config, $URI, TRUE) !== FALSE) // Check request uri if there is a HMVC cached file exist.
         {
-            $cache_content = ob_get_contents();  if(ob_get_level() > 0) { ob_end_clean(); } 
+            $cache_content = ob_get_contents();  if(ob_get_level() > 0) { ob_end_clean(); }
             $this->set_response($cache_content);
 
             $this->_reset_router();
@@ -355,7 +355,7 @@ Class OB_HMVC
             $hmvc_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
 
             $controller = MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
-            
+
             // Check the sub controller exists or not
             if ( ! file_exists($controller))
             {
@@ -376,7 +376,7 @@ Class OB_HMVC
             $hmvc_uri = "{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
 
             $controller = MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
-            
+
             // Check the controller exists or not
             if ( ! file_exists($controller))
             {
@@ -386,7 +386,7 @@ Class OB_HMVC
 
                 return $this;
             }
-            
+
             $arg_slice  = 3;
         }
 
@@ -409,7 +409,7 @@ Class OB_HMVC
 
         // If Everyting ok Declare Called Controller !
         $OB = new $GLOBALS['c']();
-        
+
         // Load the controller using reflection
         // $controller = new ReflectionClass($GLOBALS['c']);
         // $OB = $controller->newInstance();
@@ -431,10 +431,10 @@ Class OB_HMVC
         // will be passed to the method for convenience
         call_user_func_array(array($OB, $GLOBALS['m']), array_slice($URI->rsegments, $arg_slice));
 
-        $content = ob_get_contents();       
+        $content = ob_get_contents();
 
-        if(ob_get_level() > 0)  ob_end_clean();   
-                        
+        if(ob_get_level() > 0)  ob_end_clean();
+
         ob_start();
 
         // Write cache file if cache on ! and Send the final rendered output to the browser
@@ -442,14 +442,14 @@ Class OB_HMVC
 
         $content = ob_get_contents();
 
-        if(ob_get_level() > 0)  ob_end_clean(); 
-                                        
-        $this->set_response($content); 
+        if(ob_get_level() > 0)  ob_end_clean();
 
-        $this->_reset_router();    
-                       
+        $this->set_response($content);
+
+        $this->_reset_router();
+
         log_me('debug', 'Hmvc process completed succesfully.');
-                            
+
         return $this;
     }
 
@@ -497,10 +497,10 @@ Class OB_HMVC
 
             profiler_set('hmvc_requests', 'request_time', self::$request_times);
         }
-        
+
         $this->is_reset = TRUE;  // This means hmvc process completed succesfully without any errors.
                                  // If is_reset == FALSE we say to destruct method reset the router
-                                 // variables and turn back to orginial vars of obullo which we had reset them before.        
+                                 // variables and turn back to orginial vars of obullo which we had reset them before.
     }
 
     // --------------------------------------------------------------------
@@ -571,29 +571,29 @@ Class OB_HMVC
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
     * Close HMVC Connection
-    * 
+    *
     * If we have any possible hmvc exceptions
     * reset router variables, complete to HMVC process
     * and turn back to originals.
-    * 
+    *
     * @return void
     */
     public function __destruct()
-    {                 
-        if($this->is_reset == FALSE)         
-        {                                   
+    {
+        if($this->is_reset == FALSE)
+        {
             $this->_reset_router($this->no_loop);
-            
+
             return;
         }
 
         $this->is_reset = FALSE;
     }
-    
-    
+
+
 }
 // END HMVC Class
 
