@@ -331,7 +331,9 @@ Class OB_Loader {
         if (isset($OB->{$db_var}) AND is_object($OB->{$db_var}))
         {
             if($return_object)
-            return $OB->{$db_var};
+            {
+                return $OB->{$db_var};
+            }
 
             return;
         }
