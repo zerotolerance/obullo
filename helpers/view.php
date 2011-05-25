@@ -163,12 +163,13 @@ if ( ! function_exists('view_set'))
 * @author   Ersin Guvenc
 * @param    string $func view function
 * @param    string $folder view folder (no trailing slash)
+* @param    string $failure_msg
 * @version  0.1
 * @version  0.2 added img folder
 */
 if ( ! function_exists('view_set_folder'))
 {
-    function view_set_folder($func = 'view', $folder = '')
+    function view_set_folder($func = 'view', $folder = '', $failure_msg = TRUE)
     {
         $_ob = base_register('Storage');
 
@@ -176,36 +177,42 @@ if ( ! function_exists('view_set_folder'))
         {
            case 'view':
              $_ob->view->view_folder     = $folder;
+             $_ob->view->view_folder_msg = $failure_msg;
 
              log_me('debug', "View() Function Paths Changed");
              break;
 
            case 'view_layout':
-             $_ob->view->layout_folder   = $folder;
+             $_ob->view->layout_folder     = $folder;
+             $_ob->view->layout_folder_msg = $failure_msg;
 
              log_me('debug', "View_layout() Function Paths Changed");
              break;
 
            case 'css':
              $_ob->view->css_folder      = $folder;
+             $_ob->view->css_folder_msg  = $failure_msg;
 
              log_me('debug', "Css() Function Paths Changed");
              break;
 
            case 'js':
              $_ob->view->js_folder       = $folder;
+             $_ob->view->js_folder_msg   = $failure_msg;
 
              log_me('debug', "Js() Function Paths Changed");
              break;
 
            case 'img':
              $_ob->view->img_folder      = $folder;
+             $_ob->view->img_folder_msg  = $failure_msg;
 
              log_me('debug', "Img() Function Paths Changed");
              break;
              
            case 'script':
-             $_ob->view->script_folder   = $folder;
+             $_ob->view->script_folder     = $folder;
+             $_ob->view->script_folder_msg = $failure_msg;
 
              log_me('debug', "Script() Function Paths Changed");
              break;
@@ -235,7 +242,8 @@ if ( ! function_exists('view'))
         $extra_path = '';
         if(isset($_ob->view->view_folder{1})) // if view folder changed don't show errors ..
         { 
-            $return = TRUE;
+            if($_ob->view->view_folder_msg) $return = TRUE;
+            
             $extra_path = $_ob->view->view_folder;
         }    
 
@@ -270,8 +278,9 @@ if ( ! function_exists('view_layout'))
         $extra_path = '';
         if(isset($_ob->view->layout_folder{1}))  // if view_layout folder changed don't show errors ..
         { 
-            $extra_path = $_ob->view->layout_folder;
-            $return = TRUE;     
+            if($_ob->view->layout_folder_msg) $return = TRUE; 
+            
+            $extra_path = $_ob->view->layout_folder;   
         }  
         
         $file_info = _view_load_file($file_url, 'views', $extra_path);
@@ -330,8 +339,9 @@ if( ! function_exists('script') )
         $extra_path = '';
         if(isset($_ob->view->script_folder{1}))  
         { 
+            if($_ob->view->script_folder_msg) $return = TRUE; 
+            
             $extra_path = $_ob->view->script_folder;
-            $return = TRUE;
         }  
         
         $file_info = _view_load_file($file_url, 'scripts', $extra_path);
