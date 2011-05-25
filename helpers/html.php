@@ -74,8 +74,15 @@ if( ! function_exists('css') )
 
         if (is_array($href))
         {
+            $ext = 'css';
+            if(strpos($href, 'js/') === 0)
+            {
+                $ext  = 'js/';
+                $href = substr($href, 3);
+            }
+            
             $link = '';
-
+                                
             foreach ($href as $v)
             {
                 $link .= '<link ';
@@ -88,7 +95,7 @@ if( ! function_exists('css') )
                 }
                 else
                 {
-                    $link .= ' href="'. _get_public_path($v, $extra_path) .'" ';
+                    $link .= ' href="'. _get_public_path($v, $extra_path, $ext) .'" ';
                 }
 
                 $link .= 'rel="'.$rel.'" type="text/css" ';
@@ -107,7 +114,14 @@ if( ! function_exists('css') )
             }
         }
         else
-        {
+        {                
+            $ext = 'css';
+            if(strpos($href, 'js/') === 0)
+            {
+                $ext  = 'js/';
+                $href = substr($href, 3);
+            }
+          
             $href = ltrim($href, '/');  // remove first slash
 
             if ( strpos($href, '://') !== FALSE)
@@ -120,7 +134,7 @@ if( ! function_exists('css') )
             }
             else
             {
-                $link .= ' href="'. _get_public_path($href, $extra_path) .'" ';
+                $link .= ' href="'. _get_public_path($href, $extra_path, $ext) .'" ';
             }
 
             $link .= 'rel="'.$rel.'" type="text/css" ';
@@ -140,7 +154,7 @@ if( ! function_exists('css') )
 
         return $link;
     }
-}
+}                       
 // ------------------------------------------------------------------------
 
 /**
@@ -594,7 +608,6 @@ if( ! function_exists('nbs') )
     }
 }
 
-
 // ------------------------------------------------------------------------ 
 
 /**
@@ -613,7 +626,7 @@ if( ! function_exists('nbs') )
 */
 if( ! function_exists('_get_public_path') )
 {
-    function _get_public_path($file_url, $extra_path = '')
+    function _get_public_path($file_url, $extra_path = '', $custom_extension = '')
     {
         $OB = this();
         
@@ -635,7 +648,14 @@ if( ! function_exists('_get_public_path') )
                 $filename   = array_pop($paths);
             }
 
-            $modulename = $GLOBALS['d'];
+            if(isset($GLOBALS['d']))
+            {
+                $modulename = $GLOBALS['d'];
+            }
+            else
+            {
+                $modulename = core_register('Router')->fetch_directory();  
+            }
         }
 
         $sub_path   = '';
@@ -643,13 +663,18 @@ if( ! function_exists('_get_public_path') )
         {
             $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
         }
-
+                             
         $ext = substr(strrchr($filename, '.'), 1);   // file extension
         if($ext == FALSE) 
         {
             return FALSE;
         }
 
+        if($custom_extension != '') // set like this css('js/folder/theme/ui.css')
+        {
+            $ext = $custom_extension;
+        }
+        
         $folder = $ext . '/';
         
         if($extra_path != '')
@@ -669,7 +694,7 @@ if( ! function_exists('_get_public_path') )
         if( strpos($public_folder, '/') !== FALSE)
         {
             $public_folder = current(explode('/', $public_folder));
-        }
+        }                                                         
 
         // example
         // .site/modules/welcome/public/css/welcome.css    (public/{site removed}/css/welcome.css)
@@ -678,21 +703,33 @@ if( ! function_exists('_get_public_path') )
         $pure_path  = $modulename .'/'. $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
         $full_path  = $public_url . $pure_path;
 
+        $app_public_url = $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+        
         // if file located in another server fetch it from outside /public folder.
         if(strpos($OB->config->public_url(), '://') !== FALSE)
         {
             return $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
         }
-        
-        // if file not exists in current module folder fetch it from outside /public folder. 
-        if( ! file_exists(MODULES . str_replace('/', DS, trim($pure_path, '/'))) )
+          
+         // if file not exists in current module folder fetch it from outside /public folder. 
+         
+        if( is_readable(MODULES . str_replace('/', DS, trim($pure_path, '/'))) ) 
+        {         
+            return $full_path;
+        }
+        elseif(is_readable(str_replace('/', DS, trim($app_public_url, '/'))))
         {
-            return $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+            return $app_public_url;
+        }
+        else
+        {
+            throw new CommonException('File not exist or the path ' . $pure_path .' is not readable, you need check your chmod settings !'); 
         }
         
         return $full_path;
     }
 }
+
 
 /* End of file html.php */
 /* Location: ./obullo/helpers/html.php */
