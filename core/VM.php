@@ -48,7 +48,9 @@ Class VM extends Model {
         
         $db = $settings['database'];
         
-        $this->db = loader::database($db, false);
+        loader::database($db);
+        $this->db = this()->$db;
+        
         parent::__construct();
         
         log_me('debug', "VM Class Initialized");
@@ -192,6 +194,11 @@ Class VM extends Model {
         {        
             if(isset($this->property[$k]))
             {
+                if($this->settings['fields'][$k]['label'] == $this->$k)
+                {
+                    $this->$k = '';  // If value == label clear data !! useful working with ajax validations.
+                }
+                
                 $data[$k] = $this->$k;
             }
         }

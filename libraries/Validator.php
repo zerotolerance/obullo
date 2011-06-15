@@ -1181,7 +1181,21 @@ Class OB_Validator {
     {
         return (bool) ! preg_match('/[^a-zA-Z0-9\/\+=]/', $str);
     }
-    
+
+    // --------------------------------------------------------------------
+
+    /**
+     * Check string is contain
+     * space
+     *
+     * @param string $str
+     * @return bool
+     */
+    public function no_space($str)
+    {
+       return (preg_match("#\s#", $str)) ? FALSE : TRUE;
+    } 
+
     // --------------------------------------------------------------------
     
     /**

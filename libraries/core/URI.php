@@ -227,7 +227,7 @@ Class OB_URI
 
         preg_match('/.+\.([\w\d\_]+)(?:\/(?:[\w\d\_]*?)|)$/', $segment, $matches);
 
-        if(count($matches) > 1 && !strstr($matches[0], '@'))
+        if(count($matches) > 1 AND ! strstr($matches[0], '@'))
         {
             $this->extension = end($matches);
             $matched = TRUE;

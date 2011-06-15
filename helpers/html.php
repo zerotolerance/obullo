@@ -630,7 +630,7 @@ if( ! function_exists('_get_public_path') )
     {
         $OB = this();
         
-        $file_url  = strtolower($file_url);
+        // $file_url  = strtolower($file_url);
         
         if(strpos($file_url, '../') === 0)   // if ../modulename/public folder request 
         {
@@ -717,7 +717,7 @@ if( ! function_exists('_get_public_path') )
         {         
             return $full_path;
         }
-        elseif(is_readable(str_replace('/', DS, trim($app_public_url, '/'))))
+        elseif(is_readable(ROOT . str_replace('/', DS, trim($app_public_url, '/'))))
         {
             return $app_public_url;
         }

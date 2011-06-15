@@ -43,6 +43,14 @@ if( ! function_exists('request') )
 {
     function request($method = 'get', $request_uri = '', $params = array(), $cache_time_or_config = 0)
     {
+        // Supported request methods
+        $methods = array('GET' => '', 'POST' => '', 'PUT' => '', 'DELETE' => '');
+
+        if( ! isset($methods[strtoupper($method)]))
+        {
+            throw new Exception('HMVC only supports GET, POST, PUT and DELETE methods !');
+        }
+
         // Quick access who like to less coding.
         // ------------------------------------------------------------------------ 
         

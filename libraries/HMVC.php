@@ -212,6 +212,13 @@ Class OB_HMVC
                 }
             }
         }
+
+        // Original request variables
+        $GLOBALS['_GET_BACKUP']    = $_GET;
+        $GLOBALS['_POST_BACKUP']   = $_POST;
+        $GLOBALS['_SERVER_BACKUP'] = $_SERVER;
+        $GLOBALS['_SERVER_BACKUP'] = $_REQUEST;
+
         $this->_GET_BACKUP     = $_GET;         // Overload to $_REQUEST variables ..
         $this->_POST_BACKUP    = $_POST;
         $this->_SERVER_BACKUP  = $_SERVER;
