@@ -731,10 +731,20 @@ Class OB_Loader {
 
         foreach ($models as $model_name)
         {
-            $OB->$model_name->$db_var = &$OB->$db_var;
-        }
+            if( ! isset($OB->$model_name) ) return;
 
+            if(is_object($OB->$model_name->$db_var))
+            {
+                return;
+            }
+
+            if(is_object($OB->$db_var))
+            {
+                $OB->$model_name->$db_var = $OB->$db_var;
+            }
+        }
     }
+
 
 }
 
