@@ -47,16 +47,22 @@ Class Model {
     public function _assign_db_objects()
     {
         $OB = this();
-        
+
         foreach(profiler_get('databases') as $db_name => $db_var)
         {
             if(method_exists($this, '__get') OR method_exists($this, '__set'))
             {
-                $this->$db_var = $OB->$db_var;  // to prevent some reference errors
-            } 
-            else 
+                if(isset($OB->$db_var) AND is_object($OB->$db_var))
+                {
+                    $this->$db_var = $OB->$db_var;  // to prevent some reference errors
+                }
+            }
+            else
             {
-                $this->$db_var = &$OB->$db_var;    
+                if(isset($OB->$db_var) AND is_object($OB->$db_var))
+                {
+                    $this->$db_var = &$OB->$db_var;  // to prevent some reference errors
+                }
             }
         }
     

@@ -173,7 +173,7 @@ Class OB_Profiler {
             
         foreach ($total_dbs as $db_name => $db_var)
         {
-            if(isset($ob->{$db_var}))
+            if(isset($ob->{$db_var}) AND is_object($ob->{$db_var}))
             {
                 $total_queries = count($ob->{$db_var}->cached_queries) + count($ob->{$db_var}->queries);
                 

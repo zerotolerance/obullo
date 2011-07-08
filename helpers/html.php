@@ -77,7 +77,7 @@ if( ! function_exists('css') )
             $ext = 'css';
             if(strpos($href, 'js/') === 0)
             {
-                $ext  = 'js/';
+                $ext  = 'js';
                 $href = substr($href, 3);
             }
             
@@ -118,7 +118,7 @@ if( ! function_exists('css') )
             $ext = 'css';
             if(strpos($href, 'js/') === 0)
             {
-                $ext  = 'js/';
+                $ext  = 'js';
                 $href = substr($href, 3);
             }
           
