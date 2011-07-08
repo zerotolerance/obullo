@@ -88,7 +88,7 @@ Class Controller extends App_Controller {
 */
 function this($new_instance = '') 
 { 
-    if($new_instance != '')
+    if(is_object($new_instance))  // fixed HMVC object type of integer bug in php 5.1.6
     {
         Controller::_instance($new_instance);
     }
