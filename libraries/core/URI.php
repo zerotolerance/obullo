@@ -204,6 +204,12 @@ Class OB_URI
             $parsed_uri = '/'.$parsed_uri;
         }
 
+        // IN REQUEST_URI mode the controller can work with any query string like this.
+        // http://domain.com/controller/method?query_string=support for REQUEST_URI protocol
+        // remove last query_string variables.
+        // This functionality works natively in PATH_INFO mode.
+        $parsed_uri = preg_replace('|(\?.*)|', '', $parsed_uri);
+
         return $parsed_uri;
     }
 
