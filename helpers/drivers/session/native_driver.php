@@ -49,7 +49,10 @@ if( ! function_exists('_sess_start') )
 
         session_name($_ob->session->cookie_prefix . $_ob->session->sess_cookie_name);
         
-        session_start(); 
+        if( ! isset($_SESSION) ) // If another session_start() func is started before ?
+        {
+            session_start();
+        }
 
         if (is_numeric($_ob->session->sess_expiration))
         {

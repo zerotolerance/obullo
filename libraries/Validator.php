@@ -1002,6 +1002,32 @@ Class OB_Validator {
     }
 
     // --------------------------------------------------------------------
+
+    /**
+     * Valid Email + DNS Check
+     *
+     * @access   public
+     * @param    string
+     * @return   bool
+     */
+    public function valid_email_dns($str)
+    {
+        if($this->valid_email($str))
+        {
+            list($username,$domain) = explode('@',$str);
+
+            if( ! checkdnsrr($domain,'MX'))
+            {
+                return FALSE;
+            }
+
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    // --------------------------------------------------------------------
     
     /**
      * Valid Emails
