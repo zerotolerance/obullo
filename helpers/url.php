@@ -5,10 +5,10 @@ defined('BASE') or exit('Access Denied!');
  * Obullo Framework (c) 2009.
  *
  * PHP5 MVC Based Minimalist Software.
- * 
- * @package         obullo       
+ *
+ * @package         obullo
  * @author          obullo.com
- * @license         public 
+ * @license         public
  * @since           Version 1.0
  * @filesource
  * @license
@@ -23,7 +23,7 @@ defined('BASE') or exit('Access Denied!');
  * @subpackage  Helpers
  * @category    Helpers
  * @author      Ersin Guvenc
- * @link        
+ * @link
  */
 
 /**
@@ -36,9 +36,9 @@ defined('BASE') or exit('Access Denied!');
 */
 if ( ! function_exists('base_url'))
 {
-    function base_url()
+    function base_url($uri = '')
     {
-        return this()->config->base_url();
+        return this()->config->base_url($uri = '');
     }
 }
 
@@ -51,7 +51,7 @@ if ( ! function_exists('base_url'))
 *
 * @access    public
 * @param     string url
-* @abstract  bool $no_slash  no trailing slash    
+* @abstract  bool $no_slash  no trailing slash
 * @return    string
 */
 if ( ! function_exists('public_url'))
@@ -80,10 +80,10 @@ if ( ! function_exists('site_url'))
         return this()->config->site_url($uri, $suffix);
     }
 }
- 
+
 /**
 * Get current url
-* 
+*
 * @access   public
 * @return   string
 */
@@ -93,12 +93,12 @@ if ( ! function_exists('current_url'))
     {
 	    return this()->config->site_url(this()->uri->uri_string());
     }
-}             
+}
 // ------------------------------------------------------------------------
 
 /**
 * Get current module name
-* 
+*
 * @access   public
 * @param    string uri
 * @return   string
@@ -106,20 +106,20 @@ if ( ! function_exists('current_url'))
 if ( ! function_exists('module'))
 {
     function module($uri = '')
-    {        
+    {
         if(isset($GLOBALS['d']))
         {
             $module = $GLOBALS['d'];
         }
         else
         {
-            $module = core_register('Router')->fetch_directory();  
+            $module = core_register('Router')->fetch_directory();
         }
-        
+
         return $module .'/'. ltrim($uri, '/');
     }
 }
-// ------------------------------------------------------------------------ 
+// ------------------------------------------------------------------------
 
 /**
 * Anchor Link
@@ -131,8 +131,8 @@ if ( ! function_exists('module'))
 * @param     string    the link title
 * @param     mixed     any attributes
 * @param     bool      switch off suffix by manually
-* @version   0.1    
-* @version   0.2       Sharp character url support    
+* @version   0.1
+* @version   0.2       Sharp character url support
 * @version   0.3       Added $suffix parameter
 * @return    string
 */
@@ -140,6 +140,16 @@ if ( ! function_exists('anchor'))
 {
     function anchor($uri = '', $title = '', $attributes = '', $suffix = TRUE)
     {
+        $ssl = FALSE;  // ssl support
+        if(strpos($uri, 'https://') === 0)
+        {
+            if(config_item('ssl')) // Global ssl config.
+            {
+                $ssl = TRUE;
+            }
+            $uri = str_replace('https://',  '',  $uri);
+        }
+
         $title = (string) $title;
         $sharp = FALSE;
 
@@ -169,12 +179,31 @@ if ( ! function_exists('anchor'))
         {
             $attributes = _parse_attributes($attributes);
         }
-        
+
         if($sharp == TRUE AND isset($sharp_uri[1]))
         {
             $site_url = $site_url.'#'.$sharp_uri[1];  // Obullo changes..
         }
-        
+
+        # if ssl used do not use https:// for standart anchors.
+        # if your HTTP server NGINX add below the line to your fastcgi_params file.
+        # fastcgi_param  HTTPS		  $ssl_protocol;
+        # then $_SERVER['HTTPS'] variable will be available for PHP (fastcgi).
+
+        if(isset($_SERVER['HTTPS']) AND $_SERVER['HTTPS'] != '' AND $_SERVER['HTTPS'] != 'off')
+        {
+            if($ssl == FALSE)
+            {
+                $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
+            }
+        }
+
+        if($ssl)
+        {
+            $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
+            $site_url = str_replace('http://',  'https://',  $site_url);
+        }
+
         return '<a href="'.$site_url.'"'.$attributes.'>'.$title.'</a>';
     }
 }
@@ -188,7 +217,7 @@ if ( ! function_exists('anchor'))
 *
 * @access	public
 * @param	string	the URL
-* @param	string	the link title  
+* @param	string	the link title
 * @param	mixed	any attributes
 * @param    bool    switch off suffix by manually
 * @version  0.1     added suffix parameters
@@ -198,9 +227,38 @@ if ( ! function_exists('anchor_popup'))
 {
     function anchor_popup($uri = '', $title = '', $attributes = FALSE, $suffix = TRUE)
     {
+            $ssl = FALSE;  // ssl support
+            if(strpos($uri, 'https://') === 0)
+            {
+                if(config_item('ssl')) // Global ssl config.
+                {
+                    $ssl = TRUE;
+                }
+                $uri = str_replace('https://',  '',  $uri);
+            }
+
 	    $title = (string) $title;
 
 	    $site_url = ( ! preg_match('!^\w+://! i', $uri)) ? this()->config->site_url($uri, $suffix) : $uri;
+
+            # if ssl used do not use https:// for standart anchors.
+            # if your HTTP server NGINX add below the line to your fastcgi_params file.
+            # fastcgi_param  HTTPS		  $ssl_protocol;
+            # then $_SERVER['HTTPS'] variable will be available for PHP (fastcgi).
+
+            if(isset($_SERVER['HTTPS']) AND $_SERVER['HTTPS'] != '' AND $_SERVER['HTTPS'] != 'off')
+            {
+                if($ssl == FALSE)
+                {
+                    $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
+                }
+            }
+
+            if($ssl)
+            {
+                $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
+                $site_url = str_replace('http://',  'https://',  $site_url);
+            }
 
 	    if ($title == '')
 	    {
@@ -388,7 +446,7 @@ if ( ! function_exists('auto_url'))
 					    $period = '.';
 					    $matches['6'][$i] = substr($matches['6'][$i], 0, -1);
 				    }
-	    
+
 				    $str = str_replace($matches['0'][$i],
 									    $matches['1'][$i].'<a href="http'.
 									    $matches['4'][$i].'://'.
@@ -414,7 +472,7 @@ if ( ! function_exists('auto_url'))
 					    $period = '.';
 					    $matches['3'][$i] = substr($matches['3'][$i], 0, -1);
 				    }
-	    
+
 				    $str = str_replace($matches['0'][$i], safe_mailto($matches['1'][$i].'@'.$matches['2'][$i].'.'.$matches['3'][$i]).$period, $str);
 			    }
 		    }
@@ -502,7 +560,7 @@ if ( ! function_exists('url_title'))
 	    {
 		    $str = strtolower($str);
 	    }
-	    
+
 	    return trim(stripslashes($str));
     }
 }
@@ -524,7 +582,7 @@ if ( ! function_exists('url_title'))
 if ( ! function_exists('redirect'))
 {
     function redirect($uri = '', $method = 'location', $http_response_code = 302, $suffix = TRUE)
-    {        
+    {
         if ( ! preg_match('#^https?://#i', $uri))
         {
             $sharp = FALSE;
@@ -536,15 +594,15 @@ if ( ! function_exists('redirect'))
                 $uri       = $sharp_uri[0];
                 $sharp     = TRUE;
             }
-            
+
             $uri = this()->config->site_url($uri, $suffix);
-            
-            if($sharp == TRUE AND isset($sharp_uri[1])) 
+
+            if($sharp == TRUE AND isset($sharp_uri[1]))
             {
                 $uri = $uri.'#'.$sharp_uri[1];  // Obullo changes..
-            }   
+            }
         }
-        
+
         switch($method)
         {
             case 'refresh'    : header("Refresh:0;url=".$uri);

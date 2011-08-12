@@ -392,7 +392,20 @@ Class OB_Router {
             return FALSE;
         }
         else
-        {        
+        {
+            // If we've gotten this far it means that the URI does not correlate to a valid
+            // controller class.  We will now see if there is an override
+            if ( ! empty($this->routes['404_override']))
+            {
+                    $x = explode('/', $this->routes['404_override']);
+
+                    $this->set_directory($x[0]);
+                    $this->set_class($x[1]);
+                    $this->set_method(isset($x[2]) ? $x[2] : 'index');
+
+                    return $x;
+            }
+
             show_404(); // security fix.
         }
     }
