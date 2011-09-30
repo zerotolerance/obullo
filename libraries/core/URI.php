@@ -230,11 +230,14 @@ Class OB_URI
             
             $extension = explode('.', $segment);
             $extension = end($extension);
-            $this->extension = (in_array($extension, $allowed_extensions)) ? $extension : 'php';
             
-            return str_replace('.'.$extension, '', $segment);
+            if(in_array($extension, $allowed_extensions))        
+            {
+                $this->extension = $extension;
+                return str_replace('.'.$extension, '', $segment);
+            }
         }
-        
+
         return $segment;
     }
 
