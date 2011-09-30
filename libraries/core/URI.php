@@ -216,30 +216,26 @@ Class OB_URI
     // --------------------------------------------------------------------
 
     /**
-    * Parse uri for controller for file
+    * Parse uri string for any file
     * extensions
     *
-    * @param  string $request_uri
+    * @param  string $segment
     * @return string
     */
     public function _parse_segment_extension($segment)
     {
-        static $matched = FALSE;
-
-        if($matched)
+        if(strpos($segment, '.') !== FALSE)
         {
-            return $segment;
+            $allowed_extensions = config_item('uri_extensions');
+            
+            $extension = explode('.', $segment);
+            $extension = end($extension);
+            $this->extension = (in_array($extension, $allowed_extensions)) ? $extension : 'php';
+            
+            return str_replace('.'.$extension, '', $segment);
         }
-
-        preg_match('/.+\.([\w\d\_]+)(?:\/(?:[\w\d\_]*?)|)$/', $segment, $matches);
-
-        if(count($matches) > 1 AND ! strstr($matches[0], '@'))
-        {
-            $this->extension = end($matches);
-            $matched = TRUE;
-        }
-
-        return str_replace('.'.$this->extension, '', $segment);
+        
+        return $segment;
     }
 
     // --------------------------------------------------------------------
