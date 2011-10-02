@@ -7,24 +7,24 @@ defined('BASE') or exit('Access Denied!');
  * PHP5 MVC Based Minimalist Software.
  *
  * @package         Obullo
- * @author          Obullo.com
- * @subpackage      Base.libraries
+ * @author          Obullo.com  
+ * @subpackage      Base.libraries        
  * @copyright       Copyright (c) 2009 Ersin Guvenc.
- * @license
+ * @license          
  * @since           Version 1.0
  * @filesource
- */
-
+ */ 
+ 
 Class VMException extends CommonException {}
-
+ 
 /**
  * Validation Model.
  *
- * @package         Obullo
- * @subpackage      Obullo.core
+ * @package         Obullo 
+ * @subpackage      Obullo.core     
  * @category        Core Model
  * @version         0.1
- */
+ */                    
 
 Class VM extends Model {
 
@@ -32,36 +32,37 @@ Class VM extends Model {
     public $errors   = array();  // validation errors.
     public $values   = array();  // filtered values.
     public $where    = FALSE;    // check where func used or not.
-
+    public $no_input = array();  // no input fields, save function will not save this fields.
+    
     /**
     * Construct
-    *
+    * 
     * @param  array $settings
     * @return void
     */
     public function __construct($settings = array())
-    {
-        if( ! isset($this->settings['fields']) OR ! isset($this->settings['database']))
+    {               
+        if( ! isset($this->settings['fields']) OR ! isset($this->settings['database'])) 
         {
             throw new VMException('Check your model it must be contain $settings[\'fields\'] and $settings[\'database\'] array.');
         }
-
+        
         $db = $settings['database'];
-
+                 
         loader::database($db);
         $this->db = this()->$db;
-
+        
         parent::__construct();
-
+        
         log_me('debug', "VM Class Initialized");
     }
-
+    
     // --------------------------------------------------------------------
-
+    
     /**
     * Grab validator object and set validation
     * rules automatically.
-    *
+    * 
     * @param  array $_GLOBALS can be $_POST, $_GET, $_FILES
     * @return boolean
     */
@@ -82,11 +83,19 @@ Class VM extends Model {
 
         $validator->set('_globals', $_GLOBALS);
         $validator->set('_callback_object', $this);
-
+    
         $table = $this->settings['table'];
 
         foreach($fields as $key => $val)
         {
+            if(is_array($this->$key) AND isset($this->{$key}['rules'])) // reset validation rules
+            {   
+                $val['rules'] = $this->{$key}['rules'];
+                $new_value    = (isset($this->{$key}['value'])) ? $this->{$key}['value'] : FALSE;
+                
+                if($new_value !== FALSE) { $this->{$key} = $new_value; }
+            }
+
             if(is_array($val))
             {
                 if(isset($val['rules']) AND $val['rules'] != '')
@@ -95,20 +104,20 @@ Class VM extends Model {
                 }
             }
         }
-
+        
         if($validator->run())   // Run validation
-        {
+        {            
             foreach($fields as $key => $val)  // Set filtered values
             {
                 $this->values[$table][$key] = $this->set_value($key, $this->{$key});
             }
-
+            
             return TRUE;
         }
         else
         {
             foreach($fields as $key => $val)  // Set validation errors..
-            {
+            { 
                if(isset($validator->_field_data[$key]['error']))
                {
                    $error = $validator->error($key, NULL, NULL);
@@ -118,7 +127,7 @@ Class VM extends Model {
                        $this->errors[$table][$key] = $error;
                    }
                }
-
+               
                // Set filtered values
                $this->values[$table][$key] = $this->set_value($key, $this->{$key});
             }
@@ -126,7 +135,7 @@ Class VM extends Model {
             return FALSE;
         }
     }
-
+    
     // --------------------------------------------------------------------
 
     /**
@@ -220,10 +229,10 @@ Class VM extends Model {
     }
 
     // --------------------------------------------------------------------
-
+    
     /**
     * Get Settings
-    *
+    * 
     * @param mixed $item
     * @param mixed $index
     */
@@ -233,7 +242,7 @@ Class VM extends Model {
         {
             $index = explode('[', $item);
             $index_item = str_replace(']', '', $index[1]);
-
+            
             return $this->settings[$index[0]][$index_item];
         }
         else
@@ -241,39 +250,46 @@ Class VM extends Model {
             return $this->settings[$item];
         }
     }
-
+    
     // --------------------------------------------------------------------
-
+    
     /**
     * Set requested property
-    *
+    * 
     * @param  string $key
     * @param  mixed  $val
     * @return void
     */
-    public function __set($key, $val)
+    public function __set($key, $val) 
     {
         $this->property[$key] = $val;
     }
-
+    
     // --------------------------------------------------------------------
-
+   
     /**
     * Get requested property
-    *
+    * 
     * @param  string $property_name
     * @return mixed
     */
-    public function __get($key)
+    public function __get($key) 
     {
-        if(isset($this->property[$key]))
+        if(isset($this->property[$key])) 
         {
             return($this->property[$key]);
-        }
-        else
+        } 
+        else 
         {
             return(NULL);
         }
+    }
+    
+    // --------------------------------------------------------------------
+
+    public function no_input($key)
+    {
+        $this->no_input[$key] = $key;
     }
 
     // --------------------------------------------------------------------
@@ -284,7 +300,7 @@ Class VM extends Model {
     /**
     * Do update if ID exists otherwise
     * do insert.
-    *
+    * 
     * @return  FALSE | Integer
     */
     public function save()
@@ -294,8 +310,14 @@ Class VM extends Model {
         $db     = $this->settings['database'];
         $table  = $this->settings['table'];
         $id     = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
-
+    
         loader::lang('ob/vm');  // Load the language file that contains error messages
+
+        if(count($this->no_input) > 0)
+        {
+            foreach($this->no_input as $k)
+            unset($this->settings['fields'][$k]);
+        }
 
         $has_rules = FALSE;
         foreach($this->settings['fields'] as $k => $v)
@@ -324,12 +346,26 @@ Class VM extends Model {
 
                     foreach($functions as $name)
                     {
-                        $s_data[$k] = $this->{'_'.$name}($v_data[$k]);
+                        if(is_array($this->{$k}) AND isset($this->{$k}['value'])) // set custom var rules
+                        {
+                            $s_data[$k] = $this->{'_'.$name}($this->{$k}['value']);
+                        }
+                        else
+                        {
+                            $s_data[$k] = $this->{'_'.$name}($v_data[$k]);
+                        }
                     }
                 }
                 else
                 {
-                    $s_data[$k] = $v_data[$k];
+                    if(is_array($this->{$k}) AND isset($this->{$k}['value'])) // set custom var rules
+                    {
+                        $s_data[$k] = $this->{$k}['value'];
+                    }
+                    else
+                    {
+                        $s_data[$k] = $v_data[$k];
+                    }
                 }
             }
             else
@@ -338,10 +374,10 @@ Class VM extends Model {
                 {
                     $s_data[$k] = '';
                 }
-
+                
                 $v_data[$k] = $this->set_value($k, i_get_post($k));
             }
-
+            
         }
 
         if($has_rules)  // if we have validation rules ..
@@ -358,14 +394,33 @@ Class VM extends Model {
             if($this->$id != '')     // if isset ID do update ..
             {
                 unset($s_data[$id]);
-
+                
                 if(count($this->{$db}->ar_where) == 0 AND count($this->{$db}->ar_wherein) == 0)
                 {
                     $this->{$db}->where($id, $this->$id);
                 }
 
-                $this->errors[$table]['affected_rows'] = $this->{$db}->update($table, $s_data);
+                try {
 
+                    $this->db->transaction(); // begin the transaction
+
+                    $this->errors[$table]['affected_rows'] = $this->{$db}->update($table, $s_data);
+
+                    $this->db->commit();    // commit the transaction
+
+                } catch(Exception $e)
+                {
+                    $this->db->rollback();       // roll back the transaction if we fail
+
+                    $this->errors[$table]['success'] = 0;
+                    $this->errors[$table]['msg']     = lang('vm_update_fail');
+                    $this->errors[$table]['transaction_error'] = $e->getMessage();
+
+                    lib('Validator')->clear();  // reset validator data
+
+                    return FALSE;
+                }
+                
                 if($this->errors[$table]['affected_rows'] == 1)
                 {
                     $this->errors[$table]['success'] = 1;
@@ -374,7 +429,7 @@ Class VM extends Model {
                     lib('Validator')->clear();  // reset validator data
 
                     return TRUE;
-                }
+                } 
                 elseif($this->errors[$table]['affected_rows'] == 0)
                 {
                     $this->errors[$table]['success'] = 0;
@@ -382,19 +437,37 @@ Class VM extends Model {
 
                     lib('Validator')->clear();  // reset validator data
 
-                    return FALSE;
+                    return FALSE;  
                 }
             }
             else   // ELSE do insert ..
             {
-                $this->errors[$table]['affected_rows'] = $this->{$db}->insert($table, $s_data);
+                try {
 
+                    $this->db->transaction(); // begin the transaction
+
+                    $this->errors[$table]['affected_rows'] = $this->{$db}->insert($table, $s_data);
+                    $this->values[$table][$id] = $this->{$db}->insert_id();  // add last inserted id.
+
+                    $this->db->commit();    // commit the transaction
+
+                } catch(Exception $e)
+                {
+                    $this->db->rollback();       // roll back the transaction if we fail
+
+                    $this->errors[$table]['success'] = 0;
+                    $this->errors[$table]['msg']     = lang('vm_insert_fail');
+                    $this->errors[$table]['transaction_error'] = $e->getMessage();
+
+                    lib('Validator')->clear();  // reset validator data
+
+                    return FALSE;
+                }
+                
                 if($this->errors[$table]['affected_rows'] == 1)
                 {
                     $this->errors[$table]['success'] = 1;
                     $this->errors[$table]['msg']     = lang('vm_insert_success');
-
-                    $this->values[$table][$id] = $this->{$db}->insert_id();  // add last inserted id.
 
                     lib('Validator')->clear();  // reset validator data
 
@@ -407,20 +480,20 @@ Class VM extends Model {
 
                     lib('Validator')->clear();  // reset validator data
 
-                    return FALSE;
-                }
-
+                    return FALSE;  
+                } 
+          
             }
         }
-
+                
         return FALSE;
     }
-
+    
     // --------------------------------------------------------------------
-
+    
     /**
     * Do type casting foreach value
-    *
+    * 
     * @param mixed $field
     * @param mixed $default
     * @return string
@@ -431,39 +504,39 @@ Class VM extends Model {
         {
             return $default;  // No type, return default value.
         }
-
+        
         $type  = strtolower($this->settings['fields'][$field]['type']);
         $value = lib('Validator')->set_value($field, $default);
-
+            
         if($type == 'string')
         {
-            return form_prep($value);
+            return form_prep($value);  
         }
-
+        
         if($type == 'int' OR $type == 'integer')
         return (int)$value;
-
+        
         if($type == 'float')
         return (float)$value;
-
+    
         if($type == 'double')
         return (double)$value;
-
+        
         if($type == 'bool' OR $type == 'boolean')
         return (boolean)$value;
-
+        
         if($type == 'null')
         return 'NULL';
-
+        
         return $value;   // Unknown type.
     }
-
+    
     // --------------------------------------------------------------------
-
+    
     /**
-    * Delete a record from current table
+    * Delete a record from current table 
     * using ID
-    *
+    * 
     * @return boolean
     */
     public function delete()
@@ -472,16 +545,16 @@ Class VM extends Model {
         $db    = $this->settings['database'];
         $table = $this->settings['table'];
         $id    = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
-
+        
         lang_load('vm', '', 'base');  // Load the language file containing error messages
-
+        
         if(isset($this->property[$id]))
         {
             $data[$id] = $this->$id;
         }
-
+        
         $validator = $this->validator($data);
-
+        
         if($validator)
         {
             if($this->$id != '')    // do delete ..
@@ -490,43 +563,43 @@ Class VM extends Model {
                 {
                     $this->{$db}->where($id, $this->$id);
                 }
-
+                
                 $this->errors[$table]['affected_rows'] = $this->{$db}->delete($table);
-
+                
                 if($this->errors[$table]['affected_rows'] == 1)
                 {
                     $this->errors[$table]['success'] = 1;
                     $this->errors[$table]['msg']     = lang('vm_delete_success');
-
+                
                     return TRUE;
-                }
+                } 
                 elseif($this->errors[$table]['affected_rows'] == 0)
                 {
                     $this->errors[$table]['success'] = 0;
                     $this->errors[$table]['msg']     = lang('vm_delete_fail');
-
-                    return FALSE;
+                    
+                    return FALSE;  
                 }
             }
         }
-
-
+        
+            
         return FALSE;
     }
-
+    
     // --------------------------------------------------------------------
-
+    
     /**
     * Access active record last_query()
     * function.
-    *
+    * 
     * @param  bool $prepare
     * @return string
     */
     public function last_query($prepare = FALSE)
     {
         $db = $this->settings['database'];
-
+        
         return $this->{$db}->last_query($prepare);
     }
 
@@ -541,7 +614,7 @@ Class VM extends Model {
     {
         return md5($str);
     }
-
+   
 }
 
 // END Validation Model Class
