@@ -18,7 +18,7 @@ if( ! function_exists('_sess_start') )
         log_me('debug', "Session Database Driver Initialized"); 
 
         $ob  = this();
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
 
         foreach (array('sess_encrypt_cookie', 'sess_driver', 'sess_db_var', 'sess_table_name', 
         'sess_expiration', 'sess_die_cookie', 'sess_match_ip', 'sess_match_useragent', 'sess_cookie_name', 'cookie_path', 
@@ -97,7 +97,7 @@ if( ! function_exists('sess_read') )
 {
     function sess_read()
     {    
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         // Fetch the cookie
         $session = i_cookie($_ob->session->sess_cookie_name);
@@ -112,7 +112,7 @@ if( ! function_exists('sess_read') )
         // Decrypt the cookie data
         if ($_ob->session->sess_encrypt_cookie == TRUE)
         {
-            $encrypt = base_register('Encrypt');
+            $encrypt = load_class('Encrypt');
             $session = $encrypt->decode($session);
         }
         else
@@ -223,7 +223,7 @@ if( ! function_exists('sess_write') )
 {
     function sess_write()
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         // set the custom userdata, the session data we will set in a second
         $custom_userdata = $_ob->session->userdata;
@@ -272,7 +272,7 @@ if( ! function_exists('sess_create') )
 {
     function sess_create()
     {    
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         $sessid = '';
         while (strlen($sessid) < 32)
@@ -313,7 +313,7 @@ if( ! function_exists('sess_update') )
 {
     function sess_update()
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         // We only update the session every five minutes by default
         if (($_ob->session->userdata['last_activity'] + $_ob->session->sess_time_to_update) >= $_ob->session->now)
@@ -376,7 +376,7 @@ if( ! function_exists('sess_destroy') )
 {
     function sess_destroy()
     {   
-        $_ob = base_register('Storage'); 
+        $_ob = load_class('Storage'); 
         
         // Db driver changes..
         // -------------------------------------------------------------------
@@ -412,7 +412,7 @@ if( ! function_exists('sess_get') )
 {
     function sess_get($item)
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         return ( ! isset($_ob->session->userdata[$item])) ? FALSE : $_ob->session->userdata[$item];
     }
 }
@@ -444,7 +444,7 @@ if( ! function_exists('sess_alldata') )
 {
     function sess_alldata()
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         return ( ! isset($_ob->session->userdata)) ? FALSE : $_ob->session->userdata;
     }
 }
@@ -462,7 +462,7 @@ if( ! function_exists('sess_set') )
 {
     function sess_set($newdata = array(), $newval = '')
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         if (is_string($newdata))
         {
@@ -492,7 +492,7 @@ if( ! function_exists('sess_unset') )
 {
     function sess_unset($newdata = array())  // ( obullo changes ... )
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         if (is_string($newdata))
         {
@@ -525,7 +525,7 @@ if( ! function_exists('sess_set_flash') )
 {
     function sess_set_flash($newdata = array(), $newval = '') // ( obullo changes ...)
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         if (is_string($newdata))
         {
@@ -555,7 +555,7 @@ if( ! function_exists('sess_keep_flash') )
 {
     function sess_keep_flash($key) // ( obullo changes ...)
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         // 'old' flashdata gets removed.  Here we mark all 
         // flashdata as 'new' to preserve it from _flashdata_sweep()
@@ -587,7 +587,7 @@ if( ! function_exists('sess_get_flash') )
 {
     function sess_get_flash($key, $prefix = '', $suffix = '')  // ( obullo changes ...)
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         $flashdata_key = $_ob->session->flashdata_key.':old:'.$key;
         
@@ -615,7 +615,7 @@ if( ! function_exists('_flashdata_mark') )
 {
     function _flashdata_mark()
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         $userdata = sess_alldata();
         foreach ($userdata as $name => $value)
@@ -665,7 +665,7 @@ if( ! function_exists('_get_time') )
 {
     function _get_time()
     {   
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         $time = time();
         if (strtolower($_ob->session->time_reference) == 'gmt')
@@ -695,7 +695,7 @@ if( ! function_exists('_set_cookie') )
 {
     function _set_cookie($cookie_data = NULL)
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         if (is_null($cookie_data))
         {
@@ -707,7 +707,7 @@ if( ! function_exists('_set_cookie') )
         
         if ($_ob->session->sess_encrypt_cookie == TRUE)
         {
-            $encrypt = base_register('Encrypt');
+            $encrypt = load_class('Encrypt');
             $cookie_data = $encrypt->encode($cookie_data);
         }
         else
@@ -810,7 +810,7 @@ if( ! function_exists('_sess_gc') )
 {
     function _sess_gc()
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         srand(time());
         

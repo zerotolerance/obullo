@@ -55,7 +55,23 @@ Class OB_Validator {
     
         log_me('debug', "Validator Class Initialized");
     }
-    
+
+    // --------------------------------------------------------------------
+
+    public function clear()
+    {
+        $this->_field_data         = array();
+        $this->_config_rules       = array();
+        $this->_error_array        = array();
+        $this->_error_messages     = array();
+        $this->_error_prefix       = '<p>';
+        $this->_error_suffix       = '</p>';
+        $this->_error_string        = '';
+        $this->_safe_form_data     = FALSE;
+        $this->_globals            = array();  // $_POST, $_GET ,$_FILES
+        $this->_callback_object    = NULL;
+    }
+
     // --------------------------------------------------------------------
     
     /**
@@ -328,8 +344,8 @@ Class OB_Validator {
         }
     
         // Load the language file containing error messages
-        lang_load('validator', '', 'base');
-                            
+        loader::lang('ob/validator');
+
         // Cycle through the rules for each field, match the 
         // corresponding $this->_globals item and test for errors
         foreach ($this->_field_data as $field => $row)
@@ -992,9 +1008,9 @@ Class OB_Validator {
     /**
      * Valid Email
      *
-     * @access    public
+     * @access   public
      * @param    string
-     * @return    bool
+     * @return   bool
      */    
     public function valid_email($str)
     {
@@ -1002,7 +1018,7 @@ Class OB_Validator {
     }
 
     // --------------------------------------------------------------------
-
+    
     /**
      * Valid Email + DNS Check
      *
@@ -1012,10 +1028,10 @@ Class OB_Validator {
      */
     public function valid_email_dns($str)
     {
-        if($this->valid_email($str))
+        if($this->valid_email($str) === TRUE)
         {
             list($username,$domain) = explode('@',$str);
-
+            
             if( ! checkdnsrr($domain,'MX'))
             {
                 return FALSE;
@@ -1028,7 +1044,7 @@ Class OB_Validator {
     }
 
     // --------------------------------------------------------------------
-    
+
     /**
      * Valid Emails
      *

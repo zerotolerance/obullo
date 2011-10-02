@@ -55,8 +55,8 @@ if( ! function_exists('ob_set_headers'))
     {   
         if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }   // Kill magic quotes 
         
-        core_register('URI');
-        core_register('Router');
+        core_class('URI');
+        core_class('Router');
         
         loader::core_helper('error');
         loader::core_helper('input');
@@ -71,8 +71,8 @@ if( ! function_exists('ob_system_run'))
 {
     function ob_system_run()
     {   
-        $uri       = core_register('URI'); 
-        $router    = core_register('Router');
+        $uri       = core_class('URI'); 
+        $router    = core_class('Router');
         
         benchmark_mark('total_execution_time_start');
         benchmark_mark('loading_time_base_classes_start');
@@ -84,8 +84,8 @@ if( ! function_exists('ob_system_run'))
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
-        $output    = core_register('Output');
-        $config    = core_register('Config'); 
+        $output    = core_class('Output');
+        $config    = core_class('Config'); 
         
         if ($output->_display_cache($config, $uri) == TRUE) { exit; }  // Check REQUEST uri if there is a Cached file exist 
         

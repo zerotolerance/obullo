@@ -973,7 +973,7 @@ if( ! function_exists('_get_validation_object') )
             return FALSE;
         }
         
-        return base_register('Validator');
+        return load_class('Validator');
     }
 }
 

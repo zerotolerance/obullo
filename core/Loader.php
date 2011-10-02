@@ -158,7 +158,7 @@ Class OB_Loader {
             {
                 // HMVC CRAZY BUG !!
                 // If someone use HMVC we need to create new instance() foreach Library
-                if(core_register('Router')->hmvc == FALSE AND $new_instance == FALSE)
+                if(core_class('Router')->hmvc == FALSE AND $new_instance == FALSE)
                 {
                     if (isset($OB->$class_var) AND is_object($OB->$class_var)) { return; }
                 }
@@ -272,7 +272,7 @@ Class OB_Loader {
 
         // HMVC CRAZY BUG !!
         // If someone use HMVC we need to create new instance() foreach Model
-        if(core_register('Router')->hmvc == FALSE AND $new_instance == FALSE)
+        if(core_class('Router')->hmvc == FALSE AND $new_instance == FALSE)
         {
             if (isset($OB->$model_var) AND is_object($OB->$model_var)) { return; }
         }
@@ -505,7 +505,7 @@ Class OB_Loader {
                 }
             }                             
             
-            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_register('Router')->fetch_directory();
+            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
                
             if($extension_helper_override)
             {
@@ -583,7 +583,7 @@ Class OB_Loader {
 
     public static function config($file, $use_sections = FALSE, $fail_gracefully = FALSE)
     {
-        core_register('Config')->load($file, $use_sections, $fail_gracefully);
+        core_class('Config')->load($file, $use_sections, $fail_gracefully);
     }
 
     // --------------------------------------------------------------------

@@ -47,10 +47,10 @@ Class Controller extends App_Controller {
     {   
         self::$instance = &$this;
                              
-        $this->config = core_register('Config');
-        $this->router = core_register('Router');
-        $this->uri    = core_register('URI');
-        $this->output = core_register('Output');
+        $this->config = core_class('Config');
+        $this->router = core_class('Router');
+        $this->uri    = core_class('URI');
+        $this->output = core_class('Output');
                                 
         parent::__autoloader();     // Initialize to Application Controller __autoloader().
                                     // This functionality added in version 1.0.1

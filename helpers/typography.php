@@ -39,7 +39,7 @@ if( ! function_exists('nl2br_except_pre') )
 {
     function nl2br_except_pre($str)
     {
-	    return base_register('Typography')->nl2br_except_pre($str);
+	    return load_class('Typography')->nl2br_except_pre($str);
     }
 }
 // ------------------------------------------------------------------------
@@ -57,7 +57,7 @@ if( ! function_exists('auto_typography') )
 {
     function auto_typography($str, $reduce_linebreaks = FALSE)
     {
-        return base_register('Typography')->auto_typography($str, $reduce_linebreaks);
+        return load_class('Typography')->auto_typography($str, $reduce_linebreaks);
     }
 }
     

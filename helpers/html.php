@@ -63,7 +63,7 @@ if( ! function_exists('css') )
         $title = $title_or_embed;
         $link = '<link ';
 
-        $_ob = base_register('Storage');   // obullo changes ..
+        $_ob = load_class('Storage');   // obullo changes ..
 
         // When user use view_set_folder('css', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';
@@ -182,7 +182,7 @@ if( ! function_exists('js') )
 
         $link = '<script type="'.$type.'" ';
 
-        $_ob = base_register('Storage');   // obullo changes ..
+        $_ob = load_class('Storage');   // obullo changes ..
 
         // When user use view_set_folder('js', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';
@@ -553,7 +553,7 @@ if( ! function_exists('img') )
             $src = array('src' => $src);
         }
 
-        $_ob = base_register('Storage');       // obullo changes ..
+        $_ob = load_class('Storage');       // obullo changes ..
                 
         $extra_path = '';
         if( isset($_ob->view->img_folder{1}) )  // When user use view_set_folder('img');
@@ -654,7 +654,7 @@ if( ! function_exists('_get_public_path') )
             }
             else
             {
-                $modulename = core_register('Router')->fetch_directory();  
+                $modulename = core_class('Router')->fetch_directory();  
             }
         }
 

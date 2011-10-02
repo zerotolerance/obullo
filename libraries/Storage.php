@@ -69,7 +69,7 @@ Class OB_Storage {
     
     /**
     * Clone Empty objects for HMVC Requests, When we
-    * use HMVC we use $this->empty = clone base_register('Storage');
+    * use HMVC we use $this->empty = clone load_class('Storage');
     * that means we say to Empty class when Clone word used in HMVC library 
     * use cloned Empty objects instead of orginals ( ersin ).
     */

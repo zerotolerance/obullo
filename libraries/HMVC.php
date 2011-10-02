@@ -94,13 +94,13 @@ Class OB_HMVC
                                      // becuse of it will change foreach HMVC requests.
         if($hmvc_uri != '')
         {
-            $URI    = core_register('URI');
-            $Router = core_register('Router');
+            $URI    = core_class('URI');
+            $Router = core_class('Router');
 
             $this->uri    = clone $URI;     // Create copy of original URI class.
             $this->router = clone $Router;  // Create copy of original Router class.
-            $this->config = clone core_register('Config');  // Create copy of original Config class.
-            $this->empty  = clone base_register('Storage');   // Create copy of original Empty class and it's Objects.
+            $this->config = clone core_class('Config');  // Create copy of original Config class.
+            $this->empty  = clone load_class('Storage');   // Create copy of original Empty class and it's Objects.
 
             $URI->clear();           // Reset uri objects we will reuse it for hmvc
             $Router->clear();        // Reset router objects we will reuse it for hmvc.
@@ -317,10 +317,10 @@ Class OB_HMVC
             self::$_conn_id[$conn_id] = $conn_id;    // store connection id.
         }
 
-        $URI    = core_register('URI');
-        $router = core_register('Router');
-        $config = core_register('Config');
-        $output = core_register('Output');
+        $URI    = core_class('URI');
+        $router = core_class('Router');
+        $config = core_class('Config');
+        $output = core_class('Output');
 
         //------------------------------------
         self::$start_time = ob_request_timer('start');
@@ -478,12 +478,12 @@ Class OB_HMVC
         $_REQUEST = $this->_REQUEST_BACKUP;
 
         // Set original objects foreach HMVC requests we backup before  ..
-        $URI = core_register('URI');
+        $URI = core_class('URI');
 
-        $this->_this->uri    = core_register('URI', $this->uri);
-        $this->_this->router = core_register('Router', $this->router);
-        $this->_this->config = core_register('Config', $this->config);
-        $this->_this->empty  = base_register('Storage', $this->empty);
+        $this->_this->uri    = core_class('URI', $this->uri);
+        $this->_this->router = core_class('Router', $this->router);
+        $this->_this->config = core_class('Config', $this->config);
+        $this->_this->empty  = load_class('Storage', $this->empty);
 
         this($this->_this);         // Set original $this to instance that we backup before
 

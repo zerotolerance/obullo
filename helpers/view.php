@@ -32,7 +32,7 @@ Class ViewException extends CommonException {}
 
 if( ! isset($_ob->view))  // Helper Constructror
 {
-    $_ob = base_register('Storage');
+    $_ob = load_class('Storage');
     $_ob->view = new stdClass();
 
     $_ob->view->view_folder      = DS .'';
@@ -62,7 +62,7 @@ if ( ! function_exists('view_var'))
 {
     function view_var($key, $val = '', $use_layout = FALSE, $layout_data = array())
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
 
         if($val == '')
         {
@@ -105,7 +105,7 @@ if ( ! function_exists('view_array'))
     function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
     {
         $val= (array)$val;
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
 
         if($val == array())
         {
@@ -147,7 +147,7 @@ if ( ! function_exists('view_set'))
 {
     function view_set($layout)
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         $_ob->view->layout_name = $layout;
     }
@@ -171,7 +171,7 @@ if ( ! function_exists('view_set_folder'))
 {
     function view_set_folder($func = 'view', $folder = '', $failure_msg = TRUE)
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
 
         switch ($func)
         {
@@ -236,7 +236,7 @@ if ( ! function_exists('view'))
 {
     function view($file_url, $data = '', $string = TRUE)
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         $return     = FALSE;
         $extra_path = '';
@@ -272,7 +272,7 @@ if ( ! function_exists('view_layout'))
 {
     function view_layout($file_url, $data = '', $string = FALSE)
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         $return     = FALSE;
         $extra_path = '';
@@ -308,7 +308,7 @@ if ( ! function_exists('_set_view_data'))
 {
   function _set_view_data($data = array())
   {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
 		if(isset($_ob->view->view_data)) 
         {
@@ -333,7 +333,7 @@ if( ! function_exists('script') )
 {
     function script($file_url = '', $data = '')
     {
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         $return     = FALSE;
         $extra_path = '';
@@ -396,7 +396,7 @@ if ( ! function_exists('load_view'))
 {
     function load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
-	    $_ob = base_register('Storage');
+	$_ob = load_class('Storage');
 		
         _set_view_data($data);
         
@@ -448,7 +448,7 @@ if ( ! function_exists('load_view'))
         }
 
         // Set Global views inside to Output Class for caching functionality..
-        core_register('Output')->append_output(ob_get_contents());
+        core_class('Output')->append_output(ob_get_contents());
 
         @ob_end_clean();
 
@@ -491,7 +491,7 @@ if( ! function_exists('_view_load_file'))
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
             
-            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_register('Router')->fetch_directory();
+            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
             
             if(is_extension($modulename, $module))
             {

@@ -60,7 +60,7 @@ Class OB_Router {
         unset($routes);
 
         $this->method = $this->routes['index_method'];
-        $this->uri    = core_register('URI');
+        $this->uri    = core_class('URI');
 
         $this->_set_routing();
 
@@ -77,7 +77,7 @@ Class OB_Router {
     */
     public function clear()
     {
-        $this->uri                 = core_register('URI');   // reset cloned URI object.
+        $this->uri                 = core_class('URI');   // reset cloned URI object.
         $this->config              = '';
         $this->hmvc                = FALSE;
         $this->hmvc_response       = '';
@@ -95,7 +95,7 @@ Class OB_Router {
 
     /**
     * Clone URI object for HMVC Requests, When we
-    * use HMVC we use $this->uri = clone base_register('URI');
+    * use HMVC we use $this->uri = clone load_class('URI');
     * that means we say to Router class when Clone word used in HMVC library
     * use cloned URI object instead of orginal ( ersin ).
     */

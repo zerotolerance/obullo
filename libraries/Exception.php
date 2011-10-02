@@ -46,7 +46,7 @@ Class OB_Exception {
         
         // If user want to close error_reporting in some parts of the application.
         //-----------------------------------------------------------------------  
-        if(core_register('Config')->item('error_reporting') == '0')
+        if(core_class('Config')->item('error_reporting') == '0')
         {
             log_me('debug', 'You closed the error_reporting.');
             return;

@@ -29,7 +29,7 @@ defined('BASE') or exit('Access Denied!');
  
 if( ! isset($_ob->benchmark))  // Helper Constructor
 {
-    $_ob = base_register('Storage');
+    $_ob = load_class('Storage');
     
     $_ob->benchmark = new stdClass();
     $_ob->benchmark->marker = array();
@@ -52,7 +52,7 @@ if( ! function_exists('benchmark_mark') )
 {
     function benchmark_mark($name)
     {
-        $_ob = base_register('Storage'); 
+        $_ob = load_class('Storage'); 
         
         $_ob->benchmark->marker[$name] = microtime();
     }
@@ -73,7 +73,7 @@ if( ! function_exists('benchmark_elapsed_time') )
 {
     function benchmark_elapsed_time($point1 = '', $point2 = '', $decimals = 4)
     {
-        $_ob = base_register('Storage'); 
+        $_ob = load_class('Storage'); 
         
         if ($point1 == '')
         {

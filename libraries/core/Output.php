@@ -314,7 +314,7 @@ Class OB_Output {
         if ($this->enable_profiler == TRUE)
         {
             // Get profiler output.
-            $profiler       = base_register('Profiler');
+            $profiler       = load_class('Profiler');
             $data['output'] = $profiler->run();
             
                                  

@@ -87,7 +87,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
         } 
         else  // Is It Exception ?
         {             
-            $exception = base_register('Exception');
+            $exception = load_class('Exception');
             
             if(is_object($exception)) 
             {           

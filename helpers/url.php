@@ -113,7 +113,7 @@ if ( ! function_exists('module'))
         }
         else
         {
-            $module = core_register('Router')->fetch_directory();
+            $module = core_class('Router')->fetch_directory();
         }
 
         return $module .'/'. ltrim($uri, '/');

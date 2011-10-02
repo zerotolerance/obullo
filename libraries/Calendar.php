@@ -48,7 +48,7 @@ Class OB_Calendar {
     */
     public function __construct($config = array())
     {        
-        $_ob = base_register('Storage');
+        $_ob = load_class('Storage');
         
         if ( ! in_array('calendar_lang', $_ob->lang->is_loaded, TRUE))
         {

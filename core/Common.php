@@ -34,7 +34,7 @@ defined('BASE') or exit('Access Denied!');
 * @param boolean | object $new_object
 * @param array $params_or_no_ins
 */
-function core_register($realname, $new_object = NULL, $params_or_no_ins = '')
+function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
 {
     static $new_objects = array();                
     
@@ -130,7 +130,7 @@ function core_register($realname, $new_object = NULL, $params_or_no_ins = '')
 // -------------------------------------------------------------------- 
 
 /**
-* base_register()
+* load_class()
 *
 * Register base classes which start by OB_ prefix
 *
@@ -148,7 +148,7 @@ function core_register($realname, $new_object = NULL, $params_or_no_ins = '')
 *
 * @return   object  | NULL
 */
-function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
+function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 {
     static $new_objects       = array();               
     static $overriden_objects = array();
@@ -198,7 +198,7 @@ function base_register($realname, $new_object = NULL, $params_or_no_ins = '')
 
         $classname   = 'OB_'.$Class;
         $prefix      = config_item('subclass_prefix');  // MY_
-        $module      = core_register('Router')->fetch_directory();
+        $module      = core_class('Router')->fetch_directory();
         $extensions  = get_config('extensions');
         
         //------------------ OVERRIDE SUPPORT ------------------//
@@ -334,7 +334,7 @@ function ob_autoload($real_name)
     if(class_exists($real_name))
     return;
     
-    $module = core_register('Router')->fetch_directory();
+    $module = core_class('Router')->fetch_directory();
 
     // Parents folder files: App_controller and Global Controllers
     // --------------------------------------------------------------------
@@ -424,7 +424,9 @@ if( ! function_exists('lib'))
 {
     function lib($class, $params_or_no_instance = '', $new_object = NULL)
     {
-        return base_register(strtolower($class), $new_object, $params_or_no_instance);
+        // @todo if strpos('../', $class) so go loader::lib($class);
+        
+        return load_class(strtolower($class), $new_object, $params_or_no_instance);
     }
 }
 
@@ -649,7 +651,7 @@ function is_php($version = '5.0.0')
 */
 function profiler_set($type, $key, $val)
 {
-    base_register('Storage')->profiler_var[$type][$key] = $val;
+    load_class('Storage')->profiler_var[$type][$key] = $val;
 }
 
 // --------------------------------------------------------------------  
@@ -663,7 +665,7 @@ function profiler_set($type, $key, $val)
 */
 function profiler_get($type)
 {
-    $_ob = base_register('Storage');
+    $_ob = load_class('Storage');
     
     if( isset($_ob->profiler_var[$type]))
     {
@@ -833,127 +835,6 @@ function ext_item($name, $item, $index = 'application')
     return NULL;
 }
 
-// ------------------------------------------------------------------------ 
-
-/**
-* Parse head files to learn whether it
-* comes from modules directory.
-*
-* convert  this path ../welcome/welcome.css
-* to /public_url/modules/welcome/public/css/welcome.css
-*
-* @author   CJ Lazell
-* @author   Ersin Guvenc
-* @access   private
-* @param    mixed $file_url
-* @param    mixed $extra_path
-* @return   string | FALSE
-*/
-if( ! function_exists('_get_public_path') )
-{
-    function _get_public_path($file_url, $extra_path = '', $custom_extension = '')
-    {
-        $OB = this();
-        
-        $file_url  = strtolower($file_url);
-        
-        if(strpos($file_url, '../') === 0)   // if ../modulename/public folder request 
-        {
-            $paths      = explode('/', substr($file_url, 3));
-            $filename   = array_pop($paths);          // get file name
-            $modulename = array_shift($paths);        // get module name
-        }
-        else    // if current modulename/public request
-        {
-            $filename = $file_url;          
-            $paths    = array();
-            if( strpos($filename, '/') !== FALSE)
-            {
-                $paths      = explode('/', $filename);
-                $filename   = array_pop($paths);
-            }
-
-            if(isset($GLOBALS['d']))
-            {
-                $modulename = $GLOBALS['d'];
-            }
-            else
-            {
-                $modulename = core_register('Router')->fetch_directory();  
-            }
-        }
-
-        $sub_path   = '';
-        if( count($paths) > 0)
-        {
-            $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
-        }
-                             
-        $ext = substr(strrchr($filename, '.'), 1);   // file extension
-        if($ext == FALSE) 
-        {
-            return FALSE;
-        }
-
-        if($custom_extension != '') // set like this css('js/folder/theme/ui.css')
-        {
-            $ext = $custom_extension;
-        }
-        
-        $folder = $ext . '/';
-        
-        if($extra_path != '')
-        {
-            $extra_path = trim($extra_path, '/').'/';
-            $folder = '';
-        }
-
-        $ROOT = str_replace(ROOT, '', rtrim(MODULES, DS));
-        
-        $public_url    = $OB->config->public_url('', true) .str_replace(DS, '/', $ROOT). '/';
-        $public_folder = trim($OB->config->item('public_folder'), '/');
-
-        // if config public_folder = 'public/site' just grab the 'public' word
-        // so when managing multi applications user don't need to divide public folder files.
-
-        if( strpos($public_folder, '/') !== FALSE)
-        {
-            $public_folder = current(explode('/', $public_folder));
-        }                                                         
-
-        // example
-        // .site/modules/welcome/public/css/welcome.css    (public/{site removed}/css/welcome.css)
-        // .admin/modules/welcome/public/css/welcome.css
-
-        $pure_path  = $modulename .'/'. $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
-        $full_path  = $public_url . $pure_path;
-
-        $app_public_url = $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
-        
-        // if file located in another server fetch it from outside /public folder.
-        if(strpos($OB->config->public_url(), '://') !== FALSE)
-        {
-            return $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
-        }
-          
-         // if file not exists in current module folder fetch it from outside /public folder. 
-         
-        if( is_readable(MODULES . str_replace('/', DS, trim($pure_path, '/'))) ) 
-        {         
-            return $full_path;
-        }
-        elseif(is_readable(str_replace('/', DS, trim($app_public_url, '/'))))
-        {
-            return $app_public_url;
-        }
-        else
-        {
-            throw new CommonException('File not exist or the path ' . $pure_path .' is not readable, you need check your chmod settings !'); 
-        }
-        
-        return $full_path;
-    }
-}
 
 //----------------------------------------------------------------------- 
  
