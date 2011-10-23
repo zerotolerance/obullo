@@ -156,7 +156,7 @@ Class OB_Loader {
 
             if(is_array($params_or_no_ins))
             {
-                // HMVC CRAZY BUG !!
+                // HMVC BUG !!
                 // If someone use HMVC we need to create new instance() foreach Library
                 if(core_class('Router')->hmvc == FALSE AND $new_instance == FALSE)
                 {
@@ -221,25 +221,28 @@ Class OB_Loader {
 
     /**
     * loader::model();
-    * loader::model('subfolder/model_name')  local sub folder load
-    * loader::model('../outside_folder/model_name')  outside directory load
-    *
+    * loader::model('subfolder/model_name')  sub folder load
+    * loader::model('../module/model_name')  model load from outside directory
+    * loader::model('modelname', FALSE); no instantite just include class.
+    * 
     * @author    Ersin Guvenc
     * @param     string $model
-    * @param     string $object_name
+    * @param     string $object_name_OR_NO_INS
     * @param     array | boolean $params (construct params) | or | Not Instantiate just include file
     * @return    void
     */
-    public static function model($model, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
+    public static function model($model, $object_name_or_no_ins = '', $params_or_no_ins = '', $new_instance = FALSE)
     {
         if(strpos($model, 'app/') === 0)
         {
-            return loader::app_model(substr($model, 4), $object_name, $params_or_no_ins, $new_instance);
+            return loader::app_model(substr($model, 4), $object_name_or_no_ins, $params_or_no_ins, $new_instance);
         }
         
-        $data = self::_load_file($model, $folder = 'models', FALSE);
+        $case_sensitive = ($object_name_or_no_ins === FALSE || $params_or_no_ins === FALSE) ? $case_sensitive = TRUE : FALSE;
+        
+        $data = self::_load_file($model, $folder = 'models', FALSE , FALSE, $case_sensitive);
 
-        self::_model($data['file'], $data['file_name'], $object_name, $params_or_no_ins, $new_instance);
+        self::_model($data['file'], $data['file_name'], $object_name_or_no_ins, $params_or_no_ins, $new_instance);
     }
 
     // --------------------------------------------------------------------
@@ -280,7 +283,7 @@ Class OB_Loader {
         require_once($file);
         $model = ucfirst($model_name);
 
-        if($params_or_no_ins === FALSE)
+        if($params_or_no_ins === FALSE || $object_name === FALSE)
         {
             profiler_set('models', $model_var.'_no_instantiate', $model_name);
             return;
@@ -299,7 +302,6 @@ Class OB_Loader {
         // assign all loaded db objects inside to current model
         // loader::database() support for Model_x { function __construct() { loader::database() }}
         $OB->$model_var->_assign_db_objects();
-
     }
 
     // --------------------------------------------------------------------
@@ -645,7 +647,7 @@ Class OB_Loader {
     {
         $real_name  = ($case_sensitive) ? $filename : strtolower($filename);
         $root       = rtrim(MODULES, DS); 
-
+        
         if($extension)  // main extension library or helper file.
         {
             $return['file_name'] = $real_name;
@@ -695,21 +697,6 @@ Class OB_Loader {
 
 
         return array('file_name' => $real_name, 'file' => $root. DS .$sub_root. $real_name. EXT);
-    }
-
-    // --------------------------------------------------------------------
-    
-    public static function req($file = '')
-    {
-        if($file == '') return;
-        
-        self::_library($file, FALSE, '', FALSE);
-    }
-    
-    // @todo
-    public static function inc($file = '') 
-    { 
-        
     }
     
     // --------------------------------------------------------------------

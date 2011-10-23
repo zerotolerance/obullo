@@ -243,6 +243,43 @@ if( ! function_exists('js') )
 // ------------------------------------------------------------------------
 
 /**
+ * Get configured output of the called plugin.
+ * 
+ * @param string $name plugin name (plugin folder)
+ * @param string $config_file name of the plugin config file.
+ * @return string
+ */
+if ( ! function_exists('plugin'))
+{
+    function plugin($name, $config_file = 'plugins')
+    {
+        loader::config($config_file);  // load module or application plugin from config file.
+        
+        $plugin_files = this()->config->item($name);
+        
+        if(count($plugin_files) == 0) return;
+        
+        $output = '';
+        foreach($plugin_files as $filename)
+        {
+            if(strpos(ltrim($filename), 'js/') === 0)
+            {
+                $output.= js(substr($filename, 3));
+            }
+            
+            if(strpos(ltrim($filename), 'css/') === 0)
+            {
+                $output.= css(substr($filename, 3));
+            }
+        }
+        
+        return $output;
+    }
+}
+
+// ------------------------------------------------------------------------
+
+/**
 * Generates meta tags from an array of key/values
 *
 * @access   public

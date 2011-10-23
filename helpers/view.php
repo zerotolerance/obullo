@@ -175,46 +175,46 @@ if ( ! function_exists('view_set_folder'))
 
         switch ($func)
         {
-           case 'view':
-             $_ob->view->view_folder     = $folder;
-             $_ob->view->view_folder_msg = $failure_msg;
-
-             log_me('debug', "View() Function Paths Changed");
+            case 'view':
+                $_ob->view->view_folder     = $folder;
+                $_ob->view->view_folder_msg = $failure_msg;
+                
+                log_me('debug', "View() Function Paths Changed");
              break;
 
            case 'view_layout':
-             $_ob->view->layout_folder     = $folder;
-             $_ob->view->layout_folder_msg = $failure_msg;
+                $_ob->view->layout_folder     = $folder;
+                $_ob->view->layout_folder_msg = $failure_msg;
 
-             log_me('debug', "View_layout() Function Paths Changed");
+                log_me('debug', "View_layout() Function Paths Changed");
              break;
 
            case 'css':
-             $_ob->view->css_folder      = $folder;
-             $_ob->view->css_folder_msg  = $failure_msg;
+                $_ob->view->css_folder      = $folder;
+                $_ob->view->css_folder_msg  = $failure_msg;
 
-             log_me('debug', "Css() Function Paths Changed");
+                log_me('debug', "Css() Function Paths Changed");
              break;
 
            case 'js':
-             $_ob->view->js_folder       = $folder;
-             $_ob->view->js_folder_msg   = $failure_msg;
+                $_ob->view->js_folder       = $folder;
+                $_ob->view->js_folder_msg   = $failure_msg;
 
-             log_me('debug', "Js() Function Paths Changed");
+                log_me('debug', "Js() Function Paths Changed");
              break;
 
            case 'img':
-             $_ob->view->img_folder      = $folder;
-             $_ob->view->img_folder_msg  = $failure_msg;
+                $_ob->view->img_folder      = $folder;
+                $_ob->view->img_folder_msg  = $failure_msg;
 
-             log_me('debug', "Img() Function Paths Changed");
-             break;
+                log_me('debug', "Img() Function Paths Changed");
+               break;
              
            case 'script':
-             $_ob->view->script_folder     = $folder;
-             $_ob->view->script_folder_msg = $failure_msg;
+                $_ob->view->script_folder     = $folder;
+                $_ob->view->script_folder_msg = $failure_msg;
 
-             log_me('debug', "Script() Function Paths Changed");
+                log_me('debug', "Script() Function Paths Changed");
              break;
         }
         
@@ -310,11 +310,11 @@ if ( ! function_exists('_set_view_data'))
   {
         $_ob = load_class('Storage');
         
-		if(isset($_ob->view->view_data)) 
+        if(isset($_ob->view->view_data)) 
         {
             $_ob->view->view_data = array_merge((array)$_ob->view->view_data, (array)$data);
         }
-		else 
+        else 
         {
             $_ob->view->view_data = $data;
         }
@@ -400,7 +400,7 @@ if ( ! function_exists('load_view'))
 		
         _set_view_data($data);
         
-		$data = $_ob->view->view_data;
+	$data = $_ob->view->view_data;
 
         if ( ! file_exists($path . $filename . EXT) )
         {

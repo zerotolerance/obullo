@@ -372,6 +372,20 @@ if( ! function_exists('sess_get_flash') )
         return $prefix.$value.$suffix;
     }
 }
+
+// ------------------------------------------------------------------------
+
+/**
+*  Alias of sess_get_flash. 
+*/
+if( ! function_exists('sess_flash'))
+{
+    function sess_flash($key, $prefix = '', $suffix = '')
+    {
+        return sess_get_flash($key, $prefix, $suffix);
+    }
+}
+
 // ------------------------------------------------------------------------
 
 /**

@@ -405,8 +405,10 @@ Class OB_Router {
 
                     return $x;
             }
-
-            show_404(); // security fix.
+            
+            $error_page = (isset($segments[1])) ? $segments[0].'/'.$segments[1] : $segments[0];
+            
+            show_404($error_page); 
         }
     }
                

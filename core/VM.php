@@ -185,11 +185,45 @@ Class VM extends Model {
 
         return $this->validator($v_data, $db_fields);
     }
-
+    
+    // --------------------------------------------------------------------
+   
+    /**
+    * Return validaton errors for current model.
+     * 
+    * @return array
+    */
+    public function errors()
+    {
+        if(isset($this->errors[$this->item('table')]))
+        {
+            return $this->errors[$this->item('table')];
+        }
+        
+        return $this->errors;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Return filtered validation values for current model.
+    * 
+    * @return array
+    */
+    public function values()
+    {
+        if(isset($this->values[$this->item('table')]))
+        {
+            return $this->values[$this->item('table')];
+        }
+        
+        return $this->values;
+    }
+   
     // --------------------------------------------------------------------
 
     /**
-    * GET filtered field value.
+    * Return to filtered one item's value.
     *
     * @param string $field
     */
@@ -287,6 +321,13 @@ Class VM extends Model {
     
     // --------------------------------------------------------------------
 
+    /**
+    * Some times you can don't want insert any data to database
+    * if u just use validate functionality use no_input() func.
+    * for each fields.
+    * 
+    * @param type $key
+    */
     public function no_input($key)
     {
         $this->no_input[$key] = $key;
@@ -294,8 +335,15 @@ Class VM extends Model {
 
     // --------------------------------------------------------------------
 
-    public function before_save() {}
-    public function after_save() {}
+    public function before_save()
+    {
+        
+    }
+    
+    public function after_save()
+    {
+        
+    }
 
     /**
     * Do update if ID exists otherwise

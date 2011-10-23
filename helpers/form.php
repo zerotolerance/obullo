@@ -856,6 +856,17 @@ if( ! function_exists('form_validate_errors') )
 	    return $OBJ->error_string($prefix, $suffix);
     }
 }
+
+// ------------------------------------------------------------------------
+
+if( ! function_exists('validation_errors') ) 
+{ 
+    function validation_errors($prefix = '', $suffix = '')  // Obullo changes ..
+    {
+        return form_validate_errors($prefix, $suffix);
+    }
+}
+
 // ------------------------------------------------------------------------
 
 /**
@@ -953,6 +964,7 @@ if( ! function_exists('_attributes_to_string') )
 	    }
     }
 }
+
 // ------------------------------------------------------------------------
 
 /**
@@ -976,6 +988,7 @@ if( ! function_exists('_get_validation_object') )
         return load_class('Validator');
     }
 }
+
 
 /* End of file form.php */
 /* Location: ./obullo/helpers/form.php */
