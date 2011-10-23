@@ -335,16 +335,6 @@ Class VM extends Model {
 
     // --------------------------------------------------------------------
 
-    public function before_save()
-    {
-        
-    }
-    
-    public function after_save()
-    {
-        
-    }
-
     /**
     * Do update if ID exists otherwise
     * do insert.

@@ -46,7 +46,7 @@ Class OB_Pager
     
         $classname = 'Pager_' . $mode;
                                          
-        loader::core_helper('driver');
+        loader::helper('core/driver');
                                             
         // @todo lib('drivers/query/Query_Mysql_Compiler');
                                             

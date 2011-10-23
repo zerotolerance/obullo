@@ -420,6 +420,11 @@ Class OB_Loader {
             return loader::app_helper(substr($helper, 4));
         }
         
+        if(strpos($helper, 'core/') === 0)
+        {
+            return loader::core_helper(substr($helper, 5));
+        }
+        
         if( isset(self::$_helpers[$helper]) )
         {
             return;
