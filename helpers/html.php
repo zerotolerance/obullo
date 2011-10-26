@@ -254,6 +254,8 @@ if ( ! function_exists('plugin'))
     function plugin($name, $config_file = 'plugins')
     {
         loader::config($config_file);  // load module or application plugin from config file.
+                                       // obullo first look at module/config folder if config file not exist
+                                       // obullo load it from application/config folder.
         
         $plugin_files = this()->config->item($name);
         
@@ -488,7 +490,7 @@ if( ! function_exists('ol') )
 */
 if( ! function_exists('_list') ) 
 {
-    function _list($type = 'ul', $list, $attributes = '', $depth = 0)
+    function _list($type = 'ul', $list = '', $attributes = '', $depth = 0)
     {
         // If an array wasn't submitted there's nothing to do...
         if ( ! is_array($list))
@@ -760,7 +762,7 @@ if( ! function_exists('_get_public_path') )
         }
         else
         {
-            throw new CommonException('File not exist or the path ' . $pure_path .' is not readable, you need check your chmod settings !'); 
+            log_me('debug', 'File not exist or the path ' . $full_path .' is not readable, you need to check your chmod settings !');
         }
         
         return $full_path;

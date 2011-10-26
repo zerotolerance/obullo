@@ -127,11 +127,17 @@ Class Obullo_DB_Driver_Odbc extends OB_DBAdapter
             return $str;
         }
         
-        // PDO_Odbc does not support PDO::quote() function.
-        // make sure is it bind value, if not ... 
-        if( strpos($str, ':') === FALSE || strpos($str, ':') > 0)
+        // make sure is it bind value, if not ...
+        if($this->prepare === TRUE)
         {
-             $str = $this->quote($str); 
+            if(strpos($str, ':') === FALSE)
+            {
+                $str = $this->quote($str, PDO::PARAM_STR);
+            }
+        }
+        else
+        {
+           $str = $this->quote($str, PDO::PARAM_STR);
         }
         
         return $str;

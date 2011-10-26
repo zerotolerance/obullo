@@ -157,11 +157,18 @@ Class Obullo_DB_Driver_Firebird extends OB_DBAdapter
             return $str;
         } 
         
-        // make sure is it bind value, if not ... 
-        if( strpos($str, ':') === FALSE || strpos($str, ':') > 0)
+        // make sure is it bind value, if not ...
+        if($this->prepare === TRUE)
         {
-             $str = $this->quote($str, PDO::PARAM_STR);
-        } 
+            if(strpos($str, ':') === FALSE)
+            {
+                $str = $this->quote($str, PDO::PARAM_STR);
+            }
+        }
+        else
+        {
+           $str = $this->quote($str, PDO::PARAM_STR);
+        }
         
         return $str;
     }
