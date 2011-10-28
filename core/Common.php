@@ -179,7 +179,9 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
     $getObject = $registry->get_object($Class);
                                                    
     if ($getObject !== NULL)
-    return $getObject;
+    {
+        return $getObject;
+    }
                                                   
     if(file_exists(BASE .'libraries'. $sub_path . DS . $Class. EXT))
     {
@@ -301,8 +303,10 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         // --------------------------------------------------------------------
                       
         if(is_object($Object))
-        return $Object;
-
+        {
+            return $Object;
+        }
+        
     }
 
     return NULL;  // if register func return to null

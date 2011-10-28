@@ -56,7 +56,7 @@ if( ! function_exists('request') )
         
         if($cache_time_or_config === TRUE)
         {
-            $hmvc = load_class('HMVC', true);   // Every hmvc request must create new instance
+            $hmvc = lib('Hmvc', '', true);   // Every hmvc request must create new instance (true == new instance)
             $hmvc->clear();                        // clear variables for each request.
             $hmvc->hmvc_request($request_uri, 0);
             $hmvc->set_method($method, $params);
@@ -71,7 +71,7 @@ if( ! function_exists('request') )
         {
             $config = $cache_time_or_config;
             
-            $hmvc = load_class('HMVC', true);   
+            $hmvc = lib('Hmvc', '', true);   
             $hmvc->clear();             
 
             $cache_time = (isset($config['cache_time'])) ? $config['cache_time'] : 0;
@@ -87,7 +87,7 @@ if( ! function_exists('request') )
         // Long access but flexible way.  
         // ------------------------------------------------------------------------  
     
-        $hmvc = load_class('HMVC', true); 
+        $hmvc = lib('Hmvc', '', true); 
         $hmvc->clear();                       
         $hmvc->hmvc_request($request_uri, $cache_time_or_config);
         $hmvc->set_method($method, $params);

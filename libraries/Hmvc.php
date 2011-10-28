@@ -35,7 +35,7 @@ function ob_request_timer($mark = '')
  *              to instance using Controller::set_instance(); method.
  *              Hmvc router and uri libraries merged.
  */
-Class OB_HMVC
+Class OB_Hmvc
 {
     // Cloned objects
     public $uri;                   // Clone original URI object
@@ -602,7 +602,7 @@ Class OB_HMVC
     
     
 }
-// END HMVC Class
+// END Hmvc Class
 
-/* End of file HMVC.php */
-/* Location: ./obullo/libraries/HMVC.php */
+/* End of file Hmvc.php */
+/* Location: ./obullo/libraries/Hmvc.php */

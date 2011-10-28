@@ -762,7 +762,7 @@ if( ! function_exists('_get_public_path') )
         }
         else
         {
-            log_me('debug', 'File not exist or the path ' . $full_path .' is not readable, you need to check your chmod settings !');
+            log_me('debug', 'File not exist or the path ' . $full_path .' is not readable or you need to check your chmod settings !');
         }
         
         return $full_path;

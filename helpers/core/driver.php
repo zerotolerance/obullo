@@ -83,8 +83,5 @@ if( ! function_exists('driver_lib'))
 }
 
 
-// todo driver helper
-
-
 /* End of file driver.php */
 /* Location: ./obullo/helpers/driver.php */
