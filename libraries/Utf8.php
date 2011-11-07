@@ -32,7 +32,7 @@ defined('BASE') or exit('Access Denied!');
  * [!!] This file is licensed differently from the rest of Obullo. As a port of
  * [phputf8](http://phputf8.sourceforge.net/), this file is released under the LGPL.
  *
- * Some class borrowed from Kohana Framework, Harry Fuecks, Andreas Gohr.
+ * Some codes borrowed from Kohana Framework, Harry Fuecks and Andreas Gohr.
  * 
  * @package    Obullo
  * @license    Utf8 library licenced under the http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt

@@ -108,12 +108,7 @@ if( ! function_exists('_lang_load_file'))
     {
         if($extra_path != '')
         {
-            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
-        }
-        
-        if($base == 'base')  // if base lang
-        {
-            return array('filename' => $file_url, 'path' => BASE .'lang'. DS. $extra_path);
+            $extra_path = str_replace('/', DS, trim($extra_path, '/')). DS;
         }
         
         $file_url = strtolower($file_url);
@@ -134,8 +129,22 @@ if( ! function_exists('_lang_load_file'))
                 $filename   = array_pop($paths);
             }
 
-            $modulename = $GLOBALS['d'];
+            $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
         }
+        
+        //-------------- BASE LANG --------------//
+        
+        if($base == 'base')  // if base lang
+        { 
+            if(file_exists(APP .'lang'. DS. trim($extra_path, '/') . DS. $filename. EXT)) // check app path
+            {
+                return array('filename' => $filename, 'path' => APP .'lang'. DS. trim($extra_path, '/'));
+            }
+            
+            return array('filename' => $file_url, 'path' => BASE .'lang'. DS. trim($extra_path, '/'));
+        }
+        
+        //-------------- BASE LANG --------------//
 
         $sub_path   = '';
         if( count($paths) > 0)
@@ -150,7 +159,7 @@ if( ! function_exists('_lang_load_file'))
         {
             $path = $module_path;
         }
-
+        
         return array('filename' => $filename, 'path' => $path);
     }
 }

@@ -268,7 +268,7 @@ Class OB_Hmvc
              break;
         }
 
-        $_SERVER['REQUEST_METHOD'] = $method;  // Set request method ..
+        $_SERVER['REQUEST_METHOD']   = $method;  // Set request method ..
         $_SERVER['HMVC_REQUEST']     = TRUE;
         $_SERVER['HMVC_REQUEST_URI'] = $this->uri_string;
     }
@@ -308,7 +308,7 @@ Class OB_Hmvc
             $conn_id = $this->_get_id();
 
             if( isset(self::$_conn_id[$conn_id]) )   // We need that to prevent HMVC loops if someone use hmvc request
-            {                                        // in Global Controllers.
+            {                                        // in Application or Module Controller.
                 $this->_reset_router(TRUE);
 
                 return $this;

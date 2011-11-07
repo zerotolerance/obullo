@@ -421,13 +421,23 @@ spl_autoload_register('ob_autoload', true);
 * you need to create new instance sometimes.
 * 
 * @param string $class
-* @param array | false $params_or_no_instance
+* @param array | false | true $params_or_no_instance_or_new_object
 * @param true | object $new_object
 */
 if( ! function_exists('lib'))
 {
-    function lib($class, $params_or_no_instance = '', $new_object = NULL)
+    function lib($class, $params_or_no_instance_or_new_object = '')
     {
+        $new_object = NULL;
+        if($params_or_no_instance_or_new_object === TRUE)
+        {
+            $new_object = TRUE;
+        }
+        else
+        {
+            $params_or_no_instance = $params_or_no_instance_or_new_object;
+        }
+        
         // @todo if strpos('../', $class) so go loader::lib($class);
         
         return load_class(strtolower($class), $new_object, $params_or_no_instance);

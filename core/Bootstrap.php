@@ -58,10 +58,10 @@ if( ! function_exists('ob_set_headers'))
         core_class('URI');
         core_class('Router');
         
-        loader::core_helper('error');
-        loader::core_helper('input');
-        loader::core_helper('lang');
-        loader::core_helper('benchmark');
+        loader::helper('core/error');
+        loader::helper('core/input');
+        loader::helper('core/lang');
+        loader::helper('core/benchmark');
     }
 }
 
@@ -202,7 +202,7 @@ if( ! function_exists('ob_system_run'))
     }
 }
 
-// Close the opened connections.
+// Close the connections.
 // --------------------------------------------------------------------  
 if( ! function_exists('ob_system_close'))
 {
