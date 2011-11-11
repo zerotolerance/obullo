@@ -189,6 +189,23 @@ if( ! function_exists('ob_system_run'))
             }
         }
         
+        //---------- AUTOLOAD ------------//        
+        
+        if(file_exists(MODULES .$router->fetch_directory(). DS .'config'. DS .'autoload'. EXT))
+        {
+            log_me('debug', ucfirst($router->fetch_directory()).' Module Autoloader Initialized');
+            
+            get_static('autoload', '', MODULES .$router->fetch_directory(). DS .'config');
+        } 
+        else 
+        {
+            log_me('debug', 'Application Autoloader Initialized');
+            
+            get_static('autoload', '', APP .'config');
+        }
+        
+        //---------- AUTOLOAD ------------//   
+
         //                                                                     0       1       2
         // Call the requested method. Any URI segments present (besides the directory/class/method) 
         // will be passed to the method for convenience

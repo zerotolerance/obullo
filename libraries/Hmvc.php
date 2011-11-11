@@ -416,10 +416,6 @@ Class OB_Hmvc
 
         // If Everyting ok Declare Called Controller !
         $OB = new $GLOBALS['c']();
-        
-        // Load the controller using reflection
-        // $controller = new ReflectionClass($GLOBALS['c']);
-        // $OB = $controller->newInstance();
 
         // Check method exist or not
         if ( ! in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods($OB))))
@@ -431,6 +427,17 @@ Class OB_Hmvc
             return $this;
         }
 
+        //---------- AUTOLOAD ------------//
+        
+        if(file_exists(MODULES .$router->fetch_directory(). DS .'config'. DS .'autoload'. EXT))
+        {
+            log_me('debug', ucfirst($router->fetch_directory()).' Module Autoloader Initialized ( Hmvc Request )');
+            
+            get_static('autoload', '', MODULES .$router->fetch_directory(). DS .'config');
+        }
+        
+        //---------- AUTOLOAD ------------//
+        
         ob_start();
 
         // Call the requested method.                1       2       3

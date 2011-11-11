@@ -14,9 +14,8 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
  
-  /**
- * Global Controllers ( GC ) 
- * Dual Controller, Model and View (c) 2010  
+ /**
+ * Obullo Global Controllers ( GC ) 2010  
  * 
  * @package         Obullo   
  * @subpackage      Core.controller 
@@ -38,47 +37,70 @@ define('OBULLO_VERSION', '1.0.1');
  * @category        Core
  * @version         0.1
  * @version         0.2 added extends App_controller
+ * @version         0.3 @deprecated App_controller added autoloader
  */
-Class Controller extends App_Controller {
 
-    private static $instance;
-    
-    public function __construct()       
-    {   
-        self::$instance = &$this;
-                             
-        $this->config = core_class('Config');
-        $this->router = core_class('Router');
-        $this->uri    = core_class('URI');
-        $this->output = core_class('Output');
-                                
-        parent::__autoloader();     // Initialize to Application Controller __autoloader().
-                                    // This functionality added in version 1.0.1
-        
-        log_me('debug', "Controller Class Initialized");
+if(file_exists(APP .'parents'. DS .'My_Controller'. EXT))
+{
+    Class Controller extends My_Controller {
+
+        private static $instance;
+
+        public function __construct()       
+        {   
+            self::$instance = &$this;
+
+            $this->config = core_class('Config');
+            $this->router = core_class('Router');
+            $this->uri    = core_class('URI');
+            $this->output = core_class('Output');
+            
+            parent::__construct();
+            
+            log_me('debug', 'My Controller Class Initialized. You can remove it if you don\'t want to use.');
+        }
+
+        public static function _instance($new_instance = '')
+        {   
+            if(is_object($new_instance))
+            {
+                self::$instance = $new_instance;
+            }    
+
+            return self::$instance;
+        } 
     }
-    
-    /**
-    * this();
-    * 
-    * Obullo Super Object in Every Where
-    *  
-    * @author Ersin Guvenc
-    * @version 1.0 
-    * @version 1.1 get_instance renamed and moved here
-    * @return object
-    */
-    public static function _instance($new_instance = '')
-    {   
-        if(is_object($new_instance))
-        {
-            self::$instance = $new_instance;
-        }    
-        
-        return self::$instance;
-    } 
-    
+} 
+else 
+{
+    Class Controller {
+
+        private static $instance;
+
+        public function __construct()       
+        {   
+            self::$instance = &$this;
+
+            $this->config = core_class('Config');
+            $this->router = core_class('Router');
+            $this->uri    = core_class('URI');
+            $this->output = core_class('Output');
+            
+            log_me('debug', "Controller Class Initialized");
+        }
+
+        public static function _instance($new_instance = '')
+        {   
+            if(is_object($new_instance))
+            {
+                self::$instance = $new_instance;
+            }    
+
+            return self::$instance;
+        } 
+    }
 }
+
 
 /**
 * @author  Ersin Guvenc

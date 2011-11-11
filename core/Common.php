@@ -463,28 +463,42 @@ if( ! function_exists('lib'))
 function get_static($filename = 'config', $var = '', $folder = '')
 {
     static $static = array();
-
-    if ( ! isset($static[$filename]))
+    
+    $key = $folder. DS .$filename. EXT;
+    
+    if ( ! isset($static[$key]))
     {
         if ( ! file_exists($folder. DS .$filename. EXT))
         {
-            throw new CommonException('The static file '. $folder. DS .$filename. EXT .' does not exist.');
+            $error_msg = 'The static file '. $folder. DS .$filename. EXT .' does not exist.';
+            
+            log_me('debug', $error_msg);
+            
+            show_error($error_msg);
+            
+            return;
         }
 
         require($folder. DS .$filename. EXT);
 
         if($var == '') $var = &$filename;
 
-        if ( ! isset($$var) OR ! is_array($$var))
+        if($filename != 'autoload')
         {
-            throw new CommonException('The static file '. $folder. DS .$filename. EXT .' file does
-            not appear to be formatted correctly.');
+            if ( ! isset($$var) OR ! is_array($$var))
+            {
+                $error_msg = 'The static file '. $folder. DS .$filename. EXT .' file does not appear to be formatted correctly.';
+                
+                log_me('debug', $error_msg);
+                
+                show_error($error_msg);
+            }
         }
 
-        $static[$filename] =& $$var;
+        $static[$key] =& $$var;
      }
 
-    return $static[$filename];
+    return $static[$key];
 }
 
 // --------------------------------------------------------------------

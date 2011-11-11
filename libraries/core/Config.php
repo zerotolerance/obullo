@@ -30,9 +30,7 @@ Class OB_Config
 {    
     public $config          = array();
     public $is_loaded       = array();
-    public $auto_base_url   = FALSE;
-    public $auto_public_url = FALSE;
-    
+
     /**
     * Constructor
     *
@@ -150,7 +148,7 @@ Class OB_Config
                 $filename   = array_pop($paths);
             }
 
-            $modulename = $GLOBALS['d'];
+            $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
         }
 
         $sub_path   = '';
@@ -209,32 +207,6 @@ Class OB_Config
         }
 
         return $pref;
-    }
-      
-    // --------------------------------------------------------------------
-    
-    /**
-    * Set host based auto base url
-    * 
-    * @param    boolean  on / off
-    * @return   void
-    */
-    public function auto_base_url($bool = TRUE)     // Obullo changes ..
-    {
-        $this->auto_base_url = $bool;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Set host based auto public url
-    * 
-    * @param    boolean  on / off
-    * @return   void
-    */
-    public function auto_public_url($bool = TRUE)   // Obullo changes ..
-    {
-        $this->auto_public_url = $bool;
     }
     
     // --------------------------------------------------------------------
@@ -305,13 +277,6 @@ Class OB_Config
     */
     public function base_url()
     {
-        if($this->auto_base_url)  // Obullo changes ..
-        {
-            $scrpt_name = i_server('SCRIPT_NAME');
-            
-            return str_replace(basename($scrpt_name), '', $scrpt_name);
-        }
-    
         return $this->slash_item('base_url');
     }
 
@@ -334,11 +299,6 @@ Class OB_Config
         if($no_ext_uri_slash)
         {
             $extra_uri = trim($extra_uri, '/');
-        }
-        
-        if($this->auto_public_url)    // Obullo changes ..
-        {
-            return $this->base_url() .$public_folder. $extra_uri;
         }
         
         return $this->slash_item('public_url') .$public_folder. $extra_uri;
@@ -372,6 +332,8 @@ Class OB_Config
     {
         echo 'This function deprecated please use $this->config->set() function !';
     }
+    
+    // --------------------------------------------------------------------
     
     /**
     * Set a config file item

@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
 * Obullo Framework (c) 2010.
 * Procedural Session Implementation With stdClass. 
-* Less coding, Less Memory.
+* Less coding, and More Control.
 * 
 * @author      Ersin Guvenc.
 * 

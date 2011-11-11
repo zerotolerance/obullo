@@ -48,27 +48,56 @@ Class OB_Router {
     * Constructor
     * Runs the route mapping function.
     *
-    * @author   Ersin Guvenc
     * @version  0.1
     * @version  0.2 added config index method and include route
+    * @version  0.3 added module route support
     */
     public function __construct()
     {
-        $routes = get_config('routes');   // Obullo changes..
+        $this->uri = core_class('URI');
+        
+        //-------- Check Possible Module Routes -------//
+        
+        $this->uri->_fetch_uri_string();
+        $this->uri->_parse_request_uri();
+        $this->uri->_remove_url_suffix();
+        $this->uri->_explode_segments();
+        $this->uri->_reindex_segments();
+   
+        $module_name = $this->uri->segment(0);
+        
+        if(file_exists(MODULES .$module_name. DS .'config'. DS .'routes'. EXT))
+        {
+            $routes = get_static('routes', '', MODULES .$module_name. DS .'config');
+            
+            if(isset($routes) AND is_array($routes))
+            {
+                $routes = array_merge(get_config('routes'), $routes);
+            }
+            
+            log_me('debug', ucfirst($module_name).' Module Router Settings Initialized');
+        } 
+        else
+        {
+            $routes = get_config('routes');
+        }
+        
+        $this->uri->clear();
 
+        //-------- Check Possible Module Routes -------//
+        
         $this->routes = ( ! isset($routes) OR ! is_array($routes)) ? array() : $routes;
         unset($routes);
 
         $this->method = $this->routes['index_method'];
-        $this->uri    = core_class('URI');
 
         $this->_set_routing();
-
-        log_me('debug', "Router Class Initialized");
+        
+        log_me('debug', 'Router Class Initialized');
     }
-
+    
     // --------------------------------------------------------------------
-
+    
     /**
     * When we use HMVC we need to Clean
     * all data.
@@ -158,12 +187,12 @@ Class OB_Router {
             {
                 if($this->hmvc)
                 {
-                    $this->hmvc_response = 'Hmvc unable to determine what should be displayed. A default route has not been specified in the routing file';
+                    $this->hmvc_response = 'Hmvc unable to determine what should be displayed. A default route has not been specified in the routing file.';
                     return FALSE;
                 }
                 else
                 {
-                    show_404('Unable to determine what should be displayed. A default route has not been specified in the routing file.');
+                    show_error('Unable to determine what should be displayed. A default route has not been specified in the routing file.', 404);
                 }
             }
 
