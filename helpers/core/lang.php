@@ -41,10 +41,10 @@ if( ! isset($_ob->lang))
 * Load a language file
 *
 * @access   public
-* @param    string   the name of the language file to be loaded. Can be an array
-* @param    string   the language folder (english, etc.)
-* @param    string   is it base language file ?
-* @param    return   return to $lang variable if you don't merge
+* @param    string   $langfile the name of the language file to be loaded. Can be an array
+* @param    string   $idiom the language folder (english, etc.)
+* @param    string   $dir is it base language file ?
+* @param    bool     $return return to $lang variable if you don't merge
 * @return   mixed
 */
 if( ! function_exists('lang_load') ) 

@@ -43,9 +43,9 @@ if ( ! function_exists('form_json_error'))
         {
             if(isset($model->errors[$model->item('table')]['transaction_error']))
             {
-                log_me('debug', 'TRANSACTION ERROR: '. $model->errors[$model->item('table')]['transaction_error']);
+                log_me('debug', 'Transaction (system) Error: '. $model->errors[$model->item('table')]['transaction_error']);
 
-                return json_encode(array('success' => false, 'errors' => array('system_message' => 'We can\'t save data at this time please try again or contact us.')));
+                return json_encode(array('success' => false, 'errors' => array('system_message' => lang('vm_system_message').$model->errors[$model->item('table')]['transaction_error'])));
             }
 
             if(isset($model->errors[$model->item('table')]['redirect']))
