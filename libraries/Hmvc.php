@@ -170,7 +170,7 @@ Class OB_Hmvc
 
     /**
     * Warning !!!
-    * When we use HMVC in Global Controllers (e.g. App_Controller)
+    * When we use HMVC in Parent Controllers (e.g. Welcome_Controller)
     * HMVC request will be in a unlimited loop, no_loop() function
     * will prevent this loop and any possible http server crashes (ersin).
     *
@@ -197,7 +197,7 @@ Class OB_Hmvc
     {
         $method = $this->request_method = strtoupper($method);
 
-        $this->_set_conn_string($method);        // Set Unique connection string foreach HMVC request
+        $this->_set_conn_string($method);        // Set Unique connection string foreach HMVC requests
         $this->_set_conn_string(serialize($params_or_data));
 
         if($this->query_string != '')
@@ -425,66 +425,6 @@ Class OB_Hmvc
             $this->_reset_router();
 
             return $this;
-        }
-        
-        //---------- AUTOLOAD ------------//        
-
-        if(file_exists(MODULES .$router->fetch_directory(). DS .'config'. DS .'autoload'. EXT))
-        {
-            log_me('debug', ucfirst($router->fetch_directory()).' Module Autoloader Initialized');
-
-            $autoload = get_static('autoload', '', MODULES .$router->fetch_directory(). DS .'config');
-            
-            if(isset($autoload))
-            {
-                foreach(array_keys($autoload) as $key)
-                {
-                    if(count($autoload[$key]) > 0)
-                    {
-                        foreach($autoload[$key] as $file)
-                        {
-                            if(is_array($file))
-                            {
-                               foreach($file as $filename => $params)
-                               {
-                                   loader::$key($filename, $params); 
-                               }
-
-                            }
-                            else
-                            {
-                                loader::$key($file);
-                            }
-                        }
-                    }
-                }
-            }
-        } 
-        
-                
-        //---------- AUTORUN ------------//  
-
-        if(file_exists(MODULES .$router->fetch_directory(). DS .'config'. DS .'autorun'. EXT))
-        {
-            log_me('debug', ucfirst($router->fetch_directory()).' Module Autorun Initialized');
-
-            $autorun = get_static('autorun', '', MODULES .$router->fetch_directory(). DS .'config');
-
-            if(isset($autorun['function']))
-            {
-                if(count($autorun['function']) > 0)
-                {
-                    foreach($autorun['function'] as $function => $arguments)
-                    {
-                         if( ! function_exists($function))
-                         {
-                             show_error('The autoload function '. $function . ' not found, please define it in APP/config/autoload.php or MODULES/module/config/autoload.php');
-                         }
-                         
-                         call_user_func_array($function, $arguments);
-                    }
-                }
-            }
         }
         
         ob_start();

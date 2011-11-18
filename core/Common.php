@@ -476,7 +476,7 @@ function get_static($filename = 'config', $var = '', $folder = '')
 
         if($var == '') $var = &$filename;
 
-        if($filename != 'autoload')
+        if($filename != 'autoload' AND $filename != 'constants')
         {
             if ( ! isset($$var) OR ! is_array($$var))
             {

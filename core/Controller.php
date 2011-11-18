@@ -2,7 +2,7 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009 - 2010.
+ * Obullo Framework (c) 2009 - 2011.
  *
  * PHP5 MVC Based Minimalist Software.
  *
@@ -15,14 +15,14 @@ defined('BASE') or exit('Access Denied!');
  */
  
  /**
- * Obullo Controllers 2010  
+ * Obullo Controllers 2010 - 2011
  * 
  * @package         Obullo   
  * @subpackage      Core.controller 
  * @category        Controller
  * 
  * @version 0.1 removed Obullo.php and moved all contents to Controller.php.
- * @version 0.2 depreciated old global controllers functionality, deleted parse_parents() func.
+ * @version 0.2 @deprecated global controllers functionality, deleted parse_parents() func.
  */
 
 define('OBULLO_VERSION', '1.0.1');
@@ -35,22 +35,19 @@ define('OBULLO_VERSION', '1.0.1');
  * @package         Obullo 
  * @subpackage      Obullo.core     
  * @category        Core
- * @version         0.1
- * @version         0.2 added extends App_controller
- * @version         0.3 @deprecated App_controller added autoloader
+ * @version         0.2
  */
 
  /**
- * Controller Class.
- *
- * Main Controller class.
- *
+ * Main Controller Class.
+ * The Core of Obullo.
+ * 
  * @package         Obullo 
  * @subpackage      Obullo.core     
  * @category        Core
  * @version         0.1
  * @version         0.2 added extends App_controller
- * @version         0.3 @deprecated App_controller added autoloader
+ * @version         0.3 @deprecated App_controller added autoloader and autorun func.
  */
 
 Class Controller {
@@ -65,22 +62,33 @@ Class Controller {
         $this->router = core_class('Router');
         $this->uri    = core_class('URI');
         $this->output = core_class('Output');
+        
+        // NOTE: Autoload, autorun and constant functions should be load at Controller
+        // level because of Hmvc library do request to Controller file.
 
-        //---------- AUTOLOAD ------------//        
-
-        if(file_exists(MODULES .$this->router->fetch_directory(). DS .'config'. DS .'autoload'. EXT))
-        {
-            log_me('debug', ucfirst($this->router->fetch_directory()).' Module Autoloader Initialized');
-
-            $autoload = get_static('autoload', '', MODULES .$this->router->fetch_directory(). DS .'config');
-        } 
-        else 
-        {
-            log_me('debug', 'Application Autoloader Initialized');
-
-            $autoload = get_static('autoload', '', APP .'config');
+        $module = $this->router->fetch_directory();
+        
+        // CONSTANTS
+        // -------------------------------------------------------------------- 
+        
+        $constant = __merge_autoloaders($module, 'constants', 'constant', 'Constants', FALSE);
+       
+        if(isset($constant))
+        { 
+            foreach($constant as $key => $val)
+            {
+                if( ! defined($key)  AND $val != '')
+                {
+                    define($key, $val);
+                }
+            }
         }
-
+        
+        // AUTOLOADERS
+        // -------------------------------------------------------------------- 
+        
+        $autoload = __merge_autoloaders($module, 'autoload', '', 'Autoloaders');
+        
         if(isset($autoload))
         {
             foreach(array_keys($autoload) as $key)
@@ -95,7 +103,6 @@ Class Controller {
                            {
                                loader::$key($filename, $params); 
                            }
-                           
                         }
                         else
                         {
@@ -106,21 +113,11 @@ Class Controller {
             }
         }
         
-        //---------- AUTORUN ------------//  
+        // AUTORUNS
+        // -------------------------------------------------------------------- 
 
-        if(file_exists(MODULES .$this->router->fetch_directory(). DS .'config'. DS .'autorun'. EXT))
-        {
-            log_me('debug', ucfirst($this->router->fetch_directory()).' Module Autorun Initialized');
+        $autorun = __merge_autoloaders($module, 'autorun', '', 'Autorun');
 
-            $autorun = get_static('autorun', '', MODULES .$this->router->fetch_directory(). DS .'config');
-        } 
-        else 
-        {
-            log_me('debug', 'Application Autorun Initialized');
-
-            $autorun = get_static('autorun', '', APP .'config');
-        }
-        
         if(isset($autorun['function']))
         {
             if(count($autorun['function']) > 0)
@@ -129,7 +126,7 @@ Class Controller {
                 {
                      if( ! function_exists($function))
                      {
-                         show_error('The autoload function '. $function . ' not found, please define it in APP/config/autoload.php or MODULES/module/config/autoload.php');
+                         show_error('The autoload function '. $function . ' not found, please define it in APP/config/autoload.php or MODULES/'.$module.'/config/autoload.php');
                      }
                     
                      call_user_func_array($function, $arguments);
@@ -138,6 +135,14 @@ Class Controller {
         }
     }
 
+    // -------------------------------------------------------------------- 
+    
+    /**
+    * Fetch or Set Controller Instance
+    * 
+    * @param type $new_instance
+    * @return type 
+    */
     public static function _instance($new_instance = '')
     {   
         if(is_object($new_instance))
@@ -147,13 +152,18 @@ Class Controller {
 
         return self::$instance;
     } 
+    
 }
 
+// -------------------------------------------------------------------- 
+
 /**
-* @author  Ersin Guvenc
+* Grab Obullo Super Object
 * 
 * A Pretty handy function this();
 * We use "this()" function if not available $this anywhere.
+*
+* @param object $new_istance  
 */
 function this($new_instance = '') 
 { 
@@ -163,6 +173,49 @@ function this($new_instance = '')
     }
     
     return Controller::_instance(); 
+}
+
+// -------------------------------------------------------------------- 
+
+/**
+* Merge Modules autoload, autorun and constant
+* file variables to application.
+* 
+* @param string $module
+* @param string $file
+* @param string $type
+* @return array
+*/
+function __merge_autoloaders($module, $file = 'autoload', $var = '', $type = 'Autoloaders', $multi_array = TRUE)
+{
+    if(file_exists(MODULES .$module. DS .'config'. DS .$file. EXT))
+    {
+        log_me('debug', ucfirst($module).' Module '.$type.' Initialized');
+
+        $vars = get_static($file, $var, MODULES .$module. DS .'config');
+
+        if(isset($vars) AND is_array($vars))  // Merge Module and Application variables.
+        {  
+            if($multi_array)
+            {
+                $vars = array_merge_recursive(get_static($file, $var, APP .'config'), $vars);
+            } 
+            else
+            {
+                $vars = array_merge(get_static($file, $var, APP .'config'), $vars);
+            }
+
+            log_me('debug', 'Module '.$module.' and Application '.$type.' Merged');
+        }
+    } 
+    else 
+    {
+        $vars = get_static($file, $var, APP .'config');
+
+        log_me('debug', 'Application '.$type.' Initialized');
+    }
+    
+    return $vars;
 }
 
 // END Controller Class
