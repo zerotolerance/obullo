@@ -528,6 +528,12 @@ Class OB_Profiler {
         $controllers = '';
         foreach(profiler_get('parents') as $gc) { $controllers .= error_secure_path($gc) .'<br /> '; }
         
+        $autorun = '';
+        foreach(profiler_get('autorun') as $function => $arguments) { $autorun .= error_secure_path($function).'()'.'<br />'; }
+        
+        $constants = '';
+        foreach(profiler_get('constants') as $constant => $cons_value) { $constants .= $constant.' - '.$cons_value.'<br />'; }
+        
         $base_helpers   = (isset($base_helpers{2}))   ? $base_helpers : '-';
         $app_helpers    = (isset($app_helpers{2}))    ? $app_helpers : '-';
         $helpers        = (isset($helpers{2}))        ? $helpers : '-';
@@ -537,11 +543,15 @@ Class OB_Profiler {
         $files          = (isset($files{2}))          ? $files : '-';
         $views          = (isset($views{2}))          ? $views : '-';
         $layouts        = (isset($layouts{2}))        ? $layouts : '-';
+        $constants      = (isset($constants{2}))      ? $constants : '-';
+        $config_files   = (isset($config_files{2}))   ? $config_files : '-';
         
+        $output .= "<tr><td class=\"td\">Constants&nbsp;&nbsp;</td><td class=\"td_val\">".$constants."</td></tr>";
         $output .= "<tr><td class=\"td\">Config Files&nbsp;&nbsp;</td><td class=\"td_val\">".$config_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Lang Files&nbsp;&nbsp;</td><td class=\"td_val\">".$lang_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Obullo Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$base_helpers."</td></tr>";  
-        $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>";  
+        $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>"; 
+        $output .= "<tr><td class=\"td\">Autorun Functions&nbsp;&nbsp;</td><td class=\"td_val\">".$autorun."</td></tr>";
         $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$helpers."</td></tr>";
         $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";    
         $output .= "<tr><td class=\"td\">Models&nbsp;&nbsp;</td><td class=\"td_val\">".$models."</td></tr>";    

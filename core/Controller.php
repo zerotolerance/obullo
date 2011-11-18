@@ -77,9 +77,11 @@ Class Controller {
         { 
             foreach($constant as $key => $val)
             {
-                if( ! defined($key)  AND $val != '')
+                if( ! defined($key) AND $val != '')
                 {
                     define($key, $val);
+                    
+                    profiler_set('constants', $key, $val);
                 }
             }
         }
@@ -101,7 +103,7 @@ Class Controller {
                         {
                            foreach($file as $filename => $params)
                            {
-                               loader::$key($filename, $params); 
+                               loader::$key($filename, $params);
                            }
                         }
                         else
@@ -130,6 +132,8 @@ Class Controller {
                      }
                     
                      call_user_func_array($function, $arguments);
+                     
+                     profiler_set('autorun', $function, $arguments);
                 }
             }
         }

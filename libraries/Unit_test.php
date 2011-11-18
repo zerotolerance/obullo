@@ -327,12 +327,12 @@ Class OB_Unit_test {
 // END Unit_test Class
 
 /**
- * Helper functions to test boolean true/false
- *
- *
- * @access    private
- * @return    bool
- */
+* Helper functions to test boolean true/false
+*
+*
+* @access    private
+* @return    bool
+*/
 function is_true($test)
 {
     return (is_bool($test) AND $test === TRUE) ? TRUE : FALSE;
