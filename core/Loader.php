@@ -53,29 +53,56 @@ Class OB_Loader {
     * load libraries from /module folder. (current module) 
     *
     * @param    mixed $class
-    * @param    mixed $params_or_no_ins array | null | false
-    * @param    string $object_name
-    * @param    boolean $new_instance create new instance 
+    * @param    mixed $params_or_no_instance array | null | false 
+    * @param    string | boolean $object_name_or_new_instance
     * @return   self::_library()
     */
-    public static function lib($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
+    public static function lib($class = '', $params_or_no_instance = '', $object_name_or_new_instance = '')
     {
-        if(strpos($class, 'ob/') === 0)
-        {                              
-            return lib(substr($class, 3), $params_or_no_ins, $new_instance);
+        if(is_bool($object_name_or_new_instance))
+        {
+            $object_name  = '';
+            $new_instance = $object_name_or_new_instance;
+        }
+        else 
+        {
+            $new_instance = FALSE;
+            $object_name  = $object_name_or_new_instance;
         }
         
+        if(strpos($class, 'ob/') === 0)
+        {               
+           $library = strtolower(substr($class, 3));
+            
+            if($new_instance === FALSE)
+            {   
+                return lib(strtolower(substr($class, 3)), $params_or_no_instance, $new_instance);
+            } 
+            
+            // If someone use HMVC we need to create new instance() foreach Library
+            if(core_class('Router')->hmvc == FALSE)
+            {
+                if (isset(this()->{$library}) AND is_object(this()->{$library})) { return; }
+            }
+
+            this()->{$library} = lib(strtolower(substr($class, 3)), $params_or_no_instance, $new_instance);
+
+            profiler_set('libraries', $library, $library);
+            
+            return;
+        }
+
         if(strpos($class, 'app/') === 0)
         {
-            return self::app_lib(substr($class, 4), $params_or_no_ins, $object_name, $new_instance); 
+            return self::app_lib(substr($class, 4), $params_or_no_instance, $object_name, $new_instance); 
         }
         
         if(strpos($class, 'ext/') === 0)
         {
-            return self::ext(substr($class, 4), $params_or_no_ins, $object_name, $new_instance);
+            return self::ext(substr($class, 4), $params_or_no_instance, $object_name, $new_instance);
         }
         
-        self::_library($class, $params_or_no_ins, $object_name, $new_instance);
+        self::_library($class, $params_or_no_instance, $object_name, $new_instance);
     }
 
     // --------------------------------------------------------------------
@@ -156,7 +183,6 @@ Class OB_Loader {
 
             if(is_array($params_or_no_ins))
             {
-                // HMVC BUG !!
                 // If someone use HMVC we need to create new instance() foreach Library
                 if(core_class('Router')->hmvc == FALSE AND $new_instance == FALSE)
                 {

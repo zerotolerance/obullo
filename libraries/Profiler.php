@@ -31,6 +31,7 @@ Class OB_Profiler {
      public function __construct()
      {
          lang_load('profiler', '', 'base');
+         
          loader::helper('ob/view');
      }
      
@@ -471,64 +472,61 @@ Class OB_Profiler {
         $output .= "<tr><th>".lang('profiler_loaded_files')."</th></tr>";
         
         $config_files = '';
-        foreach(profiler_get('config_files') as $config_file) { $config_files .= $config_file .'<br />'; }
+        foreach(profiler_get('config_files') as $config_file) { $config_files .= error_secure_path($config_file) .'<br />'; }
         
         $lang_files   = '';
-        foreach(profiler_get('lang_files') as $lang_file) { $lang_files .= $lang_file .'<br />'; }
+        foreach(profiler_get('lang_files') as $lang_file) { $lang_files .= error_secure_path($lang_file) .'<br />'; }
         
         $base_helpers  = '';
         foreach(loader::$_base_helpers as $base_helper) 
         { 
             if(strpos($base_helper, $helper_prefix) === 0)
             {
-                $base_helpers .= str_replace($helper_prefix, "<span class='subhelper_prefix'>$helper_prefix</span>", $base_helper).'<br />';
+                $base_helpers .= str_replace($helper_prefix, "<span class='subhelper_prefix'>$helper_prefix</span>", error_secure_path($base_helper)).'<br />';
             } 
             else 
             {
-                $base_helpers .= $base_helper .', ';
+                $base_helpers .= error_secure_path($base_helper) .', ';
             }
         }
                     
         $app_helpers  = '';
-        foreach(loader::$_app_helpers as $app_helper) { $app_helpers .= $app_helper .'<br />'; }
+        foreach(loader::$_app_helpers as $app_helper) { $app_helpers .= error_secure_path($app_helper) .'<br />'; }
         
         $helpers  = '';
-        foreach(loader::$_helpers as $helper) { $helpers .= $helper .'<br />'; }
+        foreach(loader::$_helpers as $helper) { $helpers .= error_secure_path($helper) .'<br />'; }
         
         $libraries  = '';
         foreach(profiler_get('libraries') as $lib_key => $lib) 
         { 
             if(strpos($lib, $subclass_prefix) === 0)
             {
-                $libraries .= str_replace($subclass_prefix, "<span class='subclass_prefix'>$subclass_prefix</span>", $lib).'<br />';
+                $libraries .= str_replace($subclass_prefix, "<span class='subclass_prefix'>$subclass_prefix</span>", error_secure_path($lib)).'<br />';
             } 
             else
             {
-                $libraries .= $lib .'<span class="class_operations"> (' . $lib_key . ') </span><br />'; 
+                $libraries .= error_secure_path($lib) .'<span class="class_operations"> (' . $lib_key . ') </span><br />'; 
             }
 
         }
         
         $models  = '';
-        foreach(profiler_get('models') as $mod) { $models .= $mod .'<br />'; }
+        foreach(profiler_get('models') as $mod) { $models .= error_secure_path($mod) .'<br />'; }
               
         $databases  = '';
         foreach(profiler_get('databases') as $db_name => $db_var) { $databases .= $db_var.'<br />'; }
-        
-        $scripts  = '';
-        foreach(profiler_get('scripts') as $scr) { $scripts .= $scr .'<br />'; }
-        
+
         $files  = '';              
-        foreach(profiler_get('files') as $file) { $files .= $file .'<br />'; }
+        foreach(profiler_get('files') as $file) { $files .= error_secure_path($file) .'<br />'; }
         
         $views  = '';
-        foreach(profiler_get('views') as $view) { $views .= $view .'<br /> '; }
+        foreach(profiler_get('views') as $view) { $views .= error_secure_path($view) .'<br /> '; }
     
         $layouts  = '';
-        foreach(profiler_get('layouts') as $layout) { $layouts .= $layout .'<br /> '; }
+        foreach(profiler_get('layouts') as $layout) { $layouts .= error_secure_path($layout) .'<br /> '; }
         
         $controllers = '';
-        foreach(profiler_get('parents') as $gc) { $controllers .= $gc .'<br /> '; }
+        foreach(profiler_get('parents') as $gc) { $controllers .= error_secure_path($gc) .'<br /> '; }
         
         $base_helpers   = (isset($base_helpers{2}))   ? $base_helpers : '-';
         $app_helpers    = (isset($app_helpers{2}))    ? $app_helpers : '-';
@@ -536,24 +534,22 @@ Class OB_Profiler {
         $libraries      = (isset($libraries{2}))      ? $libraries : '-';
         $models         = (isset($models{2}))         ? $models : '-';
         $databases      = (isset($databases{2}))      ? $databases : '-';
-        $scripts        = (isset($scripts{2}))        ? $scripts : '-';
         $files          = (isset($files{2}))          ? $files : '-';
         $views          = (isset($views{2}))          ? $views : '-';
         $layouts        = (isset($layouts{2}))        ? $layouts : '-';
         
         $output .= "<tr><td class=\"td\">Config Files&nbsp;&nbsp;</td><td class=\"td_val\">".$config_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Lang Files&nbsp;&nbsp;</td><td class=\"td_val\">".$lang_files."</td></tr>";  
-        $output .= "<tr><td class=\"td\">Base Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$base_helpers."</td></tr>";  
+        $output .= "<tr><td class=\"td\">Obullo Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$base_helpers."</td></tr>";  
         $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>";  
         $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$helpers."</td></tr>";
         $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";    
         $output .= "<tr><td class=\"td\">Models&nbsp;&nbsp;</td><td class=\"td_val\">".$models."</td></tr>";    
-        $output .= "<tr><td class=\"td\">Databases&nbsp;&nbsp;</td><td class=\"td_val\">".$databases."</td></tr>";    
-        $output .= "<tr><td class=\"td\">Scripts&nbsp;&nbsp;</td><td class=\"td_val\">".$scripts."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Databases&nbsp;&nbsp;</td><td class=\"td_val\">".$databases."</td></tr>";      
         $output .= "<tr><td class=\"td\">Views&nbsp;&nbsp;</td><td class=\"td_val\">".$views."</td></tr>";    
         $output .= "<tr><td class=\"td\">Layouts&nbsp;&nbsp;</td><td class=\"td_val\">".$layouts."</td></tr>";    
         $output .= "<tr><td class=\"td\">External Files&nbsp;&nbsp;</td><td class=\"td_val\">".$files."</td></tr>";    
-        $output .= "<tr><td class=\"td\">Global Controllers&nbsp;&nbsp;</td><td class=\"td_val\">".$controllers."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Controllers&nbsp;&nbsp;</td><td class=\"td_val\">".$controllers."</td></tr>";    
         
         $output .= "</table>";
         $output .= "</div>";

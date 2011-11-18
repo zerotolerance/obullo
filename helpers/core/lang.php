@@ -72,7 +72,7 @@ if( ! function_exists('lang_load') )
         
         if ( ! isset($lang))
         {
-            log_me('error', 'Language file contains no lang variable: ' . $file_info['path'] . $file_info['filename']. EXT);
+            log_me('error', 'Language file contains no lang variable: ' . $file_info['path'] . DS . $file_info['filename']. EXT);
             return;
         }
 
@@ -82,11 +82,11 @@ if( ! function_exists('lang_load') )
         $_ob->lang->is_loaded[] = $langfile;
         $_ob->lang->language    = array_merge($_ob->lang->language, $lang);
         
-        profiler_set('lang_files', $file_info['path'] . $file_info['filename'], $file_info['path'] . $file_info['filename']. EXT);
+        profiler_set('lang_files', $file_info['path'] . $file_info['filename'], $file_info['path'] . DS .$file_info['filename']. EXT);
         
         unset($lang);
 
-        log_me('debug', 'Language file loaded: '.$file_info['path'] . $file_info['filename']. EXT);
+        log_me('debug', 'Language file loaded: '.$file_info['path'] . DS . $file_info['filename']. EXT);
         return TRUE;
     }
 }

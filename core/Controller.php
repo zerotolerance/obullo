@@ -15,7 +15,7 @@ defined('BASE') or exit('Access Denied!');
  */
  
  /**
- * Obullo Global Controllers ( GC ) 2010  
+ * Obullo Controllers 2010  
  * 
  * @package         Obullo   
  * @subpackage      Core.controller 
@@ -40,67 +40,114 @@ define('OBULLO_VERSION', '1.0.1');
  * @version         0.3 @deprecated App_controller added autoloader
  */
 
-if(file_exists(APP .'parents'. DS .'My_Controller'. EXT))
-{
-    Class Controller extends My_Controller {
+ /**
+ * Controller Class.
+ *
+ * Main Controller class.
+ *
+ * @package         Obullo 
+ * @subpackage      Obullo.core     
+ * @category        Core
+ * @version         0.1
+ * @version         0.2 added extends App_controller
+ * @version         0.3 @deprecated App_controller added autoloader
+ */
 
-        private static $instance;
+Class Controller {
 
-        public function __construct()       
-        {   
-            self::$instance = &$this;
+    private static $instance;
 
-            $this->config = core_class('Config');
-            $this->router = core_class('Router');
-            $this->uri    = core_class('URI');
-            $this->output = core_class('Output');
-            
-            parent::__construct();
-            
-            log_me('debug', 'My Controller Class Initialized. You can remove it if you don\'t want to use.');
+    public function __construct()       
+    {   
+        self::$instance = &$this;
+
+        $this->config = core_class('Config');
+        $this->router = core_class('Router');
+        $this->uri    = core_class('URI');
+        $this->output = core_class('Output');
+
+        //---------- AUTOLOAD ------------//        
+
+        if(file_exists(MODULES .$this->router->fetch_directory(). DS .'config'. DS .'autoload'. EXT))
+        {
+            log_me('debug', ucfirst($this->router->fetch_directory()).' Module Autoloader Initialized');
+
+            $autoload = get_static('autoload', '', MODULES .$this->router->fetch_directory(). DS .'config');
+        } 
+        else 
+        {
+            log_me('debug', 'Application Autoloader Initialized');
+
+            $autoload = get_static('autoload', '', APP .'config');
         }
 
-        public static function _instance($new_instance = '')
-        {   
-            if(is_object($new_instance))
+        if(isset($autoload))
+        {
+            foreach(array_keys($autoload) as $key)
             {
-                self::$instance = $new_instance;
-            }    
-
-            return self::$instance;
-        } 
-    }
-} 
-else 
-{
-    Class Controller {
-
-        private static $instance;
-
-        public function __construct()       
-        {   
-            self::$instance = &$this;
-
-            $this->config = core_class('Config');
-            $this->router = core_class('Router');
-            $this->uri    = core_class('URI');
-            $this->output = core_class('Output');
-            
-            log_me('debug', "Controller Class Initialized");
+                if(count($autoload[$key]) > 0)
+                {
+                    foreach($autoload[$key] as $file)
+                    {
+                        if(is_array($file))
+                        {
+                           foreach($file as $filename => $params)
+                           {
+                               loader::$key($filename, $params); 
+                           }
+                           
+                        }
+                        else
+                        {
+                            loader::$key($file);
+                        }
+                    }
+                }
+            }
         }
+        
+        //---------- AUTORUN ------------//  
 
-        public static function _instance($new_instance = '')
-        {   
-            if(is_object($new_instance))
-            {
-                self::$instance = $new_instance;
-            }    
+        if(file_exists(MODULES .$this->router->fetch_directory(). DS .'config'. DS .'autorun'. EXT))
+        {
+            log_me('debug', ucfirst($this->router->fetch_directory()).' Module Autorun Initialized');
 
-            return self::$instance;
+            $autorun = get_static('autorun', '', MODULES .$this->router->fetch_directory(). DS .'config');
         } 
+        else 
+        {
+            log_me('debug', 'Application Autorun Initialized');
+
+            $autorun = get_static('autorun', '', APP .'config');
+        }
+        
+        if(isset($autorun['function']))
+        {
+            if(count($autorun['function']) > 0)
+            {
+                foreach($autorun['function'] as $function => $arguments)
+                {
+                     if( ! function_exists($function))
+                     {
+                         show_error('The autoload function '. $function . ' not found, please define it in APP/config/autoload.php or MODULES/module/config/autoload.php');
+                     }
+                    
+                     call_user_func_array($function, $arguments);
+                }
+            }
+        }
     }
+
+    public static function _instance($new_instance = '')
+    {   
+        if(is_object($new_instance))
+        {
+            self::$instance = $new_instance;
+        }    
+
+        return self::$instance;
+    } 
 }
-
 
 /**
 * @author  Ersin Guvenc

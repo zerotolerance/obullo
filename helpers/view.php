@@ -169,7 +169,7 @@ if ( ! function_exists('view_set'))
 */
 if ( ! function_exists('view_set_folder'))
 {
-    function view_set_folder($func = 'view', $folder = '', $failure_msg = TRUE)
+    function view_set_folder($func = 'view', $folder = '', $failure_msg = FALSE)
     {
         $_ob = load_class('Storage');
 
@@ -284,7 +284,7 @@ if ( ! function_exists('view_layout'))
         }  
         
         $file_info = _view_load_file($file_url, 'views', $extra_path);
-        
+
         profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
         return load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
@@ -401,20 +401,19 @@ if ( ! function_exists('load_view'))
         _set_view_data($data);
         
 	$data = $_ob->view->view_data;
-
+        
         if ( ! file_exists($path . $filename . EXT) )
         {
             if($return)
             {
                 log_me('debug', ucfirst($func).' file failed gracefully: '. $path . $filename . EXT);
 
-                return;     // fail gracefully for different interfaces ..
-                            // iphone, blackberry etc..
+                return;     // fail gracefully
             }
 
             throw new ViewException('Unable locate the '.$func.' file: '. $path . $filename . EXT);
         }
-				
+        
         if( empty($data) ) $data = array();
 
 

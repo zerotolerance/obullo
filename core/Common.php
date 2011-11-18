@@ -417,25 +417,18 @@ spl_autoload_register('ob_autoload', true);
 
 /**
 * Obullo library loader
-* BECAREFULL !! When you use hmvc library
-* you need to create new instance sometimes.
 * 
 * @param string $class
-* @param array | false | true $params_or_no_instance_or_new_object
+* @param array | false $params_or_no_instance
 * @param true | object $new_object
 */
 if( ! function_exists('lib'))
 {
-    function lib($class, $params_or_no_instance_or_new_object = '')
+    function lib($class, $params_or_no_instance = '', $new_object = NULL)
     {
-        $new_object = NULL;
-        if($params_or_no_instance_or_new_object === TRUE)
-        {
+        if(core_class('Router')->hmvc == TRUE) // We must create new instance for
+        {                                      // hmvc requests
             $new_object = TRUE;
-        }
-        else
-        {
-            $params_or_no_instance = $params_or_no_instance_or_new_object;
         }
         
         // @todo if strpos('../', $class) so go loader::lib($class);

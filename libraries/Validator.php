@@ -1138,7 +1138,6 @@ Class OB_Validator {
     public function numeric($str)
     {
         return (bool)preg_match( '/^[\-+]?[0-9]*\.?[0-9]+$/', $str);
-
     }
 
     // --------------------------------------------------------------------

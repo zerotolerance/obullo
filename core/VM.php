@@ -28,11 +28,12 @@ Class VMException extends CommonException {}
 
 Class VM extends Model {
 
-    public $property = array();  // user variables.
-    public $errors   = array();  // validation errors.
-    public $values   = array();  // filtered values.
-    public $where    = FALSE;    // check where func used or not.
-    public $no_input = array();  // no input fields, save function will not save this fields.
+    public $property   = array();  // User public variables, we set them in controller.
+    public $errors     = array();  // Validation errors.
+    public $values     = array();  // Filtered safe values.
+    public $no_input   = array();  // No input fields, so save function will not save them to database.
+    public $where      = FALSE;    // Check where func used or not.
+    public $validation = FALSE;    // If form validation success we set it to true.
     
     /**
     * Construct
@@ -112,6 +113,8 @@ Class VM extends Model {
                 $this->values[$table][$key] = $this->set_value($key, $this->{$key});
             }
             
+            $this->validation = TRUE;
+            
             return TRUE;
         }
         else
@@ -131,6 +134,8 @@ Class VM extends Model {
                // Set filtered values
                $this->values[$table][$key] = $this->set_value($key, $this->{$key});
             }
+            
+            $this->validation = FALSE;
 
             return FALSE;
         }
@@ -154,10 +159,12 @@ Class VM extends Model {
         loader::lang('ob/vm');  // Load the language file that contains error messages
 
         $db_fields = $this->settings['fields'];
+        
         if(count($fields) > 0)
         {
             unset($db_fields);
-            foreach($fields as $f_key)
+            
+            foreach($fields as $f_key => $v)
             {
                 $db_fields[$f_key] = $this->settings['fields'][$f_key];
             }
@@ -165,25 +172,29 @@ Class VM extends Model {
 
         foreach($db_fields as $k => $v)
         {
-            if(isset($this->property[$k]))
-            {
-                if($this->settings['fields'][$k]['label'] == $this->$k)
-                {
-                    $this->$k = '';  // If value == label clear data !! This useful working with ajax validations.
-                }
-            }
-
             if($this->$k != '')
             {
-                $v_data[$k] = $this->set_value($k, $this->$k);
+                $v_data[$k] = $this->$k;
             }
             else
             {
-                $v_data[$k] = $this->set_value($k, i_get_post($k));
+                $v_data[$k] = i_get_post($k);
             }
         }
-
+        
         return $this->validator($v_data, $db_fields);
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Check Validation is success ?
+    *
+    * @return boolean
+    */
+    public function validation()
+    {
+        return $this->validation;
     }
     
     // --------------------------------------------------------------------
@@ -193,10 +204,15 @@ Class VM extends Model {
      * 
     * @return array
     */
-    public function errors()
+    public function errors($field = '')
     {
         if(isset($this->errors[$this->item('table')]))
         {
+            if(isset($this->errors[$this->item('table')][$field]))
+            {
+                return $this->errors[$this->item('table')][$field];
+            }
+            
             return $this->errors[$this->item('table')];
         }
         
@@ -204,16 +220,37 @@ Class VM extends Model {
     }
     
     // --------------------------------------------------------------------
+
+    /**
+    * Get one error.
+    *
+    * @param string $field
+    */
+    public function error($field)
+    {
+        if(isset($this->errors[$this->item('table')][$field]))
+        {
+            return $this->errors[$this->item('table')][$field];
+        }
+    }
+    
+    // --------------------------------------------------------------------
     
     /**
     * Return filtered validation values for current model.
     * 
+    * @param string $field return to filtered one item's value.
     * @return array
     */
-    public function values()
+    public function values($field = '')
     {
         if(isset($this->values[$this->item('table')]))
         {
+            if(isset($this->values[$this->item('table')][$field]))
+            {
+                return $this->values[$this->item('table')][$field];
+            }
+            
             return $this->values[$this->item('table')];
         }
         
@@ -223,7 +260,8 @@ Class VM extends Model {
     // --------------------------------------------------------------------
 
     /**
-    * Return to filtered one item's value.
+    * Alias of values() function.
+    * Just return to filtered one item's value.
     *
     * @param string $field
     */
@@ -245,21 +283,6 @@ Class VM extends Model {
     public function set_error($field, $error)
     {
         $this->errors[$this->item('table')][$field] = $error;
-    }
-
-    // --------------------------------------------------------------------
-
-    /**
-    * Get one error.
-    *
-    * @param string $field
-    */
-    public function error($field)
-    {
-        if(isset($this->errors[$this->item('table')][$field]))
-        {
-            return $this->errors[$this->item('table')][$field];
-        }
     }
 
     // --------------------------------------------------------------------
@@ -354,7 +377,9 @@ Class VM extends Model {
         if(count($this->no_input) > 0)
         {
             foreach($this->no_input as $k)
-            unset($this->settings['fields'][$k]);
+            {
+                unset($this->settings['fields'][$k]);
+            }
         }
 
         $has_rules = FALSE;
@@ -433,16 +458,16 @@ Class VM extends Model {
             {
                 unset($s_data[$id]);
                 
-                if(count($this->{$db}->ar_where) == 0 AND count($this->{$db}->ar_wherein) == 0)
+                if(count($this->db->ar_where) == 0 AND count($this->db->ar_wherein) == 0)
                 {
-                    $this->{$db}->where($id, $this->$id);
+                    $this->db->where($id, $this->$id);
                 }
 
                 try {
 
                     $this->db->transaction(); // begin the transaction
 
-                    $this->errors[$table]['affected_rows'] = $this->{$db}->update($table, $s_data);
+                    $this->errors[$table]['affected_rows'] = $this->db->update($table, $s_data);
 
                     $this->db->commit();    // commit the transaction
 
@@ -484,8 +509,8 @@ Class VM extends Model {
 
                     $this->db->transaction(); // begin the transaction
 
-                    $this->errors[$table]['affected_rows'] = $this->{$db}->insert($table, $s_data);
-                    $this->values[$table][$id] = $this->{$db}->insert_id();  // add last inserted id.
+                    $this->errors[$table]['affected_rows'] = $this->db->insert($table, $s_data);
+                    $this->values[$table][$id] = $this->db->insert_id();  // add last inserted id.
 
                     $this->db->commit();    // commit the transaction
 
@@ -522,7 +547,10 @@ Class VM extends Model {
                 } 
           
             }
+            
         }
+        
+        $this->errors[$table]['success'] = 0;
                 
         return FALSE;
     }
@@ -584,31 +612,52 @@ Class VM extends Model {
         $table = $this->settings['table'];
         $id    = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
         
-        lang_load('vm', '', 'base');  // Load the language file containing error messages
+        loader::lang('ob/vm');  // Load the language file that contains error messages
         
         if(isset($this->property[$id]))
         {
-            $data[$id] = $this->$id;
+            $data[$id] = $this->{$id};
         }
         
-        $validator = $this->validator($data);
+        $validator = $this->validate_request($data);
         
         if($validator)
         {
             if($this->$id != '')    // do delete ..
             {
-                if(count($this->{$db}->ar_where) == 0 AND count($this->{$db}->ar_wherein) == 0)
+                try {
+
+                    $this->db->transaction(); // begin the transaction
+                    
+                    if(count($this->db->ar_where) == 0 AND count($this->db->ar_wherein) == 0)
+                    {
+                        $this->db->where($id, $this->$id);
+                    }
+
+                    $this->errors[$table]['affected_rows'] = $this->db->delete($table);
+
+                    $this->db->commit();    // commit the transaction
+
+                } catch(Exception $e)
                 {
-                    $this->{$db}->where($id, $this->$id);
+                    $this->db->rollback();       // roll back the transaction if we fail
+
+                    $this->errors[$table]['success'] = 0;
+                    $this->errors[$table]['msg']     = lang('vm_delete_fail');
+                    $this->errors[$table]['transaction_error'] = $e->getMessage();
+
+                    lib('Validator')->clear();  // reset validator data
+
+                    return FALSE;
                 }
-                
-                $this->errors[$table]['affected_rows'] = $this->{$db}->delete($table);
                 
                 if($this->errors[$table]['affected_rows'] == 1)
                 {
                     $this->errors[$table]['success'] = 1;
                     $this->errors[$table]['msg']     = lang('vm_delete_success');
                 
+                    lib('Validator')->clear();  // reset validator data
+                    
                     return TRUE;
                 } 
                 elseif($this->errors[$table]['affected_rows'] == 0)
@@ -616,11 +665,14 @@ Class VM extends Model {
                     $this->errors[$table]['success'] = 0;
                     $this->errors[$table]['msg']     = lang('vm_delete_fail');
                     
+                    lib('Validator')->clear();  // reset validator data
+                    
                     return FALSE;  
                 }
             }
         }
         
+        $this->errors[$table]['success'] = 0;
             
         return FALSE;
     }
@@ -636,9 +688,7 @@ Class VM extends Model {
     */
     public function last_query($prepare = FALSE)
     {
-        $db = $this->settings['database'];
-        
-        return $this->{$db}->last_query($prepare);
+        return $this->db->last_query($prepare);
     }
 
     // --------------------------------------------------------------------

@@ -426,20 +426,70 @@ Class OB_Hmvc
 
             return $this;
         }
-
-        //---------- AUTOLOAD ------------//
         
+        //---------- AUTOLOAD ------------//        
+
         if(file_exists(MODULES .$router->fetch_directory(). DS .'config'. DS .'autoload'. EXT))
         {
-            log_me('debug', ucfirst($router->fetch_directory()).' Module Autoloader Initialized ( Hmvc Request )');
+            log_me('debug', ucfirst($router->fetch_directory()).' Module Autoloader Initialized');
+
+            $autoload = get_static('autoload', '', MODULES .$router->fetch_directory(). DS .'config');
             
-            get_static('autoload', '', MODULES .$router->fetch_directory(). DS .'config');
-        }
+            if(isset($autoload))
+            {
+                foreach(array_keys($autoload) as $key)
+                {
+                    if(count($autoload[$key]) > 0)
+                    {
+                        foreach($autoload[$key] as $file)
+                        {
+                            if(is_array($file))
+                            {
+                               foreach($file as $filename => $params)
+                               {
+                                   loader::$key($filename, $params); 
+                               }
+
+                            }
+                            else
+                            {
+                                loader::$key($file);
+                            }
+                        }
+                    }
+                }
+            }
+        } 
         
-        //---------- AUTOLOAD ------------//
+                
+        //---------- AUTORUN ------------//  
+
+        if(file_exists(MODULES .$router->fetch_directory(). DS .'config'. DS .'autorun'. EXT))
+        {
+            log_me('debug', ucfirst($router->fetch_directory()).' Module Autorun Initialized');
+
+            $autorun = get_static('autorun', '', MODULES .$router->fetch_directory(). DS .'config');
+
+            if(isset($autorun['function']))
+            {
+                if(count($autorun['function']) > 0)
+                {
+                    foreach($autorun['function'] as $function => $arguments)
+                    {
+                         if( ! function_exists($function))
+                         {
+                             show_error('The autoload function '. $function . ' not found, please define it in APP/config/autoload.php or MODULES/module/config/autoload.php');
+                         }
+                         
+                         call_user_func_array($function, $arguments);
+                    }
+                }
+            }
+        }
         
         ob_start();
 
+        //
         // Call the requested method.                1       2       3
         // Any URI segments present (besides the directory/class/method)
         // will be passed to the method for convenience
