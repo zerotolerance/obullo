@@ -68,11 +68,19 @@ Class Controller {
 
         $module = $this->router->fetch_directory();
         
+        // CONFIG FILE
+        // -------------------------------------------------------------------- 
+        
+        if(file_exists(MODULES .$module. DS .'config'. DS .'config'. EXT))
+        {
+            loader::config('config');
+        }
+        
         // CONSTANTS
         // -------------------------------------------------------------------- 
         
-        $constant = __merge_autoloaders($module, 'constants', 'constant', 'Constants', FALSE);
-       
+        $constant = __merge_autoloaders($module, 'constants', 'constant', 'Constants');
+
         if(isset($constant))
         { 
             foreach($constant as $key => $val)
@@ -130,9 +138,9 @@ Class Controller {
                      {
                          show_error('The autoload function '. $function . ' not found, please define it in APP/config/autoload.php or MODULES/'.$module.'/config/autoload.php');
                      }
-                    
+
                      call_user_func_array($function, $arguments);
-                     
+
                      profiler_set('autorun', $function, $arguments);
                 }
             }
@@ -190,36 +198,50 @@ function this($new_instance = '')
 * @param string $type
 * @return array
 */
-function __merge_autoloaders($module, $file = 'autoload', $var = '', $type = 'Autoloaders', $multi_array = TRUE)
+function __merge_autoloaders($module, $file = 'autoload', $var = '', $type = 'Autoloaders')
 {
     if(file_exists(MODULES .$module. DS .'config'. DS .$file. EXT))
     {
         log_me('debug', ucfirst($module).' Module '.$type.' Initialized');
+        
+        $module_vars = get_static($file, $var, MODULES .$module. DS .'config');
+        $app_vars    = get_static($file, $var, APP .'config');
 
-        $vars = get_static($file, $var, MODULES .$module. DS .'config');
-
-        if(isset($vars) AND is_array($vars))  // Merge Module and Application variables.
-        {  
-            if($multi_array)
-            {
-                $vars = array_merge_recursive(get_static($file, $var, APP .'config'), $vars);
-            } 
-            else
-            {
-                $vars = array_merge(get_static($file, $var, APP .'config'), $vars);
-            }
-
-            log_me('debug', 'Module '.$module.' and Application '.$type.' Merged');
+        if($var == 'constant')
+        {
+            $values = array_merge($module_vars, $app_vars);
+            
+            return $values;
         }
+        
+        foreach($app_vars as $key => $array)
+        { 
+            switch($key)
+            {
+                case ($key == 'helper' || $key == 'config' || $key == 'lang'):
+                    $values[$key] = array_keys(array_merge(array_flip($module_vars[$key]), array_flip($array)));
+                    break;
+                
+                case ($key == 'lib' || $key == 'model'):
+                    $values[$key] = array_merge($module_vars[$key], $array);
+                    break;
+
+                case ($key == 'function'):
+                    $values[$key] = array_merge($module_vars[$key], $array);
+                    break;
+            }
+        }
+
+        log_me('debug', 'Module '.$module.' and Application '.$type.' Merged');
     } 
     else 
     {
-        $vars = get_static($file, $var, APP .'config');
+        $values = get_static($file, $var, APP .'config');
 
         log_me('debug', 'Application '.$type.' Initialized');
     }
     
-    return $vars;
+    return $values;
 }
 
 // END Controller Class

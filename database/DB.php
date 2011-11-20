@@ -462,6 +462,18 @@ Class OB_DB extends OB_DBAc_sw {
     // --------------------------------------------------------------------
 
     /**
+    * Alias of row_count();
+    *
+    * @return  integer
+    */
+    public function num_rows()
+    {
+        return $this->row_count();
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
     * Get results for current db 
     * operation. (first_row(), next_row() .. )
     *     
