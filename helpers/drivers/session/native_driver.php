@@ -26,7 +26,7 @@ if( ! function_exists('_sess_start') )
             $_ob->session->$key = (isset($params[$key])) ? $params[$key] : config_item($key);
         }
 
-        // _unserialize func. use strip_slashes() func. We can add it later if we need it in Native Library. ?
+        // @todo _unserialize func. use strip_slashes() func. We can add it later if we need it in Native Library. ?
         // loader::helper('ob/string');
                 
         if($_ob->session->sess_die_cookie)
