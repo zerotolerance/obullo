@@ -431,6 +431,11 @@ if( ! function_exists('lib'))
             $new_object = TRUE;
         }
         
+        if(strpos($class, 'ob/') === 0)
+        {               
+           $class = strtolower(substr($class, 3));
+        }
+        
         // @todo if strpos('../', $class) so go loader::lib($class);
         
         return load_class(strtolower($class), $new_object, $params_or_no_instance);
@@ -895,6 +900,9 @@ if( ! function_exists('show_error'))
     function show_error($message, $status_code = 500, $heading = 'An Error Was Encountered')
     {
         log_me('error', 'HTTP Error --> '.$message);
+        
+        // Some times we use utf8 chars in errors.
+        header('Content-type: text/html; charset='.config_item('charset')); 
         
         echo show_http_error($heading, $message, 'ob_general', $status_code);
         

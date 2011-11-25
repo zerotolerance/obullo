@@ -38,17 +38,16 @@ Class VM extends Model {
     /**
     * Construct
     * 
-    * @param  array $settings
     * @return void
     */
-    public function __construct($settings = array())
+    public function __construct()
     {               
         if( ! isset($this->settings['fields']) OR ! isset($this->settings['database'])) 
         {
             throw new VMException('Check your model it must be contain $settings[\'fields\'] and $settings[\'database\'] array.');
         }
         
-        $db = $settings['database'];
+        $db = $this->settings['database'];
                  
         loader::database($db);
         $this->db = this()->$db;
@@ -345,15 +344,25 @@ Class VM extends Model {
     // --------------------------------------------------------------------
 
     /**
-    * Some times you can don't want insert any data to database
-    * if u just use validate functionality use no_input() func.
-    * for each fields.
+    * Some times we don't want save some fields or that 
+    * the fields which we haven't got in the db tables we have to validate them.
+    * To overcome to this problem we use the $model->no_save(); function.
+    * 
+    * @param type $key
+    */
+    public function no_save($key)
+    {
+        $this->no_input[$key] = $key;
+    }
+    
+    /**
+    * Alias of no_save() function.
     * 
     * @param type $key
     */
     public function no_input($key)
     {
-        $this->no_input[$key] = $key;
+        return $this->no_save();
     }
 
     // --------------------------------------------------------------------
