@@ -271,15 +271,18 @@ Class OB_Config
     // --------------------------------------------------------------------
     
     /**
-    * Get the base url automatically.
+    * Base URL
+    * Returns base_url
     * 
-    * @return    string
+    * @access public
+    * @param string $uri
+    * @return string
     */
-    public function base_url()
+    public function base_url($uri = '')
     {
-        return $this->slash_item('base_url');
+        return $this->slash_item('base_url').ltrim($uri,'/');
     }
-
+    
     // --------------------------------------------------------------------
     
     /**

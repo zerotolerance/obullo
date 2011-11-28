@@ -51,6 +51,17 @@ if( ! function_exists('lang_load') )
 {
     function lang_load($langfile = '', $idiom = '', $dir = '', $return = FALSE)
     {     
+        if(strpos($langfile, 'ob/') === 0)
+        {
+            $langfile = substr($langfile, 3);
+            $dir = 'base';
+        }
+        
+        if(strpos($langfile, 'app/') === 0)
+        {
+            $langfile = substr($langfile, 4);
+        }
+        
         $_ob = load_class('Storage');
         
         if (in_array($langfile, $_ob->lang->is_loaded, TRUE))
@@ -65,11 +76,25 @@ if( ! function_exists('lang_load') )
         $file_info = _lang_load_file($langfile, $dir, $idiom);
         $folder    = $file_info['path'];
         
-        if( ! is_dir($folder))
-        return;
-        
-        $lang = get_static($file_info['filename'], 'lang', $folder);     // Obullo changes ...
-        
+        if(is_array($folder))   // Merge Applicaiton and Module language files ..
+        { 
+           $lang = array(); 
+           foreach($folder as $folder_val)
+           {
+               if(is_dir($folder_val))
+               {
+                   $lang = array_merge($lang, get_static($file_info['filename'], 'lang', $folder_val));
+               }
+           }
+        } 
+        else 
+        {
+            if( ! is_dir($folder))
+            return;
+            
+            $lang = get_static($file_info['filename'], 'lang', $folder);
+        }
+
         if ( ! isset($lang))
         {
             log_me('error', 'Language file contains no lang variable: ' . $file_info['path'] . DS . $file_info['filename']. EXT);
@@ -157,9 +182,16 @@ if( ! function_exists('_lang_load_file'))
         
         if(file_exists($module_path. $filename. EXT))  // first check module path
         {
-            $path = $module_path;
+            if(file_exists($path. $filename. EXT))    // we send array so we will merge module and application $lang
+            {                                          // variables.
+                $path = array($path, $module_path);
+            }
+            else
+            {
+                $path = $module_path;
+            }
         }
-        
+
         return array('filename' => $filename, 'path' => $path);
     }
 }

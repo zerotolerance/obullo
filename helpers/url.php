@@ -38,7 +38,7 @@ if ( ! function_exists('base_url'))
 {
     function base_url($uri = '')
     {
-        return this()->config->base_url($uri = '');
+        return this()->config->base_url($uri);
     }
 }
 
@@ -114,6 +114,11 @@ if ( ! function_exists('module'))
         else
         {
             $module = core_class('Router')->fetch_directory();
+        }
+        
+        if($uri == '')
+        {
+            return $module; 
         }
 
         return $module .'/'. ltrim($uri, '/');

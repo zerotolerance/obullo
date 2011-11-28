@@ -74,7 +74,7 @@ Class OB_Loader {
         {               
            $library = strtolower(substr($class, 3));
             
-            if($new_instance === FALSE)
+            if($params_or_no_instance === FALSE)
             {   
                 return lib(strtolower(substr($class, 3)), $params_or_no_instance, $new_instance);
             } 
@@ -159,7 +159,7 @@ Class OB_Loader {
         
         if($params_or_no_ins === TRUE AND $ext == TRUE)  // extension helper file.
         {
-            self::helper($class, 'helpers', TRUE);
+            self::helper($class, TRUE);
             
             return;  // If file helper extension return.
         }
@@ -200,7 +200,7 @@ Class OB_Loader {
             }
             elseif($params_or_no_ins === FALSE)
             {
-                profiler_set($profiler_type, $class_var, $class_var);
+                profiler_set($profiler_type, $class_var.'_no_instantiate', $class_var);
 
                 return;
             }
@@ -257,8 +257,15 @@ Class OB_Loader {
     * @param     array | boolean $params (construct params) | or | Not Instantiate just include file
     * @return    void
     */
-    public static function model($model, $object_name_or_no_ins = '', $params_or_no_ins = '', $new_instance = FALSE)
+    public static function model($model, $object_name_or_no_ins = '', $params_or_no_ins = '')
     {
+        $new_instance = FALSE;
+        if($object_name_or_no_ins === TRUE)
+        {
+            $new_instance = TRUE;
+            $object_name_or_no_ins = '';
+        }
+        
         if(strpos($model, 'app/') === 0)
         {
             return loader::app_model(substr($model, 4), $object_name_or_no_ins, $params_or_no_ins, $new_instance);
@@ -299,8 +306,7 @@ Class OB_Loader {
 
         $OB = this();
 
-        // HMVC CRAZY BUG !!
-        // If someone use HMVC we need to create new instance() foreach Model
+        // If someone use HMVC we need to create new instance() foreach HMVC requests.
         if(core_class('Router')->hmvc == FALSE AND $new_instance == FALSE)
         {
             if (isset($OB->$model_var) AND is_object($OB->$model_var)) { return; }
@@ -434,7 +440,7 @@ Class OB_Loader {
     * @param    string $helper
     * @return   void
     */
-    public static function helper($helper, $func = 'helper', $is_extension = FALSE)
+    public static function helper($helper, $is_extension = FALSE)
     {
         if(strpos($helper, 'ob/') === 0)
         {
@@ -577,11 +583,6 @@ Class OB_Loader {
 
     public static function lang($file, $folder = '', $return = FALSE)
     {
-        if(strpos($file, 'ob/') === 0)
-        {
-            return lang_load(substr($file, 3), $folder = '', 'base', $return);
-        }
-        
         lang_load($file, $folder, NULL, $return);
     }
 
@@ -591,48 +592,7 @@ Class OB_Loader {
     {
         core_class('Config')->load($file, $use_sections, $fail_gracefully);
     }
-
-    // --------------------------------------------------------------------
-
-    /**
-    * Load a file from ROOT directory.
-    *
-    * @access   public
-    * @param    string $file filename
-    * @return   void
-    */
-    public static function file($path, $string = FALSE, $ROOT = APP)
-    {
-        if( isset(self::$_files[$path]) )
-        return;
-
-        if(file_exists($ROOT .$path))
-        {
-            self::$_files[$path] = $path;
-
-            log_me('debug', 'External file loaded: '.$path);
-
-            profiler_set('files', $path, $ROOT . $path);  // store into profiler
-
-            if($string === TRUE)
-            {
-                ob_start();
-                include_once($ROOT .$path);
-
-                $content = ob_get_contents();
-                @ob_end_clean();
-
-                return $content;
-            }
-
-            require_once($ROOT .$path);
-            return;
-        }
-
-        throw new LoaderException('Unable to locate the external file: ' .$path);
-    }
-
-                               
+ 
     // --------------------------------------------------------------------
 
     /**

@@ -641,25 +641,6 @@ Class OB_Router {
     // --------------------------------------------------------------------
     
     /**
-    * Check Router Request Is Ajax.
-    * 
-    * @return boolean
-    */
-    public function is_ajax()
-    {
-        $http_request = i_server('HTTP_X_REQUESTED_WITH');
-        
-        if($http_request == 'XMLHttpRequest')
-        {
-            return TRUE;
-        }
-        
-        return FALSE;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
     * Check Router Request Is Hmvc.
     * 
     * @return boolean

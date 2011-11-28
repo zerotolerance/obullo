@@ -85,7 +85,7 @@ Class OB_Hmvc
     * @param     int $cache_time
     * @return    void
     */
-    public function hmvc_request($hmvc_uri = '', $cache_time = 0)
+    public function request($hmvc_uri = '', $cache_time = 0)
     {
         $this->_set_conn_string($hmvc_uri);
 
@@ -124,10 +124,12 @@ Class OB_Hmvc
 
             $this->hmvc_connect = $Router->_set_routing();
 
-            return;
+            return $this;
         }
 
         $this->uri_string = '';
+        
+        return $this;
     }
 
     // --------------------------------------------------------------------
@@ -169,6 +171,20 @@ Class OB_Hmvc
     // --------------------------------------------------------------------
 
     /**
+    * Set hmvc output cache time.
+    * 
+    * @param type $time 
+    */
+    public function cache($time = 0)
+    {
+        $this->cache_time = $time;
+        
+        return $this;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
     * Warning !!!
     * When we use HMVC in Parent Controllers (e.g. Welcome_Controller)
     * HMVC request will be in a unlimited loop, no_loop() function
@@ -193,7 +209,7 @@ Class OB_Hmvc
     * @param    mixed  $params_or_data
     * @return   void
     */
-    public function set_method($method = 'GET' , $params_or_data = '')
+    public function set_method($method = 'GET' , $params_or_data = array())
     {
         $method = $this->request_method = strtoupper($method);
 
@@ -206,7 +222,7 @@ Class OB_Hmvc
 
             if(count($query_str_params) > 0 AND ($method == 'GET' || $method == 'DELETE'))
             {
-                if(is_array($params_or_data))
+                if(is_array($params_or_data) AND count($params_or_data) > 0)
                 {
                     $params_or_data = array_merge($query_str_params, $params_or_data);
                 }
@@ -232,6 +248,12 @@ Class OB_Hmvc
         switch ($method)
         {
            case 'POST':
+            
+            if( ! is_array($params_or_data))
+            {
+                throw new HMVCException('Data must be array when using HMVC POST methods.');
+            }
+               
             foreach($params_or_data as $key => $val)
             {
                 $_POST[$key]    = urldecode($val);
@@ -242,6 +264,12 @@ Class OB_Hmvc
              break;
 
            case ($method == 'GET' || $method == 'DELETE'):
+            
+            if( ! is_array($params_or_data))
+            {
+                throw new HMVCException('Data must be array when using HMVC GET or DELETE methods.');
+            }
+               
             foreach($params_or_data as $key => $val)
             {
                 $_GET[$key]     = urldecode($val);
@@ -252,7 +280,7 @@ Class OB_Hmvc
              break;
 
            case 'PUT':
-            if(is_array($params_or_data))
+            if(is_array($params_or_data) AND count($params_or_data) > 0)
             {
                 foreach($params_or_data as $key => $val)
                 {
@@ -271,6 +299,8 @@ Class OB_Hmvc
         $_SERVER['REQUEST_METHOD']   = $method;  // Set request method ..
         $_SERVER['HMVC_REQUEST']     = TRUE;
         $_SERVER['HMVC_REQUEST_URI'] = $this->uri_string;
+        
+        return $this;
     }
 
     // --------------------------------------------------------------------
@@ -311,7 +341,7 @@ Class OB_Hmvc
             {                                        // in Application or Module Controller.
                 $this->_reset_router(TRUE);
 
-                return $this;
+                return $this->response();
             }
 
             self::$_conn_id[$conn_id] = $conn_id;    // store connection id.
@@ -330,7 +360,7 @@ Class OB_Hmvc
             $this->set_response($router->hmvc_response);
             $this->_reset_router();
 
-            return $this;
+            return $this->response();
         }
 
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
@@ -352,7 +382,7 @@ Class OB_Hmvc
 
             $this->_reset_router();
 
-            return $this;
+            return $this->response();
         }
 
         if(ob_get_level() > 0) ob_end_clean();
@@ -369,8 +399,8 @@ Class OB_Hmvc
                 $this->set_response('404 - Hmvc request not found: '.$hmvc_uri);
 
                 $this->_reset_router();
-
-                return $this;
+                
+                return $this->response();
             }
 
             $arg_slice  = 4;
@@ -391,7 +421,7 @@ Class OB_Hmvc
 
                 $this->_reset_router();
 
-                return $this;
+                return $this->response();
             }
             
             $arg_slice  = 3;
@@ -411,7 +441,7 @@ Class OB_Hmvc
 
             $this->_reset_router();
 
-            return $this;
+            return $this->response();
         }
 
         // If Everyting ok Declare Called Controller !
@@ -424,7 +454,7 @@ Class OB_Hmvc
 
             $this->_reset_router();
 
-            return $this;
+            return $this->response();
         }
         
         ob_start();
@@ -453,7 +483,9 @@ Class OB_Hmvc
         $this->_reset_router();    
                        
         log_me('debug', 'Hmvc process completed succesfully.');
-                            
+        
+        return $this->response();
+        
         return $this;
     }
 
@@ -521,6 +553,8 @@ Class OB_Hmvc
         $_SERVER[$key] = $val;
 
         $this->_set_conn_string($key.$val);
+        
+        return $this;
     }
 
     // --------------------------------------------------------------------

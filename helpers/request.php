@@ -42,54 +42,42 @@ defined('BASE') or exit('Access Denied!');
 if( ! function_exists('request') )
 {
     function request($method = 'get', $request_uri = '', $params = array(), $cache_time_or_config = 0)
-    {
+    {        
         // Supported request methods
         $methods = array('GET' => '', 'POST' => '', 'PUT' => '', 'DELETE' => '');
 
         if( ! isset($methods[strtoupper($method)]))
         {
-            throw new Exception('HMVC only support GET, POST, PUT and DELETE methods !');
+            if(is_numeric($params))
+            {
+                $cache_time_or_config = $params;
+            }
+            
+            if(is_array($request_uri))
+            {
+                $params  = $request_uri;
+            }
+
+            // Long Access request
+            if($request_uri === FALSE)
+            {   
+                $hmvc = lib('Hmvc', '', true);   // Every hmvc request must create new instance (true == new instance)
+                $hmvc->clear();                  // clear variables for each request.
+
+                $hmvc->request($method);
+
+                return $hmvc;
+                // $hmvc->set_method($method, $params);
+                // $hmvc->exec();
+            }
+            
+            $request_uri = $method;
+            $method      = 'GET';   // Set default method
         }
 
-        // Quick access who like to less coding.
-        // ------------------------------------------------------------------------ 
-        
-        if($cache_time_or_config === TRUE)
-        {
-            $hmvc = lib('Hmvc', '', true);   // Every hmvc request must create new instance (true == new instance)
-            $hmvc->clear();                        // clear variables for each request.
-            $hmvc->hmvc_request($request_uri, 0);
-            $hmvc->set_method($method, $params);
-            
-            return $hmvc->exec()->response();
-        }
-        
-        // Quick access with config parameters.  
-        // ------------------------------------------------------------------------  
-        
-        if(is_array($cache_time_or_config))  
-        {
-            $config = $cache_time_or_config;
-            
-            $hmvc = lib('Hmvc', '', true);   
-            $hmvc->clear();             
-
-            $cache_time = (isset($config['cache_time'])) ? $config['cache_time'] : 0;
-            $no_loop    = (isset($config['no_loop']) AND $config['no_loop'] == TRUE) ? TRUE : FALSE;
-            
-            $hmvc->hmvc_request($request_uri, $cache_time);
-            $hmvc->no_loop($no_loop);
-            $hmvc->set_method($method, $params);
-            
-            return $hmvc->exec()->response(); 
-        }
-        
-        // Long access but flexible way.  
-        // ------------------------------------------------------------------------  
-    
         $hmvc = lib('Hmvc', '', true); 
         $hmvc->clear();                       
-        $hmvc->hmvc_request($request_uri, $cache_time_or_config);
+        $hmvc->request($request_uri, $cache_time_or_config);
         $hmvc->set_method($method, $params);
     
         return $hmvc;   // return to hmvc object

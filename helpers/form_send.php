@@ -35,9 +35,9 @@ defined('BASE') or exit('Access Denied!');
 * @param object | string $model or $system_message
 * @return string
 */
-if ( ! function_exists('form_json_error'))
+if ( ! function_exists('form_send_error'))
 {
-    function form_json_error($model)
+    function form_send_error($model, $format = 'json')
     {
         if(is_object($model))
         {
@@ -72,9 +72,9 @@ if ( ! function_exists('form_json_error'))
 * @param string $message success msg
 * @return string
 */
-if ( ! function_exists('form_json_success'))
+if ( ! function_exists('form_send_success'))
 {
-    function form_json_success($message)
+    function form_send_success($message, $format = 'json')
     {
         return json_encode(array('success' => true, 'success_msg' => $message));   
     }
@@ -89,9 +89,9 @@ if ( ! function_exists('form_json_success'))
 * @param string $redirect_url /page/to/redirect
 * @return string
 */
-if ( ! function_exists('form_json_redirect'))
+if ( ! function_exists('form_send_redirect'))
 {
-    function form_json_redirect($redirect_url)
+    function form_send_redirect($redirect_url, $format = 'json')
     {
         return json_encode(array('success' => true, 'success_msg' => '', 'redirect' => $redirect_url));
     }
@@ -106,9 +106,9 @@ if ( ! function_exists('form_json_redirect'))
 * @param string $post_url url you want to post 2nd page
 * @return string
 */
-if ( ! function_exists('form_json_forward'))
+if ( ! function_exists('form_send_forward'))
 {
-    function form_json_forward($post_url)
+    function form_send_forward($post_url, $format = 'json')
     {
         echo json_encode(array('success' => true, 'forward_url' => $post_url));
     }

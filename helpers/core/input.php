@@ -531,6 +531,85 @@ if( ! function_exists('i_filename_security') )
         return stripslashes(str_replace($bad, '', $str));
     }
 }
+// --------------------------------------------------------------------
+
+/**
+* Check Request Is Ajax.
+* 
+* Test to see if a request contains the HTTP_X_REQUESTED_WITH header
+* 
+* @return boolean
+*/
+if( ! function_exists('i_ajax'))
+{
+    function i_ajax()
+    {    
+        return (i_server('HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest');
+    } 
+}
+// --------------------------------------------------------------------
+
+/**
+* Check is Request Command Line.
+* 
+* @return boolean
+*/
+if( ! function_exists('i_cli'))
+{
+    function i_cli()
+    {    
+        if(defined('TASK'))
+        {
+            return FALSE;
+        }
+        
+        if(defined('CMD'))
+        {
+            return TRUE;
+        }
+        
+        return FALSE;
+    } 
+}
+// --------------------------------------------------------------------
+
+/**
+* Check is Request Task.
+* 
+* @return boolean
+*/
+if( ! function_exists('i_task'))
+{
+    function i_task()
+    {    
+        if(defined('TASK'))
+        {
+            return TRUE;
+        }
+        
+        return FALSE;
+    } 
+}
+// --------------------------------------------------------------------
+
+/**
+* Check is Request HMVC.
+* 
+* @return boolean
+*/
+if( ! function_exists('i_hmvc'))
+{
+    function i_hmvc()
+    {    
+        if(core_class('Router')->is_hmvc())
+        {
+            return TRUE;
+        }
+        
+        return FALSE;
+    } 
+}
+
 
 /* End of file input.php */
 /* Location: ./obullo/helpers/core/input.php */

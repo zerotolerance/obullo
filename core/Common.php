@@ -426,9 +426,12 @@ if( ! function_exists('lib'))
 {
     function lib($class, $params_or_no_instance = '', $new_object = NULL)
     {
-        if(core_class('Router')->hmvc == TRUE) // We must create new instance for
-        {                                      // hmvc requests
-            $new_object = TRUE;
+        if($new_object == NULL || $new_object == FALSE) 
+        {   
+            if(core_class('Router')->is_hmvc()) // We must create new instance for each hmvc requests
+            {
+                $new_object = TRUE;
+            }
         }
         
         if(strpos($class, 'ob/') === 0)
@@ -943,6 +946,23 @@ if( ! function_exists('show_http_error'))
     }
 }
 
+
+// -------------------------------------------------------------------- 
+
+/**
+ * Check Array is_associative
+ * or not.
+ * 
+ * @param type $a
+ * @return type 
+ */
+if( ! function_exists('is_assoc_array')) 
+{
+    function is_assoc_array( $a )
+    {
+        return is_array( $a ) && ( count( $a ) !== array_reduce( array_keys( $a ), create_function( '$a, $b', 'return ($b === $a ? $a + 1 : 0);' ), 0 ) );
+    }
+}
 
 // END Common.php File
 

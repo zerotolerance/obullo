@@ -78,21 +78,11 @@ Class Controller {
         
         // CONSTANTS
         // -------------------------------------------------------------------- 
-        
-        $constant = __merge_autoloaders($module, 'constants', 'constant', 'Constants');
 
-        if(isset($constant))
-        { 
-            foreach($constant as $key => $val)
-            {
-                if( ! defined($key) AND $val != '')
-                {
-                    define($key, $val);
-                    
-                    profiler_set('constants', $key, $val);
-                }
-            }
-        }
+        if(file_exists(MODULES .$module. DS .'config'. DS .'constants'. EXT))
+        {
+            get_static('constants', '', MODULES .$module. DS .'config');
+        }  
         
         // AUTOLOADERS
         // -------------------------------------------------------------------- 
@@ -105,18 +95,32 @@ Class Controller {
             {
                 if(count($autoload[$key]) > 0)
                 {
-                    foreach($autoload[$key] as $file)
+                    if( ! is_assoc_array($autoload[$key]))
                     {
-                        if(is_array($file))
-                        {
-                           foreach($file as $filename => $params)
-                           {
-                               loader::$key($filename, $params);
-                           }
+                        show_error('Please redefine your '.$key.' autoload variables, they must be associative array !');
+                    }
+                    
+                    foreach($autoload[$key] as $filename => $args)
+                    {
+                        if(is_array($args)) // if arguments exists
+                        { 
+                            switch($key)
+                            {
+                                case ($key == 'config' || $key == 'lang' || $key == 'lib' || $key == 'model'):
+                                    
+                                    $third_param = isset($args[1]) ? $args[1] : FALSE;
+                                    
+                                    loader::$key($filename, $args[0], $third_param);
+                                    break;
+
+                                case 'helper':
+                                    loader::$key($filename, $args[0]);
+                                    break;
+                            }
                         }
                         else
                         {
-                            loader::$key($file);
+                            loader::$key($filename);
                         }
                     }
                 }
@@ -207,29 +211,9 @@ function __merge_autoloaders($module, $file = 'autoload', $var = '', $type = 'Au
         $module_vars = get_static($file, $var, MODULES .$module. DS .'config');
         $app_vars    = get_static($file, $var, APP .'config');
 
-        if($var == 'constant')
-        {
-            $values = array_merge($module_vars, $app_vars);
-            
-            return $values;
-        }
-        
         foreach($app_vars as $key => $array)
-        { 
-            switch($key)
-            {
-                case ($key == 'helper' || $key == 'config' || $key == 'lang'):
-                    $values[$key] = array_keys(array_merge(array_flip($module_vars[$key]), array_flip($array)));
-                    break;
-                
-                case ($key == 'lib' || $key == 'model'):
-                    $values[$key] = array_merge($module_vars[$key], $array);
-                    break;
-
-                case ($key == 'function'):
-                    $values[$key] = array_merge($module_vars[$key], $array);
-                    break;
-            }
+        {
+            $values[$key] = array_merge($module_vars[$key], $array);
         }
 
         log_me('debug', 'Module '.$module.' and Application '.$type.' Merged');
