@@ -29,7 +29,7 @@ if( ! function_exists('utf8_substr_replace'))
 {
     function utf8_substr_replace($str, $replacement, $offset, $length = NULL)
     {
-        $utf8 = lib('utf8');
+        $utf8 = lib('ob/utf8');
         
         if($utf8->is_ascii($str))
         {

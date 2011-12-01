@@ -61,6 +61,7 @@ if ( ! function_exists('public_url'))
         return this()->config->public_url($uri, $no_folder, $no_ext_uri_slash);
     }
 }
+// ------------------------------------------------------------------------
 
 /**
 * Site URL
@@ -80,6 +81,7 @@ if ( ! function_exists('site_url'))
         return this()->config->site_url($uri, $suffix);
     }
 }
+// ------------------------------------------------------------------------
 
 /**
 * Get current url
@@ -91,7 +93,27 @@ if ( ! function_exists('current_url'))
 {
     function current_url()
     {
-	    return this()->config->site_url(this()->uri->uri_string());
+        return this()->config->site_url(this()->uri->uri_string());
+    }
+}
+// ------------------------------------------------------------------------
+
+/**
+* The extension of URI
+*
+* Returns the "extension of url" item that 
+* allowed from your config file.
+*
+* example.com/module/controller/post.json
+* 
+* @access    public
+* @return    string
+*/
+if ( ! function_exists('uri_extension'))
+{
+    function uri_extension()
+    {
+        return this()->uri->extension();
     }
 }
 // ------------------------------------------------------------------------
@@ -309,16 +331,16 @@ if ( ! function_exists('mailto'))
 {
     function mailto($email, $title = '', $attributes = '')
     {
-	    $title = (string) $title;
+        $title = (string) $title;
 
-	    if ($title == "")
-	    {
-		    $title = $email;
-	    }
+        if ($title == "")
+        {
+                $title = $email;
+        }
 
-	    $attributes = _parse_attributes($attributes);
+        $attributes = _parse_attributes($attributes);
 
-	    return '<a href="mailto:'.$email.'"'.$attributes.'>'.$title.'</a>';
+        return '<a href="mailto:'.$email.'"'.$attributes.'>'.$title.'</a>';
     }
 }
 // ------------------------------------------------------------------------
@@ -338,82 +360,82 @@ if ( ! function_exists('safe_mailto'))
 {
     function safe_mailto($email, $title = '', $attributes = '')
     {
-	    $title = (string) $title;
+        $title = (string) $title;
 
-	    if ($title == "")
-	    {
-		    $title = $email;
-	    }
+        if ($title == "")
+        {
+                $title = $email;
+        }
 
-	    for ($i = 0; $i < 16; $i++)
-	    {
-		    $x[] = substr('<a href="mailto:', $i, 1);
-	    }
+        for ($i = 0; $i < 16; $i++)
+        {
+                $x[] = substr('<a href="mailto:', $i, 1);
+        }
 
-	    for ($i = 0; $i < strlen($email); $i++)
-	    {
-		    $x[] = "|" . ord(substr($email, $i, 1));
-	    }
+        for ($i = 0; $i < strlen($email); $i++)
+        {
+                $x[] = "|" . ord(substr($email, $i, 1));
+        }
 
-	    $x[] = '"';
+        $x[] = '"';
 
-	    if ($attributes != '')
-	    {
-		    if (is_array($attributes))
-		    {
-			    foreach ($attributes as $key => $val)
-			    {
-				    $x[] =  ' '.$key.'="';
-				    for ($i = 0; $i < strlen($val); $i++)
-				    {
-					    $x[] = "|" . ord(substr($val, $i, 1));
-				    }
-				    $x[] = '"';
-			    }
-		    }
-		    else
-		    {
-			    for ($i = 0; $i < strlen($attributes); $i++)
-			    {
-				    $x[] = substr($attributes, $i, 1);
-			    }
-		    }
-	    }
+        if ($attributes != '')
+        {
+                if (is_array($attributes))
+                {
+                        foreach ($attributes as $key => $val)
+                        {
+                                $x[] =  ' '.$key.'="';
+                                for ($i = 0; $i < strlen($val); $i++)
+                                {
+                                        $x[] = "|" . ord(substr($val, $i, 1));
+                                }
+                                $x[] = '"';
+                        }
+                }
+                else
+                {
+                        for ($i = 0; $i < strlen($attributes); $i++)
+                        {
+                                $x[] = substr($attributes, $i, 1);
+                        }
+                }
+        }
 
-	    $x[] = '>';
+        $x[] = '>';
 
-	    $temp = array();
-	    for ($i = 0; $i < strlen($title); $i++)
-	    {
-		    $ordinal = ord($title[$i]);
+        $temp = array();
+        for ($i = 0; $i < strlen($title); $i++)
+        {
+                $ordinal = ord($title[$i]);
 
-		    if ($ordinal < 128)
-		    {
-			    $x[] = "|".$ordinal;
-		    }
-		    else
-		    {
-			    if (count($temp) == 0)
-			    {
-				    $count = ($ordinal < 224) ? 2 : 3;
-			    }
+                if ($ordinal < 128)
+                {
+                        $x[] = "|".$ordinal;
+                }
+                else
+                {
+                        if (count($temp) == 0)
+                        {
+                                $count = ($ordinal < 224) ? 2 : 3;
+                        }
 
-			    $temp[] = $ordinal;
-			    if (count($temp) == $count)
-			    {
-				    $number = ($count == 3) ? (($temp['0'] % 16) * 4096) + (($temp['1'] % 64) * 64) + ($temp['2'] % 64) : (($temp['0'] % 32) * 64) + ($temp['1'] % 64);
-				    $x[] = "|".$number;
-				    $count = 1;
-				    $temp = array();
-			    }
-		    }
-	    }
+                        $temp[] = $ordinal;
+                        if (count($temp) == $count)
+                        {
+                                $number = ($count == 3) ? (($temp['0'] % 16) * 4096) + (($temp['1'] % 64) * 64) + ($temp['2'] % 64) : (($temp['0'] % 32) * 64) + ($temp['1'] % 64);
+                                $x[] = "|".$number;
+                                $count = 1;
+                                $temp = array();
+                        }
+                }
+        }
 
-	    $x[] = '<'; $x[] = '/'; $x[] = 'a'; $x[] = '>';
+        $x[] = '<'; $x[] = '/'; $x[] = 'a'; $x[] = '>';
 
-	    $data['x'] = array_reverse($x);
+        $data['x'] = array_reverse($x);
 
-        return script_base('safe_mail', $data);
+    return script_base('safe_mail', $data);
     }
 }
 
@@ -437,53 +459,53 @@ if ( ! function_exists('auto_url'))
 {
     function auto_link($str, $type = 'both', $popup = FALSE)
     {
-	    if ($type != 'email')
-	    {
-		    if (preg_match_all("#(^|\s|\()((http(s?)://)|(www\.))(\w+[^\s\)\<]+)#i", $str, $matches))
-		    {
-			    $pop = ($popup == TRUE) ? " target=\"_blank\" " : "";
+        if ($type != 'email')
+        {
+                if (preg_match_all("#(^|\s|\()((http(s?)://)|(www\.))(\w+[^\s\)\<]+)#i", $str, $matches))
+                {
+                        $pop = ($popup == TRUE) ? " target=\"_blank\" " : "";
 
-			    for ($i = 0; $i < count($matches['0']); $i++)
-			    {
-				    $period = '';
-				    if (preg_match("|\.$|", $matches['6'][$i]))
-				    {
-					    $period = '.';
-					    $matches['6'][$i] = substr($matches['6'][$i], 0, -1);
-				    }
+                        for ($i = 0; $i < count($matches['0']); $i++)
+                        {
+                                $period = '';
+                                if (preg_match("|\.$|", $matches['6'][$i]))
+                                {
+                                        $period = '.';
+                                        $matches['6'][$i] = substr($matches['6'][$i], 0, -1);
+                                }
 
-				    $str = str_replace($matches['0'][$i],
-									    $matches['1'][$i].'<a href="http'.
-									    $matches['4'][$i].'://'.
-									    $matches['5'][$i].
-									    $matches['6'][$i].'"'.$pop.'>http'.
-									    $matches['4'][$i].'://'.
-									    $matches['5'][$i].
-									    $matches['6'][$i].'</a>'.
-									    $period, $str);
-			    }
-		    }
-	    }
+                                $str = str_replace($matches['0'][$i],
+                                                                        $matches['1'][$i].'<a href="http'.
+                                                                        $matches['4'][$i].'://'.
+                                                                        $matches['5'][$i].
+                                                                        $matches['6'][$i].'"'.$pop.'>http'.
+                                                                        $matches['4'][$i].'://'.
+                                                                        $matches['5'][$i].
+                                                                        $matches['6'][$i].'</a>'.
+                                                                        $period, $str);
+                        }
+                }
+        }
 
-	    if ($type != 'url')
-	    {
-		    if (preg_match_all("/([a-zA-Z0-9_\.\-\+]+)@([a-zA-Z0-9\-]+)\.([a-zA-Z0-9\-\.]*)/i", $str, $matches))
-		    {
-			    for ($i = 0; $i < count($matches['0']); $i++)
-			    {
-				    $period = '';
-				    if (preg_match("|\.$|", $matches['3'][$i]))
-				    {
-					    $period = '.';
-					    $matches['3'][$i] = substr($matches['3'][$i], 0, -1);
-				    }
+        if ($type != 'url')
+        {
+                if (preg_match_all("/([a-zA-Z0-9_\.\-\+]+)@([a-zA-Z0-9\-]+)\.([a-zA-Z0-9\-\.]*)/i", $str, $matches))
+                {
+                        for ($i = 0; $i < count($matches['0']); $i++)
+                        {
+                                $period = '';
+                                if (preg_match("|\.$|", $matches['3'][$i]))
+                                {
+                                        $period = '.';
+                                        $matches['3'][$i] = substr($matches['3'][$i], 0, -1);
+                                }
 
-				    $str = str_replace($matches['0'][$i], safe_mailto($matches['1'][$i].'@'.$matches['2'][$i].'.'.$matches['3'][$i]).$period, $str);
-			    }
-		    }
-	    }
+                                $str = str_replace($matches['0'][$i], safe_mailto($matches['1'][$i].'@'.$matches['2'][$i].'.'.$matches['3'][$i]).$period, $str);
+                        }
+                }
+        }
 
-	    return $str;
+        return $str;
     }
 }
 // ------------------------------------------------------------------------
@@ -501,17 +523,17 @@ if ( ! function_exists('prep_url'))
 {
     function prep_url($str = '')
     {
-	    if ($str == 'http://' OR $str == '')
-	    {
-		    return '';
-	    }
+        if ($str == 'http://' OR $str == '')
+        {
+                return '';
+        }
 
-	    if ( ! parse_url($str, PHP_URL_SCHEME))
-	    {
-		    $str = 'http://'.$str;
-	    }
+        if ( ! parse_url($str, PHP_URL_SCHEME))
+        {
+                $str = 'http://'.$str;
+        }
 
-	    return $str;
+        return $str;
     }
 }
 // ------------------------------------------------------------------------
@@ -532,41 +554,41 @@ if ( ! function_exists('url_title'))
 {
     function url_title($str, $separator = 'dash', $lowercase = FALSE)
     {
-	    if ($separator == 'dash')
-	    {
-		    $search		= '_';
-		    $replace	= '-';
-	    }
-	    else
-	    {
-		    $search		= '-';
-		    $replace	= '_';
-	    }
+        if ($separator == 'dash')
+        {
+                $search		= '_';
+                $replace	= '-';
+        }
+        else
+        {
+                $search		= '-';
+                $replace	= '_';
+        }
 
-	    $trans = array(
-					    '&\#\d+?;'				=> '',
-					    '&\S+?;'				=> '',
-					    '\s+'					=> $replace,
-					    '[^a-z0-9\-\._]'		=> '',
-					    $replace.'+'			=> $replace,
-					    $replace.'$'			=> $replace,
-					    '^'.$replace			=> $replace,
-					    '\.+$'					=> ''
-				      );
+        $trans = array(
+                                        '&\#\d+?;'				=> '',
+                                        '&\S+?;'				=> '',
+                                        '\s+'					=> $replace,
+                                        '[^a-z0-9\-\._]'		=> '',
+                                        $replace.'+'			=> $replace,
+                                        $replace.'$'			=> $replace,
+                                        '^'.$replace			=> $replace,
+                                        '\.+$'					=> ''
+                                  );
 
-	    $str = strip_tags($str);
+        $str = strip_tags($str);
 
-	    foreach ($trans as $key => $val)
-	    {
-		    $str = preg_replace("#".$key."#i", $val, $str);
-	    }
+        foreach ($trans as $key => $val)
+        {
+                $str = preg_replace("#".$key."#i", $val, $str);
+        }
 
-	    if ($lowercase === TRUE)
-	    {
-		    $str = strtolower($str);
-	    }
+        if ($lowercase === TRUE)
+        {
+                $str = strtolower($str);
+        }
 
-	    return trim(stripslashes($str));
+        return trim(stripslashes($str));
     }
 }
 // ------------------------------------------------------------------------
@@ -635,30 +657,30 @@ if ( ! function_exists('_parse_attributes'))
 {
     function _parse_attributes($attributes, $javascript = FALSE)
     {
-	    if (is_string($attributes))
-	    {
-		    return ($attributes != '') ? ' '.$attributes : '';
-	    }
+        if (is_string($attributes))
+        {
+                return ($attributes != '') ? ' '.$attributes : '';
+        }
 
-	    $att = '';
-	    foreach ($attributes as $key => $val)
-	    {
-		    if ($javascript == TRUE)
-		    {
-			    $att .= $key . '=' . $val . ',';
-		    }
-		    else
-		    {
-			    $att .= ' ' . $key . '="' . $val . '"';
-		    }
-	    }
+        $att = '';
+        foreach ($attributes as $key => $val)
+        {
+                if ($javascript == TRUE)
+                {
+                        $att .= $key . '=' . $val . ',';
+                }
+                else
+                {
+                        $att .= ' ' . $key . '="' . $val . '"';
+                }
+        }
 
-	    if ($javascript == TRUE AND $att != '')
-	    {
-		    $att = substr($att, 0, -1);
-	    }
+        if ($javascript == TRUE AND $att != '')
+        {
+                $att = substr($att, 0, -1);
+        }
 
-	    return $att;
+        return $att;
     }
 }
 

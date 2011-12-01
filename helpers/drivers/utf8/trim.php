@@ -32,7 +32,7 @@ if( ! function_exists('utf8_trim'))
             return trim($str);
         }
 
-        $utf8 = lib('utf8');
+        $utf8 = lib('ob/utf8');
         
         return $utf8->ltrim($utf8->rtrim($str, $charlist), $charlist);
     }

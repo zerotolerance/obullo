@@ -875,7 +875,7 @@ if( ! function_exists('form_error') )
  */
 if( ! function_exists('form_msg'))
 {
-    function form_msg($model = '', $save_msg = '' )
+    function form_msg($model = '', $form_msg = '' )
     {
         if( ! is_object($model))
         {
@@ -886,6 +886,11 @@ if( ! function_exists('form_msg'))
         {
             $msg = lang('vm_form_error');
 
+            if( ! empty($form_msg))
+            {
+                $msg = $form_msg;
+            }
+            
             if($model->validation())  // If validation ok but we have a system error ?
             {
                 $msg = form_error($model);
@@ -897,9 +902,9 @@ if( ! function_exists('form_msg'))
         {
             $msg = lang('vm_form_save');
             
-            if( ! empty($save_msg))
+            if( ! empty($form_msg))
             {
-                $msg = $save_msg;
+                $msg = $form_msg;
             }
             
             return '<div class="notification success">'.$msg.'</div>';

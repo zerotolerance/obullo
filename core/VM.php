@@ -199,7 +199,7 @@ Class VM extends Model {
     // --------------------------------------------------------------------
    
     /**
-    * Return validaton errors for current model.
+    * Return validaton errors to current model.
      * 
     * @return array
     */
@@ -362,7 +362,7 @@ Class VM extends Model {
     */
     public function no_input($key)
     {
-        return $this->no_save();
+        return $this->no_save($key);
     }
 
     // --------------------------------------------------------------------
@@ -559,7 +559,10 @@ Class VM extends Model {
             
         }
         
-        $this->errors[$table]['success'] = 0;
+        if( ! i_ajax())  // If request not AJAX, add success key for native posts.
+        {
+            $this->errors[$table]['success'] = 0;
+        }
                 
         return FALSE;
     }
@@ -681,7 +684,10 @@ Class VM extends Model {
             }
         }
         
-        $this->errors[$table]['success'] = 0;
+        if( ! i_ajax())  // If request not AJAX, add success key for native posts.
+        {
+            $this->errors[$table]['success'] = 0;
+        }
             
         return FALSE;
     }

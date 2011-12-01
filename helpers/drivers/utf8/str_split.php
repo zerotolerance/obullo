@@ -27,7 +27,7 @@ if( ! function_exists('utf8_str_split'))
 {
     function utf8_str_split($str, $split_length = 1)
     {
-        $utf8 = lib('utf8');
+        $utf8 = lib('ob/utf8');
         
         $split_length = (int) $split_length;
 

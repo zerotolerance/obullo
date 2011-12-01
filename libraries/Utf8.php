@@ -40,17 +40,25 @@ defined('BASE') or exit('Access Denied!');
 
 Class OB_Utf8 {
 
-    /**
-    * @var  boolean  Does the server support UTF-8 natively?
-    */
-    public static $server_utf8 = NULL;
-
-    /**
-    * @var  array  List of called methods that have had their required file included.
-    */
-    public static $called = array();
+    public static $server_utf8 = NULL;      // Does the server support UTF-8 natively?
+    public static $called      = array();   // List of called methods that have had their required file included.
     
-
+    /**
+    * Constructor - Set server utf8 extension.
+    * Determine if this server supports UTF-8 natively
+    *
+    * @return void
+    */
+    public function __construct()
+    {
+        if (self::$server_utf8 === NULL)
+        {
+            self::$server_utf8 = extension_loaded('mbstring');  // Determine if this server supports UTF-8 natively
+        }
+    }
+    
+    // ------------------------------------------------------------------------
+    
     /**
     * Recursively cleans arrays, objects, and strings. Removes ASCII control
     * codes and converts to the requested charset while silently discarding
@@ -810,11 +818,5 @@ Class OB_Utf8 {
 
 }
 
-if (OB_Utf8::$server_utf8 === NULL)
-{
-    OB_Utf8::$server_utf8 = extension_loaded('mbstring');  // Determine if this server supports UTF-8 natively
-}
-
-
-/* End of file UTF8.php */
-/* Location: ./obullo/libraries/UTF8.php */
+/* End of file Utf8.php */
+/* Location: ./obullo/libraries/Utf8.php */

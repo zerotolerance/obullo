@@ -33,7 +33,7 @@ if( ! function_exists('utf8_ltrim'))
             return ltrim($str);
         }
 
-        if (lib('Utf8')->is_ascii($charlist))
+        if (lib('ob/utf8')->is_ascii($charlist))
         {
             return ltrim($str, $charlist);
         }

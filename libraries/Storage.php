@@ -68,10 +68,10 @@ Class OB_Storage {
     // --------------------------------------------------------------------
     
     /**
-    * Clone Empty objects for HMVC Requests, When we
-    * use HMVC we use $this->empty = clone load_class('Storage');
-    * that means we say to Empty class when Clone word used in HMVC library 
-    * use cloned Empty objects instead of orginals ( ersin ).
+    * Clone Storage objects for HMVC Requests, When we
+    * use HMVC we use $this->storage = clone load_class('Storage');
+    * that means we say to Storage class when Clone word used in HMVC library 
+    * use cloned Storage object instead of orginals ( ersin ).
     */
     public function __clone()
     {
@@ -88,5 +88,5 @@ Class OB_Storage {
 
 // END Storage Class
 
-/* End of file Empty.php */
+/* End of file Storage.php */
 /* Location: ./obullo/libraries/Storage.php */

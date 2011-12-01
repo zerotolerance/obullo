@@ -29,7 +29,7 @@ if( ! function_exists('utf8_str_ireplace'))
 {
     function utf8_str_ireplace($search, $replace, $str, & $count = NULL)
     {
-        $utf8 = lib('utf8');
+        $utf8 = lib('ob/utf8');
 
         if($utf8->is_ascii($search) AND $utf8->is_ascii($replace) AND $utf8->is_ascii($str))
         {

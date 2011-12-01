@@ -27,7 +27,7 @@ if( ! function_exists('utf8_stristr'))
 {
     function utf8_stristr($str, $search)
     {
-        $utf8 = lib('utf8');
+        $utf8 = lib('ob/utf8');
         
         if($utf8->is_ascii($str) AND $utf8->is_ascii($search))
         {

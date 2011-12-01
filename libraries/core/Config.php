@@ -333,7 +333,7 @@ Class OB_Config
     */
     public function set_item($item, $value)
     {
-        echo 'This function deprecated please use $this->config->set() function !';
+        return $this->set($item, $value);
     }
     
     // --------------------------------------------------------------------

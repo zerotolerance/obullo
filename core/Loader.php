@@ -118,7 +118,7 @@ Class OB_Loader {
     * @param    boolean $new_instance create new instance 
     * @return   self::_library()
     */
-    public static function app_lib($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
+    private static function app_lib($class = '', $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
     {
         self::_library($class, $params_or_no_ins, $object_name, $new_instance, TRUE);
     }
@@ -236,7 +236,7 @@ Class OB_Loader {
     * @param    boolean $new_instance create new instance 
     * @return   void
     */
-    public static function app_model($model, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
+    private static function app_model($model, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
     {
         $data = self::_load_file($model, $folder = 'models', $app_folder = TRUE);
 
@@ -402,7 +402,7 @@ Class OB_Loader {
     * 
     * @param    string $helper
     */
-    public static function app_helper($helper)
+    private static function app_helper($helper)
     {
         if( isset(self::$_app_helpers[$helper]) )
         {
@@ -507,7 +507,7 @@ Class OB_Loader {
     * @param    string $helper
     * @return   void
     */
-    public static function base_helper($helper, $core = FALSE)
+    private static function base_helper($helper, $core = FALSE)
     {
         if( isset(self::$_base_helpers[$helper]) )
         {

@@ -28,7 +28,7 @@ if( ! function_exists('utf8_strrpos'))
 {
     function utf8_strrpos($str, $search, $offset = 0)
     {
-        $utf8 = lib('utf8');
+        $utf8 = lib('ob/utf8');
         
         $offset = (int) $offset;
 

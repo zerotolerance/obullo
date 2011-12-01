@@ -31,7 +31,7 @@ if(function_exists('utf8_rtrim'))
             return rtrim($str);
         }	
 
-        if (lib('utf8')->is_ascii($charlist))
+        if (lib('ob/utf8')->is_ascii($charlist))
         {
             return rtrim($str, $charlist);   
         }

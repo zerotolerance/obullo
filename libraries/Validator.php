@@ -1052,16 +1052,24 @@ Class OB_Validator {
      * @param    string
      * @return   bool
      */    
-    public function valid_emails($str)
+    public function valid_emails($str, $dns_check = '')
     {
+        $dns_check = strtoupper($dns_check);
+        
+        $dns = '';
+        if($dns_check == 'TRUE' OR $dns_check == 1)
+        {
+            $dns = '_dns';
+        }
+        
         if (strpos($str, ',') === FALSE)
         {
-            return $this->valid_email(trim($str));
+            return $this->{'valid_email'.$dns}(trim($str));
         }
         
         foreach(explode(',', $str) as $email)
         {
-            if (trim($email) != '' && $this->valid_email(trim($email)) === FALSE)
+            if (trim($email) != '' && $this->{'valid_email'.$dns}(trim($email)) === FALSE)
             {
                 return FALSE;
             }

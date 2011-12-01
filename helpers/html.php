@@ -29,7 +29,6 @@ defined('BASE') or exit('Access Denied!');
 * css('welcome.css');
 * css('subfolder/welcome.css')
 * css('../module/welcome.css');  from /modules dir
-* css('../extension/welcome.css');  from /extension dir
 * css(array('welcome.css', 'hello.css'));
 * css('#main {display: block; color: red;}', 'embed');
 *
@@ -251,27 +250,30 @@ if( ! function_exists('js') )
  */
 if ( ! function_exists('plugin'))
 {
-    function plugin($name, $config_file = 'plugins')
+    function plugin($plugin_name, $filename = 'plugins')
     {
-        loader::config($config_file);  // load module or application plugin from config file.
-                                       // obullo first look at module/config folder if config file not exist
-                                       // obullo load it from application/config folder.
+        loader::config($filename);  // Load Module or Application plugin from config file.
+                                    // Obullo first look at module/config folder if exists
+                                    // otherwise it load the file from application/config folder.
         
-        $plugin_files = this()->config->item($name);
+        $plugins = this()->config->item($plugin_name);
         
-        if(count($plugin_files) == 0) return;
+        if(count($plugins) == 0)
+        {
+            return;
+        }
         
         $output = '';
-        foreach($plugin_files as $filename)
+        foreach($plugins as $file_path)
         {
-            if(strpos(ltrim($filename), 'js/') === 0)
+            if(strpos(ltrim($file_path), 'js/') === 0)
             {
-                $output.= js(substr($filename, 3));
+                $output.= js(substr($file_path, 3));
             }
             
-            if(strpos(ltrim($filename), 'css/') === 0)
+            if(strpos(ltrim($file_path), 'css/') === 0)
             {
-                $output.= css(substr($filename, 3));
+                $output.= css(substr($file_path, 3));
             }
         }
         

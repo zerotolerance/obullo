@@ -26,7 +26,7 @@ if( ! function_exists('utf8_ucwords'))
 {
     function utf8_ucwords($str)
     {
-        $utf8 = lib('utf8');
+        $utf8 = lib('ob/utf8');
 
         if($utf8->is_ascii($str))
         {

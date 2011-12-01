@@ -428,7 +428,7 @@ if( ! function_exists('lib'))
     {
         if($new_object == NULL || $new_object == FALSE) 
         {   
-            if(core_class('Router')->is_hmvc()) // We must create new instance for each hmvc requests
+            if(i_hmvc()) // We must create new instance for each hmvc requests
             {
                 $new_object = TRUE;
             }

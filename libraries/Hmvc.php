@@ -41,7 +41,7 @@ Class OB_Hmvc
     public $uri;                   // Clone original URI object
     public $router;                // Clone original Router object
     public $config;                // Clone original Config object
-    public $empty;                 // Clone original Empty Class;
+    public $storage;               // Clone original Storage Class;
     public $_this         = NULL;  // Clone original this(); ( Controller instance)
 
     // Request, Response, Reset
@@ -91,7 +91,7 @@ Class OB_Hmvc
 
         // Don't clone this(), we just do backup.
         $this->_this  = this();      // We need create backup $this object of main controller
-                                     // becuse of it will change foreach HMVC requests.
+                                     // becuse of it will change when using HMVC requests.
         if($hmvc_uri != '')
         {
             $URI    = core_class('URI');
@@ -100,7 +100,7 @@ Class OB_Hmvc
             $this->uri    = clone $URI;     // Create copy of original URI class.
             $this->router = clone $Router;  // Create copy of original Router class.
             $this->config = clone core_class('Config');  // Create copy of original Config class.
-            $this->empty  = clone load_class('Storage');   // Create copy of original Empty class and it's Objects.
+            $this->storage = clone load_class('Storage'); // Create copy of original Storage class and it's Objects.
 
             $URI->clear();           // Reset uri objects we will reuse it for hmvc
             $Router->clear();        // Reset router objects we will reuse it for hmvc.
@@ -156,7 +156,7 @@ Class OB_Hmvc
         $this->uri          = '';
         $this->router       = '';
         $this->config       = '';
-        $this->empty        = '';
+        $this->storage      = '';
         $this->_this        = '';
 
         $this->request_method   = 'GET';
@@ -377,7 +377,8 @@ Class OB_Hmvc
 
         if($output->_display_cache($config, $URI, TRUE) !== FALSE) // Check request uri if there is a HMVC cached file exist.
         {
-            $cache_content = ob_get_contents();  if(ob_get_level() > 0) { ob_end_clean(); } 
+            $cache_content = ob_get_contents();  if(ob_get_level() > 0) { ob_end_clean(); }
+            
             $this->set_response($cache_content);
 
             $this->_reset_router();
@@ -512,9 +513,9 @@ Class OB_Hmvc
         $this->_this->uri    = core_class('URI', $this->uri);
         $this->_this->router = core_class('Router', $this->router);
         $this->_this->config = core_class('Config', $this->config);
-        $this->_this->empty  = load_class('Storage', $this->empty);
+        $this->_this->storage = load_class('Storage', $this->storage);
 
-        this($this->_this);         // Set original $this to instance that we backup before
+        this($this->_this);         // Set original $this to controller instance that we backup before
 
         $GLOBALS['d']   = $this->router->fetch_directory();   // Assign Original Router methods we copied before
         $GLOBALS['s']   = $this->router->fetch_subfolder();
@@ -614,8 +615,8 @@ Class OB_Hmvc
     * Close HMVC Connection
     * 
     * If we have any possible hmvc exceptions
-    * reset router variables, complete to HMVC process
-    * and turn back to originals.
+    * reset the router variables, complete to HMVC process
+    * and return to original vars.
     * 
     * @return void
     */

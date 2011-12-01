@@ -33,7 +33,7 @@ Class OB_URI
     public $rsegments   = array();
 
     public $cache_time  = '';  // HMVC library just use this variable.
-    public $extension   = 'php';
+    public $extension   = '';
 
     /**
     * Constructor
@@ -216,7 +216,7 @@ Class OB_URI
     // --------------------------------------------------------------------
 
     /**
-    * Parse uri string for any file
+    * Parse uri string for any possible file
     * extensions
     *
     * @param  string $segment
@@ -234,6 +234,7 @@ Class OB_URI
             if(in_array($extension, $allowed_extensions))        
             {
                 $this->extension = $extension;
+                
                 return str_replace('.'.$extension, '', $segment);
             }
         }
@@ -255,7 +256,7 @@ Class OB_URI
             return $this->extension;
         }
 
-        return(NULL);
+        return str_replace('.', '', EXT);
     }
 
     // --------------------------------------------------------------------
@@ -348,6 +349,7 @@ Class OB_URI
         // IN ROUTES.
         //
         ////////////
+        //
         // array_unshift($this->segments, NULL);
         // array_unshift($this->rsegments, NULL);
         // unset($this->segments[0]);

@@ -61,8 +61,8 @@ if( ! function_exists('request') )
             // Long Access request
             if($request_uri === FALSE)
             {   
-                $hmvc = lib('Hmvc', '', true);   // Every hmvc request must create new instance (true == new instance)
-                $hmvc->clear();                  // clear variables for each request.
+                $hmvc = lib('Hmvc', '', true);   // Every hmvc request must create new instance (true == new instance).
+                $hmvc->clear();                  // Clear variables for each request.
 
                 $hmvc->request($method);
 

@@ -209,13 +209,6 @@ if ( ! function_exists('view_set_folder'))
 
                 log_me('debug', "Img() Function Paths Changed");
                break;
-             
-           case 'script':
-                $_ob->view->script_folder     = $folder;
-                $_ob->view->script_folder_msg = $failure_msg;
-
-                log_me('debug', "Script() Function Paths Changed");
-             break;
         }
         
         return TRUE;
@@ -240,6 +233,7 @@ if ( ! function_exists('view'))
         
         $return     = FALSE;
         $extra_path = '';
+        
         if(isset($_ob->view->view_folder{1})) // if view folder changed don't show errors ..
         { 
             if($_ob->view->view_folder_msg) $return = TRUE;
@@ -247,7 +241,7 @@ if ( ! function_exists('view'))
             $extra_path = $_ob->view->view_folder;
         }    
 
-        $file_info = _view_load_file($file_url, 'views', $extra_path);
+        $file_info = lib('ob/view')->_load_file($file_url, 'views', $extra_path);
         
         profiler_set('views', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
@@ -276,6 +270,7 @@ if ( ! function_exists('view_layout'))
         
         $return     = FALSE;
         $extra_path = '';
+        
         if(isset($_ob->view->layout_folder{1}))  // if view_layout folder changed don't show errors ..
         { 
             if($_ob->view->layout_folder_msg) $return = TRUE; 
@@ -283,7 +278,7 @@ if ( ! function_exists('view_layout'))
             $extra_path = $_ob->view->layout_folder;   
         }  
         
-        $file_info = _view_load_file($file_url, 'views', $extra_path);
+        $file_info = lib('ob/view')->_load_file($file_url, 'views', $extra_path);
 
         profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
@@ -324,37 +319,6 @@ if ( ! function_exists('_set_view_data'))
 // ------------------------------------------------------------------------
 
 /**
-* Load inline script file.
-*
-* @param string $file_url
-* @param array  $data
-*/
-if( ! function_exists('script') )
-{
-    function script($file_url = '', $data = '')
-    {
-        $_ob = load_class('Storage');
-        
-        $return     = FALSE;
-        $extra_path = '';
-        if(isset($_ob->view->script_folder{1}))  
-        { 
-            if($_ob->view->script_folder_msg) $return = TRUE; 
-            
-            $extra_path = $_ob->view->script_folder;
-        }  
-        
-        $file_info = _view_load_file($file_url, 'scripts', $extra_path);
-        
-        profiler_set('scripts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
-
-        return load_view($file_info['path'], $file_info['filename'], $data, TRUE, $return, __FUNCTION__);
-    }
-}
-
-// ------------------------------------------------------------------------
-
-/**
 * Load inline script file from
 * base folder.
 *
@@ -365,7 +329,7 @@ if( ! function_exists('script_base') )
 {
     function script_base($filename = '', $data = '')
     {
-        $file_info = _view_load_file($filename, 'scripts', '', TRUE);
+        $file_info = lib('ob/view')->_load_file($filename, 'scripts', '', TRUE);
 
         profiler_set('scripts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
@@ -396,147 +360,8 @@ if ( ! function_exists('load_view'))
 {
     function load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
-	$_ob = load_class('Storage');
-		
-        _set_view_data($data);
-        
-	$data = $_ob->view->view_data;
-        
-        if ( ! file_exists($path . $filename . EXT) )
-        {
-            if($return)
-            {
-                log_me('debug', ucfirst($func).' file failed gracefully: '. $path . $filename . EXT);
-
-                return;     // fail gracefully
-            }
-
-            throw new ViewException('Unable locate the '.$func.' file: '. $path . $filename . EXT);
-        }
-        
-        if( empty($data) ) $data = array();
-
-
-        $data = _ob_object_to_array($data);
-
-        if(sizeof($data) > 0) { extract($data, EXTR_SKIP); }
-
-        ob_start();
-
-        // If the PHP installation does not support short tags we'll
-        // do a little string replacement, changing the short tags
-        // to standard PHP echo statements.
-
-        if ((bool) @ini_get('short_open_tag') === FALSE AND config_item('rewrite_short_tags') == TRUE)
-        {
-            echo eval('?>'.preg_replace("/;*\s*\?>/", "; ?>", str_replace('<?=', '<?php echo ', file_get_contents($path.$filename. EXT))));
-        }
-        else
-        {
-            include($path . $filename . EXT);
-        }
-
-        log_me('debug', ucfirst($func).' file loaded: '.$path . $filename . EXT);
-
-        if($string === TRUE)
-        {
-            $content = ob_get_contents();
-            @ob_end_clean();
-
-            return $content;
-        }
-
-        // Set Global views inside to Output Class for caching functionality..
-        core_class('Output')->append_output(ob_get_contents());
-
-        @ob_end_clean();
-
-        return;
-
+        return lib('ob/view')->view($path, $filename, $data, $string, $return, $func);
     }
-}
-
-// ------------------------------------------------------------------------
-
-/**
- * Common file loader for all view files.
- * 
- * @access  private
- * @param   string $file_url
- * @param   string $folder
- * @param   string $extra_path
- * @return  array
- */
-if( ! function_exists('_view_load_file')) 
-{
-    function _view_load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE, $custom = FALSE)
-    {
-        if($base)  // if  /obullo/scripts
-        {
-            return array('filename' => $file_url, 'path' => BASE .$folder. DS);
-        }
-        
-        if($custom) 
-        {
-            return array('filename' => $file_url, 'path' => BASE .$folder. DS);
-        }
-        
-        $file_url  = strtolower($file_url);
-        $extension = FALSE;
-        
-        if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
-        {
-            $paths      = explode('/', substr($file_url, 3));
-            $filename   = array_pop($paths);          // get file name
-            $modulename = array_shift($paths);        // get module name
-            
-            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
-            
-            if(is_extension($modulename, $module))
-            {
-                $extension = TRUE; 
-            }
-        }
-        else    // if current modulename/file
-        {
-            $filename = $file_url;          
-            $paths    = array();
-            if( strpos($filename, '/') !== FALSE)
-            {
-                $paths      = explode('/', $filename);
-                $filename   = array_pop($paths);
-            }
-
-            $modulename = $GLOBALS['d'];
-        }
-
-        $sub_path   = '';
-        if( count($paths) > 0)
-        {
-            $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
-        }
-
-        if($extra_path != '')
-        {
-            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
-        }
-        
-        $path        = APP .$folder. DS .$sub_path .$extra_path;
-        $module_path = MODULES .$modulename. DS .$folder. DS .$sub_path. $extra_path;
-        
-        if(file_exists($module_path. $filename. EXT))  // first check module path
-        {
-            $path = $module_path;
-        }
-    
-        if($extension)
-        {
-            $path = MODULES .$modulename. DS .$folder. DS .$sub_path;  // We don't need extra path for extensions
-        }
-    
-        return array('filename' => $filename, 'path' => $path);
-    }
-
 }
 
 // ------------------------------------------------------------------------
@@ -550,9 +375,9 @@ if( ! function_exists('_view_load_file'))
 * @param    object
 * @return   array
 */
-if ( ! function_exists('_ob_object_to_array'))
+if ( ! function_exists('view_object_to_array'))
 {
-    function _ob_object_to_array($object)
+    function view_object_to_array($object)
     {
         return (is_object($object)) ? get_object_vars($object) : $object;
     }

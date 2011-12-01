@@ -26,7 +26,7 @@ if( ! function_exists('utf8_strtolower'))
 {
     function utf8_strtolower($str)
     {
-        $utf8 = lib('Utf8');
+        $utf8 = lib('ob/utf8');
 
         if ($utf8->is_ascii($str))
         {

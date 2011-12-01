@@ -29,7 +29,7 @@ if( ! function_exists('utf8_strcspn'))
 {
     function utf8_strcspn($str, $mask, $offset = NULL, $length = NULL)
     {
-        $utf8 = lib('utf8');
+        $utf8 = lib('ob/utf8');
         
         if ($str == '' OR $mask == '')
         {
