@@ -247,6 +247,28 @@ Abstract Class OB_DBAdapter extends OB_DB {
         $this->_connect();
     }
     
+    /**
+    * Set pdo attribute
+    * 
+    * @param type $key
+    * @param type $val 
+    */
+    public function set_attribute($key, $val)
+    {
+        $this->_conn->setAttribute($key, $val);
+    }
+    
+    /**
+    * Return error info
+    * in PDO::PDO::ERRMODE_SILENT mode
+    * 
+    * @return type 
+    */
+    public function errors()
+    {
+        return $this->_conn->errorInfo();
+    }
+    
 }
 
 /* End of file DBAdapter.php */

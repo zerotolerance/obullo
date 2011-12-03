@@ -163,6 +163,20 @@ if( ! function_exists('Obullo_Error_Handler'))
 // -------------------------------------------------------------------- 
 
 /**
+ * Fix the error_get_last() function
+ * if php version < 5.2.0
+ */
+if( ! function_exists('error_get_last') )
+{
+    function error_get_last()
+    {
+        return FALSE;
+    }
+}
+
+// -------------------------------------------------------------------- 
+
+/**
 * Catch last occured errors.
 * 
 * @return void

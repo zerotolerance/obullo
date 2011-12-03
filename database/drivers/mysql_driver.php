@@ -71,7 +71,9 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
         $this->_conn->exec("SET NAMES '" . $this->char_set . "'");
 
         // We set exception attribute for always showing the pdo exceptions errors. (ersin)
-        $this->_conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+        $this->_conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
+        // PDO::ERRMODE_SILENT
     }
 
     // --------------------------------------------------------------------

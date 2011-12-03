@@ -514,6 +514,19 @@ function get_static($filename = 'config', $var = '', $folder = '')
 */
 function get_config($filename = 'config', $var = '')
 {
+    if($filename == 'database')
+    {
+        $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory(); 
+        
+        if(file_exists(MODULES .$module. DS .'config'. DS .'database'.EXT)) // Module database support.
+        {
+            $mod_db = get_static($filename, $var, MODULES .$module. DS .'config');
+            $app_db = get_static($filename, $var, APP .'config');
+            
+            return array_merge($app_db, $mod_db);
+        }
+    }
+   
     return get_static($filename, $var, APP .'config');
 }
 
@@ -538,7 +551,9 @@ function config_item($item, $config_name = 'config')
         $config_name = get_config($config_name);
 
         if ( ! isset($config_name[$item]))
-        return FALSE;
+        {
+            return FALSE;
+        }
 
         $config_item[$item] = $config_name[$item];
     }
@@ -566,10 +581,12 @@ function db_item($item, $index = 'db')
     if ( ! isset($db_item[$index][$item]))
     {
         $database = get_config('database');
-
+        
         if ( ! isset($database[$index][$item]))
-        return FALSE;
-
+        {
+            return FALSE;
+        }
+        
         $db_item[$index][$item] = $database[$index][$item];
     }
 
@@ -659,6 +676,7 @@ function is_really_writable($file)
 function is_php($version = '5.0.0')
 {
     static $_is_php;
+    
     $version = (string)$version;
 
     if ( ! isset($_is_php[$version]))
@@ -801,6 +819,7 @@ function set_status_header($code = 200, $text = '')
 function is_extension($name = '', $current_module = '')
 {                         
     static $enabled_extensions = array();
+    
     if($name == '') return FALSE;
     
     $extensions = get_config('extensions');

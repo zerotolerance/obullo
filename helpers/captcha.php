@@ -114,9 +114,9 @@ if( ! function_exists('captcha_create') )
             throw new Exception('Captcha path seems is not a directory !');
         }
         
-        if ( ! is_really_writable($img_path))
+        if ( ! is_really_writable(rtrim($img_path, DS). DS .'index.html'))
         {
-            throw new Exception('Captcha path '.$img_path. ' is not writeable, please give the write permission to it !');
+            throw new Exception('Captcha path '.$img_path. ' is not writeable, please allow the write permission to it !');
         }
                 
         if ( ! extension_loaded('gd'))

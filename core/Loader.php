@@ -313,6 +313,7 @@ Class OB_Loader {
         }
 
         require_once($file);
+        
         $model = ucfirst($model_name);
 
         if($params_or_no_ins === FALSE || $object_name === FALSE)
@@ -351,7 +352,7 @@ Class OB_Loader {
     * @param    boolean $use_active_record active record switch
     * @return   void
     */
-    public static function database($db_name = 'db', $return_object = FALSE, $use_active_record = TRUE)
+    public static function database($db_name = 'db', $return_object = TRUE, $use_active_record = TRUE)
     {
         $OB = this();
 
@@ -372,7 +373,7 @@ Class OB_Loader {
             return;
         }
 
-        if($return_object)
+        if($return_object === FALSE)
         {
             profiler_set('databases', $db_name, $db_var);  // Store db variables ..
 
