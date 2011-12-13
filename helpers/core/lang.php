@@ -83,7 +83,7 @@ if( ! function_exists('lang_load') )
            {
                if(is_dir($folder_val))
                {
-                   $lang = array_merge($lang, get_static($file_info['filename'], 'lang', $folder_val));
+                   $lang = array_merge($lang, get_static($file_info['filename'], 'lang', trim($folder_val, DS)));
                }
            }
         } 
@@ -92,7 +92,7 @@ if( ! function_exists('lang_load') )
             if( ! is_dir($folder))
             return;
             
-            $lang = get_static($file_info['filename'], 'lang', $folder);
+            $lang = get_static($file_info['filename'], 'lang', trim($folder, DS)); 
         }
 
         if ( ! isset($lang))

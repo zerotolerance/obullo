@@ -210,7 +210,8 @@ Class OB_Loader {
 
                 if(class_exists($data['file_name']))
                 {
-                    $OB->$class_var = new $data['file_name']();
+                    $Class = ucfirst($data['file_name']);
+                    $OB->$class_var = new $Class();
                 }
                 
                 profiler_set($profiler_type, $class_var, $class_var);

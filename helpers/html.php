@@ -729,7 +729,7 @@ if( ! function_exists('_get_public_path') )
         $public_url    = $OB->config->public_url('', true) .str_replace(DS, '/', $ROOT). '/';
         $public_folder = trim($OB->config->item('public_folder'), '/');
 
-        // if config public_folder = 'public/site' just grab the 'public' word
+        // if config public_folder = 'public/admin' just grab the 'public' word
         // so when managing multi applications user don't need to divide public folder files.
 
         if( strpos($public_folder, '/') !== FALSE)
@@ -741,10 +741,9 @@ if( ! function_exists('_get_public_path') )
         // .site/modules/welcome/public/css/welcome.css    (public/{site removed}/css/welcome.css)
         // .admin/modules/welcome/public/css/welcome.css
 
-        $pure_path  = $modulename .'/'. $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
-        $full_path  = $public_url . $pure_path;
-
-        $app_public_url = $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+        $pure_path      = $modulename .'/'. $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
+        $full_path      = $public_url . $pure_path;
+        $app_public_url = $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
         
         // if file located in another server fetch it from outside /public folder.
         if(strpos($OB->config->public_url(), '://') !== FALSE)
@@ -752,7 +751,7 @@ if( ! function_exists('_get_public_path') )
             return $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
         }
           
-         // if file not exists in current module folder fetch it from outside /public folder. 
+         // if file not exists in current module folder fetch it from app /public folder. 
          
         if( is_readable(MODULES . str_replace('/', DS, trim($pure_path, '/'))) ) 
         {         
@@ -760,7 +759,7 @@ if( ! function_exists('_get_public_path') )
         }
         elseif(is_readable(ROOT . str_replace('/', DS, trim($app_public_url, '/'))))
         {
-            return $app_public_url;
+            return $OB->config->public_url('', true) . $app_public_url;
         }
         else
         {
