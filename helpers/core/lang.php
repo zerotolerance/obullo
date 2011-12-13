@@ -54,7 +54,7 @@ if( ! function_exists('lang_load') )
         if(strpos($langfile, 'ob/') === 0)
         {
             $langfile = substr($langfile, 3);
-            $dir = 'base';
+            $dir      = 'base';
         }
         
         if(strpos($langfile, 'app/') === 0)
@@ -65,7 +65,10 @@ if( ! function_exists('lang_load') )
         $_ob = load_class('Storage');
         
         if (in_array($langfile, $_ob->lang->is_loaded, TRUE))
-        return;  
+        {
+            return;
+        }
+         
         
         if ($idiom == '')
         {
@@ -83,26 +86,31 @@ if( ! function_exists('lang_load') )
            {
                if(is_dir($folder_val))
                {
-                   $lang = array_merge($lang, get_static($file_info['filename'], 'lang', trim($folder_val, DS)));
+                   $lang = array_merge($lang, get_static($file_info['filename'], 'lang', rtrim($folder_val, DS)));
                }
            }
         } 
         else 
         {
             if( ! is_dir($folder))
-            return;
+            {
+                return;
+            }
             
-            $lang = get_static($file_info['filename'], 'lang', trim($folder, DS)); 
+            $lang = get_static($file_info['filename'], 'lang', rtrim($folder, DS)); 
         }
 
         if ( ! isset($lang))
         {
             log_me('error', 'Language file contains no lang variable: ' . $file_info['path'] . DS . $file_info['filename']. EXT);
+            
             return;
         }
 
         if ($return)
-        return $lang;
+        {
+            return $lang;
+        }
 
         $_ob->lang->is_loaded[] = $langfile;
         $_ob->lang->language    = array_merge($_ob->lang->language, $lang);
@@ -112,6 +120,7 @@ if( ! function_exists('lang_load') )
         unset($lang);
 
         log_me('debug', 'Language file loaded: '.$file_info['path'] . DS . $file_info['filename']. EXT);
+        
         return TRUE;
     }
 }

@@ -668,7 +668,7 @@ if( ! function_exists('nbs') )
 if( ! function_exists('_get_public_path') )
 {
     function _get_public_path($file_url, $extra_path = '', $custom_extension = '')
-    {
+    {                              
         $OB = this();
         
         // $file_url  = strtolower($file_url);
@@ -738,21 +738,15 @@ if( ! function_exists('_get_public_path') )
         }                                                         
 
         // example
-        // .site/modules/welcome/public/css/welcome.css    (public/{site removed}/css/welcome.css)
-        // .admin/modules/welcome/public/css/welcome.css
+        // .backend/modules/welcome/public/css/welcome.css    (public/css/welcome.css) [backend] removed
+        // .fronted/modules/welcome/public/css/welcome.css
 
         $pure_path      = $modulename .'/'. $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
         $full_path      = $public_url . $pure_path;
         $app_public_url = $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
         
-        // if file located in another server fetch it from outside /public folder.
-        if(strpos($OB->config->public_url(), '://') !== FALSE)
-        {
-            return $OB->config->public_url('', true) . $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
-        }
-          
-         // if file not exists in current module folder fetch it from app /public folder. 
-         
+        // if file not exists in current module folder fetch it from app /public folder. 
+        
         if( is_readable(MODULES . str_replace('/', DS, trim($pure_path, '/'))) ) 
         {         
             return $full_path;

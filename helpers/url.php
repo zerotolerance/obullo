@@ -56,7 +56,7 @@ if ( ! function_exists('base_url'))
 */
 if ( ! function_exists('public_url'))
 {
-    function public_url($uri = '', $no_folder = FALSE, $no_ext_uri_slash = FALSE)
+    function public_url($uri = '', $no_ext_uri_slash = FALSE, $no_folder = FALSE)
     {
         return this()->config->public_url($uri, $no_folder, $no_ext_uri_slash);
     }
