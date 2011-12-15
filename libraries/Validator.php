@@ -589,8 +589,15 @@ Class OB_Validator {
                 $postdata = $this->_field_data[$row['field']]['postdata'];
             }
 
+            // Hmc callback
             // --------------------------------------------------------------------
-    
+            // Is the rule hmvc callback ?
+            $hmvc_callback = FALSE;
+            
+            // --------------------------------------------------------------------
+            
+            
+            
             // Is the rule a callback?            
             $callback = FALSE;
             if (substr($rule, 0, 9) == 'callback_')
@@ -611,8 +618,8 @@ Class OB_Validator {
             // Call the function that corresponds to the rule
             if ($callback === TRUE)
             {
-                if(is_object($this->_callback_object))  // This is for OVM model class
-                {                                       // we set OVM object as callback
+                if(is_object($this->_callback_object))  // This is for VM model class
+                {                                       // we set VM object as callback
                     $this->_this = $this->_callback_object;
                 }
                 else

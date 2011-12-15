@@ -94,7 +94,7 @@ if( ! function_exists('lang_load') )
         {
             if( ! is_dir($folder))
             {
-                return;
+                throw new LangException('The language folder '.$folder.' does not a folder.');
             }
             
             $lang = get_static($file_info['filename'], 'lang', rtrim($folder, DS)); 

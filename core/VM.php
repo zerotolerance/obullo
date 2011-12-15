@@ -141,6 +141,16 @@ Class VM extends Model {
     }
     
     // --------------------------------------------------------------------
+    
+    /**
+    * Alias of validate_request();
+    */
+    public function validate($fields = array())
+    {
+        return $this->validate_request($fields);
+    }
+    
+    // --------------------------------------------------------------------
 
     /**
     * Validate the native GET or POST requests.
