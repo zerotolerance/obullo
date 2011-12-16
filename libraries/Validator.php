@@ -592,31 +592,64 @@ Class OB_Validator {
             // Hmc callback
             // --------------------------------------------------------------------
             // Is the rule hmvc callback ?
-            $hmvc_callback = FALSE;
+            
+            $hmvc_callback = FALSE;             
+            $callback      = FALSE;      
+            if (substr($rule, 0, 16) == 'callback_request')
+            {
+                $rule = substr($rule, 9);
+                $hmvc_callback = TRUE;
+            }
+            else
+            {
+                if (substr($rule, 0, 9) == 'callback_')  // Is the rule a callback? 
+                {
+                    $rule = substr($rule, 9);
+                    $callback = TRUE;
+                }
+            }
             
             // --------------------------------------------------------------------
             
-            
-            
-            // Is the rule a callback?            
-            $callback = FALSE;
-            if (substr($rule, 0, 9) == 'callback_')
-            {
-                $rule = substr($rule, 9);
-                $callback = TRUE;
-            }
-            
             // Strip the parameter (if exists) from the rule
-            // Rules can contain a parameter: max_length[5]
+            // Rules can contain parameters: max_length[5], callback_request[get][/request/uri]
             $param = FALSE;
-            if (preg_match("/(.*?)\[(.*?)\]/", $rule, $match))
+            if (preg_match_all("/(.*?)\[(.*?)\]/", $rule, $matches))
             {
-                $rule    = $match[1];
-                $param   = $match[2];
+                $rule    = $matches[1][0];
+                $param   = $matches[2][0];
+                $second_param = (isset($matches[2][1])) ? $matches[2][1] : '';
             }
             
-            // Call the function that corresponds to the rule
-            if ($callback === TRUE)
+            
+            if($hmvc_callback === TRUE) //  Call the hmvc function
+            {
+                loader::helper('ob/request');
+                
+                $result = FALSE;
+                
+                if($param !== FALSE)
+                {
+                    $response = request($param, $second_param)->exec();
+                    
+                    if($response === '1' || strtolower($response) === 'true')
+                    {
+                        $result = TRUE;
+                    }
+                }
+                
+                // Re-assign the result to the master data array
+                if ($_in_array == TRUE)
+                {
+                    $this->_field_data[$row['field']]['postdata'][$cycles] = (is_bool($result)) ? $postdata : $result;
+                }
+                else
+                {
+                    $this->_field_data[$row['field']]['postdata'] = (is_bool($result)) ? $postdata : $result;
+                }
+                                
+            }
+            elseif ($callback === TRUE)  // Call the function that corresponds to the rule
             {
                 if(is_object($this->_callback_object))  // This is for VM model class
                 {                                       // we set VM object as callback
