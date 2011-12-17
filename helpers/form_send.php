@@ -37,7 +37,7 @@ defined('BASE') or exit('Access Denied!');
 */
 if ( ! function_exists('form_send_error'))
 {
-    function form_send_error($model, $format = 'json')
+    function form_send_error($model)
     {
         if(is_object($model))
         {
@@ -66,16 +66,22 @@ if ( ! function_exists('form_send_error'))
 
 /**
 * Json send success, send succes if form data 
-* save operation success.
+* save operation successfull.
 *
 * @access public
 * @param string $message success msg
+* @param boolean $js_alert return to javascript alert
 * @return string
 */
 if ( ! function_exists('form_send_success'))
 {
-    function form_send_success($message, $format = 'json')
+    function form_send_success($message, $js_alert = FALSE)
     {
+        if($js_alert)
+        {
+            return json_encode(array('success' => true, 'alert' => $message)); 
+        }
+        
         return json_encode(array('success' => true, 'success_msg' => $message));   
     }
 }
@@ -91,7 +97,7 @@ if ( ! function_exists('form_send_success'))
 */
 if ( ! function_exists('form_send_redirect'))
 {
-    function form_send_redirect($redirect_url, $format = 'json')
+    function form_send_redirect($redirect_url)
     {
         return json_encode(array('success' => true, 'success_msg' => '', 'redirect' => $redirect_url));
     }
@@ -108,11 +114,29 @@ if ( ! function_exists('form_send_redirect'))
 */
 if ( ! function_exists('form_send_forward'))
 {
-    function form_send_forward($forward_url, $format = 'json')
+    function form_send_forward($forward_url)
     {
         echo json_encode(array('success' => true, 'forward_url' => $forward_url));
     }
 }
+
+// ------------------------------------------------------------------------
+
+/**
+* Alert user to using Jquery
+* Obullo form plugin.
+* 
+* @param string $msg alert
+* @return string
+*/
+if ( ! function_exists('form_send_alert'))
+{
+    function form_send_alert($msg)
+    {
+        return json_encode(array('success' => false, 'alert' => $msg));
+    }
+}
+
 
 /* End of file form_json.php */
 /* Location: ./obullo/helpers/form_json.php */
