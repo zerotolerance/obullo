@@ -140,7 +140,7 @@ Class Controller {
                 {
                      if( ! function_exists($function))
                      {
-                         show_error('The autoload function '. $function . ' not found, please define it in APP/config/autoload.php or MODULES/'.$module.'/config/autoload.php');
+                         throw new Exception('The autoload function '. $function . ' not found, please define it in APP/config/autoload.php or MODULES/'.$module.'/config/autoload.php');
                      }
 
                      call_user_func_array($function, $arguments);
@@ -206,7 +206,7 @@ function __merge_autoloaders($module, $file = 'autoload', $var = '', $type = 'Au
 {
     if(file_exists(MODULES .$module. DS .'config'. DS .$file. EXT))
     {
-        log_me('debug', ucfirst($module).' Module '.$type.' Initialized');
+        log_me('debug', '[ '.ucfirst($module).' ] Module '.$type.' Initialized');
         
         $module_vars = get_static($file, $var, MODULES .$module. DS .'config');
         $app_vars    = get_static($file, $var, APP .'config');
@@ -216,7 +216,7 @@ function __merge_autoloaders($module, $file = 'autoload', $var = '', $type = 'Au
             $values[$key] = array_merge($module_vars[$key], $array);
         }
 
-        log_me('debug', 'Module '.$module.' and Application '.$type.' Merged');
+        log_me('debug', '[ '.ucfirst($module).' ] Module and Application '.$type.' Merged');
     } 
     else 
     {

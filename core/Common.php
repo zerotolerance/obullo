@@ -604,11 +604,35 @@ function db_item($item, $index = 'db')
 * @access    public
 * @return    void
 */
-function log_me($level = 'error', $message, $php_error = FALSE)
-{
+function log_me($level = 'error', $message = '', $php_error = FALSE, $core_level = FALSE)
+{    
     if (config_item('log_threshold') == 0)
     {
         return;
+    }
+    
+    if ($core_level == FALSE)  // Router and URI classes are core level class
+    {                          // so they must be write logs to application log folder,
+                               // otherwise log functionality not works.
+        
+        $router = core_class('Router');  // If current module /logs dir exists
+                                      // write module logs into current module.
+        if (is_object($router))
+        {
+            if (is_dir(MODULES .$router->fetch_directory(). DS .'core'. DS . 'logs'))
+            {
+                $config = core_class('Config');
+
+                if ($config->item('log_threshold') == 0)
+                {
+                    return;
+                }
+
+                log_write($level, $message, $php_error, TRUE);
+
+                return;
+            }
+        }
     }
     
     log_write($level, $message, $php_error);

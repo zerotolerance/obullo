@@ -46,7 +46,7 @@ Class OB_URI
     */
     public function __construct()
     {
-        log_me('debug', "URI Class Initialized");
+        log_me('debug', 'URI Class Initialized', false, true);
     }
 
 

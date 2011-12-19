@@ -33,59 +33,80 @@ defined('BASE') or exit('Access Denied!');
  * @access   public
  * @param    string    the error level
  * @param    string    the error message
- * @param    bool    whether the error is a native PHP error
+ * @param    bool      whether the error is a native PHP error
+ * @param    bool      if true we use log function for current module
  * @return   bool
  */        
 if( ! function_exists('log_write') ) 
 {
-    function log_write($level = 'error', $msg, $php_error = FALSE)
+    function log_write($level = 'error', $msg, $php_error = FALSE, $module_log = FALSE)
     {        
-        $_log_path  = '';
-        $_threshold = 1;
-        $_date_fmt  = 'Y-m-d H:i:s';
-        $_enabled   = TRUE;
-        $_levels    = array('ERROR' => '1', 'DEBUG' => '2',  'INFO' => '3', 'ALL' => '4');
-
-        $_config    = get_config();
-        $_log_path  = ($_config['log_path'] != '') ? $_config['log_path'] : APP .'core'. DS .'logs'. DS;
+        $log_path  = '';
+        $threshold = 1;
+        $date_fmt  = 'Y-m-d H:i:s';
+        $enabled   = TRUE;
+        $levels    = array('ERROR' => '1', 'DEBUG' => '2',  'INFO' => '3', 'ALL' => '4');
         
-        if(defined('CMD') AND defined('TASK'))   // Internal Task Request
+        if($module_log)
         {
-           $_log_path = rtrim($_log_path, DS) . DS .'tasks' . DS;
+            $config = core_class('Config');
+            $router = core_class('Router');
+            
+            $log_path = MODULES .$router->fetch_directory() . DS .'core'. DS .'logs'. DS;
+            
+            if($config->item('log_path') != '')
+            {
+                $log_path = $config->item('log_path');   
+            }
+            
+            $log_threshold   = $config->item('log_threshold');
+            $log_date_format = $config->item('log_date_format');
+        } 
+        else
+        {
+            $config          = get_config();
+            $log_path        = ($config['log_path'] != '') ? $config['log_path'] : APP .'core'. DS .'logs'. DS;
+            $log_threshold   = $config['log_threshold'];
+            $log_date_format = $config['log_date_format'];
+        }
+        
+        if (defined('CMD') AND defined('TASK'))   // Internal Task Request
+        {
+            $log_path = rtrim($log_path, DS) . DS .'tasks' . DS;
         } 
         elseif(defined('CMD'))  // Command Line Task Request
         {
-           $_log_path = rtrim($_log_path, DS) . DS .'cmd' . DS; 
+            $log_path = rtrim($log_path, DS) . DS .'cmd' . DS; 
         }         
         
-        if ( ! is_dir($_log_path) OR ! is_really_writable($_log_path))
+        if ( ! is_dir($log_path) OR ! is_really_writable($log_path))
         {
-            $_enabled = FALSE;
+            $enabled = FALSE;
         }
 
-        if (is_numeric($_config['log_threshold']))
+        if (is_numeric($log_threshold))
         {
-            $_threshold = $_config['log_threshold'];
+            $threshold = $log_threshold;
         }
             
-        if ($_config['log_date_format'] != '')
+        if ($log_date_format != '')
         {
-            $_date_fmt = $_config['log_date_format'];
+            $date_fmt = $log_date_format;
         }
         
-        if ($_enabled === FALSE)
+        if ($enabled === FALSE)
         {
             return FALSE;
         }
 
         $level = strtoupper($level);
         
-        if ( ! isset($_levels[$level]) OR ($_levels[$level] > $_threshold))
+        if ( ! isset($levels[$level]) OR ($levels[$level] > $threshold))
         {
             return FALSE;
         }
 
-        $filepath = $_log_path .'log-'. date('Y-m-d').EXT;
+        $filepath = $log_path .'log-'. date('Y-m-d').EXT;
         $message  = '';  
         
         if ( ! file_exists($filepath))
@@ -93,7 +114,7 @@ if( ! function_exists('log_write') )
             $message .= "<"."?php defined('BASE') or exit('Access Denied!'); ?".">\n\n";
         }
 
-        $message .= $level.' '.(($level == 'INFO') ? ' -' : '-').' '.date($_date_fmt). ' --> '.$msg."\n";  
+        $message .= $level.' '.(($level == 'INFO') ? ' -' : '-').' '.date($date_fmt). ' --> '.$msg."\n";  
     
         if ( ! $fp = @fopen($filepath, FOPEN_WRITE_CREATE))
         {

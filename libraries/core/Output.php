@@ -476,7 +476,8 @@ Class OB_Output {
         // Display the cache
         $this->_display(str_replace($match['0'], '', $cache));
         
-        log_me('debug', 'Cache file is current. Sending it to browser.');        
+        log_me('debug', 'Cache file is current. Sending it to browser.');
+        
         return TRUE;
     }
 

@@ -64,18 +64,18 @@ Class OB_Router {
         $this->uri->_explode_segments();
         $this->uri->_reindex_segments();
    
-        $module_name = $this->uri->segment(0);
+        $module = $this->uri->segment(0);
         
-        if(file_exists(MODULES .$module_name. DS .'config'. DS .'routes'. EXT))
+        if(file_exists(MODULES .$module. DS .'config'. DS .'routes'. EXT))
         {
-            $routes = get_static('routes', '', MODULES .$module_name. DS .'config');
+            $routes = get_static('routes', '', MODULES .$module. DS .'config');
             
             if(isset($routes) AND is_array($routes))
             {
                 $routes = array_merge(get_config('routes'), $routes);
             }
             
-            log_me('debug', ucfirst($module_name).' Module Router Settings Initialized');
+            log_me('debug', '[ '.ucfirst($module).' ] Module Router Settings Initialized', false, true);
         } 
         else
         {
@@ -84,7 +84,7 @@ Class OB_Router {
         
         $this->uri->clear();
 
-        //-------- Check Possible Module Routes -------//
+        //-------- End Check Possible Module Routes -------//
         
         $this->routes = ( ! isset($routes) OR ! is_array($routes)) ? array() : $routes;
         unset($routes);
@@ -93,7 +93,7 @@ Class OB_Router {
 
         $this->_set_routing();
         
-        log_me('debug', 'Router Class Initialized');
+        log_me('debug', 'Router Class Initialized', false, true);
     }
     
     // --------------------------------------------------------------------
@@ -217,7 +217,8 @@ Class OB_Router {
             // re-index the routed segments array so it starts with 1 rather than 0
             $this->uri->_reindex_segments();
 
-            log_me('debug', "No URI present. Default controller set.");
+            log_me('debug', "No URI present. Default controller set.", false, true);
+            
             return;
         }
         
@@ -330,7 +331,7 @@ Class OB_Router {
                 
                 if(defined('CMD')) // if we have a APP task subfolder ? 
                 {
-                    if(is_dir(APP . 'tasks' .DS .$segments[1]))
+                    if(is_dir(APP .'tasks'. DS .$segments[1]))
                     {
                         $this->set_directory('');
                         
@@ -635,7 +636,7 @@ Class OB_Router {
             $params = $_POST;
         }
     
-        return request($method, $uri, $params)->no_loop($no_loop)->exec()->response();
+        return request($method, $uri, $params)->no_loop($no_loop)->exec();
     }
     
     // --------------------------------------------------------------------
