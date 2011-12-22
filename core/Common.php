@@ -475,7 +475,7 @@ function get_static($filename = 'config', $var = '', $folder = '')
             
             log_me('debug', $error_msg);
             
-            show_error($error_msg);
+            throw new CommonException($error_msg);
             
             return;
         }
@@ -492,7 +492,7 @@ function get_static($filename = 'config', $var = '', $folder = '')
                 
                 log_me('debug', $error_msg);
                 
-                show_error($error_msg);
+                throw new CommonException($error_msg);
             }
         }
 

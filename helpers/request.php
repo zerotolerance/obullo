@@ -41,7 +41,7 @@ defined('BASE') or exit('Access Denied!');
 */
 if( ! function_exists('request') )
 {
-    function request($method = 'get', $request_uri = '', $params = array(), $cache_time_or_config = 0)
+    function request($method = 'get', $request_uri = '', $params = array(), $cache_time_or_config = '0')
     {        
         // Supported request methods
         $methods = array('GET' => '', 'POST' => '', 'PUT' => '', 'DELETE' => '');
