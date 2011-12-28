@@ -124,6 +124,11 @@ Class OB_DBFactory {
            case '4d':
            $driver_name = '4d';
              break;
+         
+           // CUBRID    
+           case 'cubrid':
+           $driver_name = 'cubrid';
+             break;
            
           default:
           throw new DBFactoryException('This Database Driver does not support: '. $dbdriver); 

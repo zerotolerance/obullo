@@ -91,7 +91,7 @@ Class OB_DB extends OB_DBAc_sw {
     */
     public function pdo_connect($dsn, $user = NULL, $pass = NULL, $options = NULL)
     {
-        lang_load('db', '', 'base');
+        loader::lang('ob/db');
 
         $this->_conn = new PDO($dsn, $user, $pass, $options);
 
@@ -226,11 +226,14 @@ Class OB_DB extends OB_DBAc_sw {
     {
         if(is_array($array))
         {
-            if( ! self::_is_assoc($array))
-            throw new DBException(lang('db_bind_data_must_assoc'));
+            if( ! is_assoc_array($array))
+            {
+                throw new DBException(lang('db_bind_data_must_assoc'));
+            }
         }
 
         //------------------------------------
+        
         $start_time = ob_query_timer('start');
 
         $this->Stmt->execute($array);
@@ -238,6 +241,7 @@ Class OB_DB extends OB_DBAc_sw {
         $this->cached_queries[] = end($this->prep_queries);   // Save the "cached" query for debugging
 
         $end_time   = ob_query_timer('end');
+        
         //------------------------------------
 
         $this->benchmark += $end_time - $start_time;
@@ -740,22 +744,7 @@ Class OB_DB extends OB_DBAc_sw {
     */
     public function row_array()
     {
-        return current($this->Stmt->fetchAll(PDO::FETCH_ASSOC));
-    }
-
-    // --------------------------------------------------------------------
-
-    /**
-    * Check array associative or not
-    *
-    * @access  private
-    * @param   array $arr
-    */
-    private static function _is_assoc($arr)
-    {
-        if(sizeof($arr) == 0) return FALSE;
-
-        return array_keys($arr) !== range(0, count($arr) - 1);
+        return $this->Stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     // --------------------------------------------------------------------

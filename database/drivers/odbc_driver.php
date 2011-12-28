@@ -9,7 +9,7 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         Obullo
  * @author          Obullo.com  
- * @subpackage      Base.database        
+ * @subpackage      Obullo.database        
  * @copyright       Copyright (c) 2009 Ersin Guvenc.
  * @license         public
  * @since           Version 1.0

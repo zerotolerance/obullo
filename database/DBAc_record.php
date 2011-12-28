@@ -544,7 +544,9 @@ Class OB_DBAc_record  {
     private function _having($key, $value = '', $type = 'AND ', $escape = TRUE)
     {
         if ( ! is_array($key))
-        $key = array($key => $value);
+        {
+            $key = array($key => $value);
+        }
     
         foreach ($key as $k => $v)
         {
@@ -684,7 +686,9 @@ Class OB_DBAc_record  {
         $key = $this->_object_to_array($key);
         
         if ( ! is_array($key))
-        $key = array($key => $value);    
+        {
+            $key = array($key => $value);
+        }
 
         foreach ($key as $k => $v)
         {
@@ -695,7 +699,10 @@ Class OB_DBAc_record  {
                 if( strpos($v, ':') === FALSE || strpos($v, ':') > 0)
                 {
                      if(is_string($v))
-                     $v = "'{$v}'";  // obullo changes..
+                     {
+                         $v = "'{$v}'";  // obullo changes..
+                     }
+
                 }
             
                 // obullo changes..
@@ -733,7 +740,9 @@ Class OB_DBAc_record  {
         }
         
         if ( ! is_null($limit))
-        $this->limit($limit, $offset);
+        {
+            $this->limit($limit, $offset);
+        }
             
         $this->sql = $this->_compile_select();
         
@@ -799,6 +808,46 @@ Class OB_DBAc_record  {
         $this->prepare = FALSE;
         
         return $this->exec_query($sql);  // return affected rows.      
+    }
+    
+    // --------------------------------------------------------------------
+
+    /**
+     * Replace
+     *
+     * Compiles an replace into string and runs the query
+     *
+     * @param	string	the table to replace data into
+     * @param	array	an associative array of insert values
+     * @return	object
+     */
+    public function replace($table = '', $set = NULL)
+    {
+        if ( ! is_null($set))
+        {
+            $this->set($set);
+        }
+
+        if (count($this->ar_set) == 0)
+        {
+            throw new DBException(lang('db_ac_replace_use_set'));
+        }
+
+        if ($table == '')
+        {
+            if ( ! isset($this->ar_from[0]))
+            {
+                throw new DBException(lang('db_ac_replace_set_table'));
+            }
+
+            $table = $this->ar_from[0];
+        }
+
+        $sql = $this->_replace($this->_protect_identifiers($table, TRUE, NULL, FALSE), array_keys($this->ar_set), array_values($this->ar_set));
+
+        $this->_reset_write();
+        
+        return $this->query($sql);
     }
     
     // --------------------------------------------------------------------

@@ -27,14 +27,14 @@ defined('BASE') or exit('Access Denied!');
  * @link
  */
 
-Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
+Class Obullo_DB_Driver_Cubrid extends OB_DBAdapter
 {
     /**
     * The character used for escaping
     *
     * @var string
     */
-    public $_escape_char = '`';
+    public $_escape_char = '';
 
 
     // clause and character used for LIKE escape sequences - not used in MySQL
@@ -61,21 +61,16 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
         // If connection is ok .. not need to again connect..
         if ($this->_conn) { return; }
 
-        $port = empty($this->dbh_port) ? '' : ';port='.$this->dbh_port;
-        $dsn  = empty($this->dsn) ? 'mysql:host='.$this->hostname.$port.';dbname='.$this->database : $this->dsn;
+        // cubrid:host=localhost;port=33000;dbname=demodb
         
-        if(defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY'))
-        {
-            $this->options[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = TRUE;
-        }
-        
-        // array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES $this->char_set") it occurs an error !
+        $port = empty($this->dbh_port) ? ';port=33000' : ';port='.$this->dbh_port;
+        $dsn  = empty($this->dsn) ? 'cubrid:host='.$this->hostname.$port.';dbname='.$this->database : $this->dsn;
+       
         $this->_pdo = $this->pdo_connect($dsn, $this->username, $this->password, $this->options);
 
-        if( ! empty($this->char_set) )
-        {
-            $this->_conn->exec("SET NAMES '" . $this->char_set . "'");
-        }
+        // In CUBRID, there is no need to set charset or collation.
+	// This is why returning true will allow the application continue
+	// its normal process.
 
         // We set exception attribute for always showing the pdo exceptions errors. (ersin)
         $this->_conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -233,17 +228,17 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
      *
      * Generates a platform-specific insert string from the supplied data
      *
-     * @access   public
-     * @param    string   the table name
-     * @param    array    the insert keys
-     * @param    array    the insert values
-     * @return   string
+     * @access	public
+     * @param	string	the table name
+     * @param	array	the insert keys
+     * @param	array	the insert values
+     * @return	string
      */
-    public function _insert($table, $keys, $values)
+    function _insert($table, $keys, $values)
     {
-        return "INSERT INTO ".$table." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
+        return "INSERT INTO ".$table." (\"".implode('", "', $keys)."\") VALUES (".implode(', ', $values).")";
     }
-
+    
     // --------------------------------------------------------------------
 
     /**
@@ -259,11 +254,11 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
      */
     function _replace($table, $keys, $values)
     {
-        return "REPLACE INTO ".$table." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
+        return "REPLACE INTO ".$table." (\"".implode('", "', $keys)."\") VALUES (".implode(', ', $values).")";
     }
-
-    // --------------------------------------------------------------------
     
+    // --------------------------------------------------------------------
+
     /**
      * Update statement
      *
@@ -281,7 +276,9 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
     {
         foreach($values as $key => $val)
         {
-            $valstr[] = $key." = ".$val;
+            // $valstr[] = $key." = ".$val;
+            $valstr[] = sprintf('"%s" = %s', $key, $val);
+            // output Array ( [0] => "0" = value ) 
         }
 
         $limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
@@ -362,5 +359,5 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
 } // end class.
 
 
-/* End of file mysql_driver.php */
-/* Location: ./obullo/database/drivers/mysql_driver.php */
+/* End of file cubrid_driver.php */
+/* Location: ./obullo/database/drivers/cubrid_driver.php */
