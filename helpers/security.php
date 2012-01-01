@@ -27,12 +27,53 @@ defined('BASE') or exit('Access Denied!');
  */
 
 // --------------------------------------------------------------------
+
+/**
+* Set Cross Site Request Forgery Protection Cookie
+*
+* @return	string
+*/
+if( ! function_exists('_csrf_set_hash') ) 
+{
+    function _csrf_set_hash()
+    {
+        $_ob = load_class('Storage');
+
+        if ($_ob->security->csrf_hash == '')
+        {
+            // If the cookie exists we will use it's value.  
+            // We don't necessarily want to regenerate it with
+            // each page load since a page could contain embedded 
+            // sub-pages causing this feature to fail
+
+            if (isset($_COOKIE[$_ob->security->csrf_cookie_name]) && 
+                    $_COOKIE[$_ob->security->csrf_cookie_name] != '')
+            {
+                    return $_ob->security->csrf_hash = $_COOKIE[$_ob->security->csrf_cookie_name];
+            }
+
+            return $_ob->security->csrf_hash = md5(uniqid(rand(), TRUE));
+        }
+
+        return $_ob->security->csrf_hash;
+    }
+}
+
+// --------------------------------------------------------------------
+
+/**
+ * Security Helper Constructor
+ */
 if( ! isset($_ob->security)) 
 {
     $_ob = load_class('Storage');
     
     $_ob->security = new stdClass();
-    $_ob->security->xss_hash            = ''; 
+    $_ob->security->xss_hash            = '';
+    $_ob->security->csrf_hash		= '';
+    $_ob->security->csrf_expire		= 7200;  // Two hours (in seconds)
+    $_ob->security->csrf_token_name	= 'ob_csrf_token';
+    $_ob->security->csrf_cookie_name	= 'ob_csrf_token';
 
     /* never allowed, string replacement */
     $_ob->security->never_allowed_str   = array(
@@ -54,7 +95,177 @@ if( ! isset($_ob->security))
                                         "vbscript\s*:"              => '[removed]', // IE, surprise!
                                         "Redirect\s+302"            => '[removed]'
                                     );
+    
+    // CSRF config
+    foreach(array('csrf_expire', 'csrf_token_name', 'csrf_cookie_name') as $key)
+    {
+        if (FALSE !== ($val = config_item($key)))
+        {
+            $_ob->security->{$key} = $val;
+        }
+    }
+
+    // Append application specific cookie prefix
+    if (config_item('cookie_prefix'))
+    {
+        $_ob->security->csrf_cookie_name = config_item('cookie_prefix') . $_ob->security->csrf_cookie_name;
+    }
+
+    // Set the CSRF hash
+    _csrf_set_hash();
+    
+    log_me('debug', "Security Helper Initialized");
 }
+
+
+// --------------------------------------------------------------------
+
+      
+/**
+ * Verify Cross Site Request Forgery Protection
+ *
+ * @return	object
+ */
+if( ! function_exists('csrf_verify') ) 
+{
+    function csrf_verify()
+    {
+        $_ob = load_class('Storage');
+
+        // If no POST data exists we will set the CSRF cookie
+        if (count($_POST) == 0)
+        {
+            return csrf_set_cookie();
+        }
+
+        // Do the tokens exist in both the _POST and _COOKIE arrays?
+        if ( ! isset($_POST[$_ob->security->csrf_token_name]) OR 
+                 ! isset($_COOKIE[$_ob->security->csrf_cookie_name]))
+        {
+            csrf_show_error();
+        }
+
+        // print_r($_POST);
+        // Do the tokens match?
+        if ($_POST[$_ob->security->csrf_token_name] != $_COOKIE[$_ob->security->csrf_cookie_name])
+        {
+            csrf_show_error();
+        }
+
+        // We kill this since we're done and we don't want to 
+        // polute the _POST array
+        unset($_POST[$_ob->security->csrf_token_name]);
+
+        // Nothing should last forever
+        unset($_COOKIE[$_ob->security->csrf_cookie_name]);
+
+        _csrf_set_hash();
+
+        csrf_set_cookie();
+
+        log_me('debug', "CSRF token verified");
+    }
+}
+
+// --------------------------------------------------------------------
+
+/**
+ * Set Cross Site Request Forgery Protection Cookie
+ *
+ * @return	object
+ */
+if( ! function_exists('csrf_set_cookie') ) 
+{
+    function csrf_set_cookie()
+    {
+        $_ob = load_class('Storage');
+
+        $expire        = time() + $_ob->security->csrf_expire;
+        $secure_cookie = (config_item('cookie_secure') === TRUE) ? 1 : 0;
+
+        if ($secure_cookie)
+        {
+            # if your HTTP server NGINX add below the line to your fastcgi_params file.
+            # fastcgi_param  HTTPS		  $ssl_protocol;
+            # then $_SERVER['HTTPS'] variable will be available for PHP (fastcgi).
+
+            $req = isset($_SERVER['HTTPS']) ? $_SERVER['HTTPS'] : FALSE;
+
+            if ( ! $req OR $req == 'off')
+            {
+                return FALSE;
+            }
+        }
+
+        setcookie($_ob->security->csrf_cookie_name, $_ob->security->csrf_hash, $expire, config_item('cookie_path'), config_item('cookie_domain'), $secure_cookie);
+
+        log_me('debug', "CRSF cookie set");
+    }
+}
+// --------------------------------------------------------------------
+
+/**
+ * Show CSRF Error
+ *
+ * @return	void
+ */
+if( ! function_exists('csrf_show_error') ) 
+{
+    function csrf_show_error()
+    {
+        $msg = 'The action you have requested is not allowed.';
+
+        if(i_ajax()) // Ajax request.
+        {
+            loader::helper('ob/form_send');
+
+            echo form_send_error($msg);
+
+            log_me('debug', "CSRF ajax attempt from ". i_ip_address());
+
+            exit;
+        }
+
+        show_error($msg);
+
+        log_me('debug', "CSRF attempt from ". i_ip_address());
+    }
+}
+
+// --------------------------------------------------------------------
+
+/**
+ * Get CSRF Hash 
+ *
+ * Getter Method 
+ *
+ * @return 	string csrf_hash
+ */
+if( ! function_exists('get_csrf_hash') ) 
+{
+    function get_csrf_hash()
+    {   
+        return load_class('Storage')->security->csrf_hash;
+    }
+}
+
+// --------------------------------------------------------------------
+
+/**
+ * Get CSRF Token Name
+ *
+ * Getter Method
+ *
+ * @return 	string 	csrf_token_name
+ */
+if( ! function_exists('get_csrf_token_name') ) 
+{
+    function get_csrf_token_name()
+    {   
+        return load_class('Storage')->security->csrf_token_name;
+    }
+}
+// --------------------------------------------------------------------
 
 /**
 * XSS Clean
@@ -650,14 +861,14 @@ if( ! function_exists('do_hash') )
 {
     function do_hash($str, $type = 'sha1')
     {
-	    if ($type == 'sha1')
-	    {
-		    return sha1($str);
-	    }
-	    else
-	    {
-		    return md5($str);
-	    }
+        if ($type == 'sha1')
+        {
+            return sha1($str);
+        }
+        else
+        {
+            return md5($str);
+        }
     }
 }
 // ------------------------------------------------------------------------
@@ -673,10 +884,10 @@ if( ! function_exists('strip_image_tags') )
 {
     function strip_image_tags($str)
     {
-	    $str = preg_replace("#<img\s+.*?src\s*=\s*[\"'](.+?)[\"'].*?\>#", "\\1", $str);
-	    $str = preg_replace("#<img\s+.*?src\s*=\s*(.+?).*?\>#", "\\1", $str);
-		    
-	    return $str;
+        $str = preg_replace("#<img\s+.*?src\s*=\s*[\"'](.+?)[\"'].*?\>#", "\\1", $str);
+        $str = preg_replace("#<img\s+.*?src\s*=\s*(.+?).*?\>#", "\\1", $str);
+
+        return $str;
     }
 }
 // ------------------------------------------------------------------------
@@ -692,7 +903,7 @@ if( ! function_exists('encode_php_tags') )
 {
     function encode_php_tags($str)
     {
-	    return str_replace(array('<?php', '<?PHP', '<?', '?>'),  array('&lt;?php', '&lt;?PHP', '&lt;?', '?&gt;'), $str);
+        return str_replace(array('<?php', '<?PHP', '<?', '?>'),  array('&lt;?php', '&lt;?PHP', '&lt;?', '?&gt;'), $str);
     }
 }
 /* End of file security.php */

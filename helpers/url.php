@@ -174,6 +174,7 @@ if ( ! function_exists('anchor'))
             {
                 $ssl = TRUE;
             }
+            
             $uri = str_replace('https://',  '',  $uri);
         }
 

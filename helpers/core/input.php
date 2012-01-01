@@ -29,8 +29,9 @@ if( ! isset($_ob->input))   // Helper Constructor
 
     $_config = core_class('Config');
 
-    $_ob->input->use_xss_clean   = ($_config->item('global_xss_filtering') === TRUE) ? TRUE : FALSE;
-    $_ob->input->allow_get_array = ($_config->item('enable_query_strings') === TRUE) ? TRUE : FALSE;
+    $_ob->input->use_xss_clean      = ($_config->item('global_xss_filtering') === TRUE) ? TRUE : FALSE;
+    $_ob->input->allow_get_array    = ($_config->item('enable_query_strings') === TRUE) ? TRUE : FALSE;
+    $_ob->input->enable_csrf        = ($_config->item('csrf_protection') === TRUE) ? TRUE : FALSE;
 
     log_me('debug', "Input Helper Initialized");
 }
@@ -103,6 +104,17 @@ if( ! function_exists('_sanitize_globals') )
         // Clean $_POST Data
         $_POST = _clean_input_data($_POST);
 
+        // Sanitize PHP_SELF
+        $_SERVER['PHP_SELF'] = strip_tags($_SERVER['PHP_SELF']);
+
+        // CSRF Protection check
+        if ($_ob->input->enable_csrf == TRUE)
+        {
+            loader::helper('ob/security');
+            
+            csrf_verify();
+        }
+        
         // Clean $_COOKIE Data
         // Also get rid of specially treated cookies that might be set by a server
         // or silly application, that are of no use to a OB application anyway
@@ -112,6 +124,7 @@ if( ! function_exists('_sanitize_globals') )
         unset($_COOKIE['$Version']);
         unset($_COOKIE['$Path']);
         unset($_COOKIE['$Domain']);
+        
         $_COOKIE = _clean_input_data($_COOKIE);
 
         log_me('debug', "Global POST and COOKIE data sanitized");

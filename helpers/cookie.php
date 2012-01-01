@@ -44,7 +44,7 @@ defined('BASE') or exit('Access Denied!');
 */
 if( ! function_exists('set_cookie') ) 
 {
-    function set_cookie($name = '', $value = '', $expire = '', $domain = '', $path = '/', $prefix = '')
+    function set_cookie($name = '', $value = '', $expire = '', $domain = '', $path = '/', $prefix = '', $secure = FALSE)
     {
         if (is_array($name))
         {        
@@ -64,13 +64,20 @@ if( ! function_exists('set_cookie') )
         {
             $prefix = $OB->config->item('cookie_prefix');
         }
+        
         if ($domain == '' AND $OB->config->item('cookie_domain') != '')
         {
             $domain = $OB->config->item('cookie_domain');
         }
+        
         if ($path   == '/' AND $OB->config->item('cookie_path') != '/')
         {
             $path   = $OB->config->item('cookie_path');
+        }
+        
+        if ($secure == FALSE AND $OB->config->item('cookie_secure') != FALSE)
+        {
+            $secure = $OB->config->item('cookie_secure');
         }
         
         if ( ! is_numeric($expire))
@@ -89,7 +96,7 @@ if( ! function_exists('set_cookie') )
             }
         }
 
-        setcookie($prefix.$name, $value, $expire, $path, $domain, 0);
+        setcookie($prefix.$name, $value, $expire, $path, $domain, $secure);
     }
 }
     
@@ -111,9 +118,9 @@ if( ! function_exists('get_cookie') )
         
         $prefix = '';
         
-        if ( ! isset($_COOKIE[$index]) && config_item('cookie_prefix') != '')
+        if ( ! isset($_COOKIE[$index]) && $OB->config->item('cookie_prefix') != '')
         {
-            $prefix = config_item('cookie_prefix');
+            $prefix = $OB->config->item('cookie_prefix');
         }
         
         return i_cookie($prefix.$index, $xss_clean);
