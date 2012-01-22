@@ -671,10 +671,26 @@ if( ! function_exists('_get_public_path') )
     {                              
         $OB = this();
         
+        $sub_module_path = $GLOBALS['sub_path'];
+        
         // $file_url  = strtolower($file_url);
         
-        if(strpos($file_url, '../') === 0)   // if ../modulename/public folder request 
+        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
         {
+            $sub_module_path = ''; // clear sub module path
+            
+            $paths          = explode('/', $file_url); 
+            $filename       = array_pop($paths);       // get file name
+            $sub_modulename = array_shift($paths);     // get sub module name
+            $modulename     = array_shift($paths);     // get module name
+            
+            $sub_module_path = $sub_modulename. DS .'modules'. DS;
+
+        }
+        elseif(strpos($file_url, '../') === 0)   // if ../modulename/public folder request 
+        {
+            $sub_module_path = ''; // clear sub module path
+            
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
@@ -724,7 +740,7 @@ if( ! function_exists('_get_public_path') )
             $folder = '';
         }
 
-        $ROOT = str_replace(ROOT, '', rtrim(MODULES, DS));
+        $ROOT = str_replace(ROOT, '', rtrim(MODULES .$sub_module_path, DS));
         
         $public_url    = $OB->config->public_url('', true) .str_replace(DS, '/', $ROOT). '/';
         $public_folder = trim($OB->config->item('public_folder'), '/');
@@ -747,7 +763,7 @@ if( ! function_exists('_get_public_path') )
         
         // if file not exists in current module folder fetch it from app /public folder. 
         
-        if( is_readable(MODULES . str_replace('/', DS, trim($pure_path, '/'))) ) 
+        if( is_readable(MODULES . $sub_module_path. str_replace('/', DS, trim($pure_path, '/'))) ) 
         {         
             return $full_path;
         }

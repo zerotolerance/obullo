@@ -29,6 +29,7 @@ Class OB_URI
 {
     public $keyval      = array();
     public $uri_string;
+    public $sub_module  = '';
     public $segments    = array();
     public $rsegments   = array();
 
@@ -62,6 +63,7 @@ Class OB_URI
     {
         $this->keyval     = array();
         $this->uri_string = '';
+        $this->sub_module = '';
         $this->segments   = array();
         $this->rsegments  = array();
         $this->cache_time = '';
@@ -75,8 +77,13 @@ Class OB_URI
     *
     * @param mixed $uri
     */
-    public function set_uri_string($uri = '')
+    public function set_uri_string($uri = '', $filter = TRUE)
     {
+        if($filter) // Filter out control characters
+        {
+            $uri = remove_invisible_characters($uri, FALSE);
+        }
+        
         $this->uri_string = $uri;
     }
 
@@ -203,7 +210,7 @@ Class OB_URI
         {
             $parsed_uri = '/'.$parsed_uri;
         }
-
+        
         // IN REQUEST_URI mode the controller can work with any query string like this.
         // http://domain.com/controller/method?query_string=support for REQUEST_URI protocol
         // remove last query_string variables.
@@ -270,24 +277,24 @@ Class OB_URI
      */
     public function _filter_uri($str)
     {
-        if ($str != '' && config_item('permitted_uri_chars') != '' && config_item('enable_query_strings') == FALSE)
+        $config = core_class('Config');
+        
+    	if ($str != '' && $config->item('permitted_uri_chars') != '' && $config->item('enable_query_strings') == FALSE)
         {
-            // preg_quote() in PHP 5.3 escapes -, so the str_replace() and
-            // addition of - to preg_quote() is to maintain backwards
-            // compatibility as many are unaware of how characters in the permitted_uri_chars
-            // will be parsed as a regex pattern
-            if ( ! preg_match("|^[".str_replace(array('\\-', '\-'), '-', preg_quote(config_item('permitted_uri_chars'), '-'))."]+$|i", $str))
+            // preg_quote() in PHP 5.3 escapes -, so the str_replace() and addition of - to preg_quote() is to maintain backwards
+            // compatibility as many are unaware of how characters in the permitted_uri_chars will be parsed as a regex pattern
+            if ( ! preg_match('|^['.str_replace(array('\\-', '\-'), '-', preg_quote($config->item('permitted_uri_chars'), '-')).']+$|i', $str))
             {
-                show_404('The URI you submitted has disallowed characters.');
+                show_error('The URI you submitted has disallowed characters.', 400);
             }
         }
 
-        // Convert programatic characters to entities
-        $bad    = array('$',         '(',         ')',       '%28',    '%29');
-        $good   = array('&#36;',    '&#40;',    '&#41;',    '&#40;',   '&#41;');
-
-        return str_replace($bad, $good, $str);
+        // Convert programatic characters to entities and return
+        return str_replace(array('$',     '(',     ')',     '%28',   '%29'), // Bad
+                           array('&#36;', '&#40;', '&#41;', '&#40;', '&#41;'), // Good
+                           $str);
     }
+    
 
     // --------------------------------------------------------------------
 
@@ -329,6 +336,7 @@ Class OB_URI
     }
 
     // --------------------------------------------------------------------
+    
     /**
      * Re-index Segments
      *
@@ -349,11 +357,47 @@ Class OB_URI
         // IN ROUTES.
         //
         ////////////
-        //
-        // array_unshift($this->segments, NULL);
-        // array_unshift($this->rsegments, NULL);
-        // unset($this->segments[0]);
-        // unset($this->rsegments[0]);
+    }
+    
+    // --------------------------------------------------------------------
+    
+     /**
+     * Parse Sub module
+     *
+     * This function check if any sub.modules defined
+     * in the modules folder.
+     *
+     * @access    private
+     * @return    void
+     */
+    public function _parse_sub_module()
+    {
+        $submodule_segment  = '';
+        $submodule_rsegment = '';
+        
+        if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('submodule_trigger')]))
+        {
+            $submodule_segment  = trim($this->_filter_uri($_GET[config_item('submodule_trigger')]));
+        } 
+        else
+        {
+            $submodule_segment  = (isset($this->segments[0])) ? $this->segments[0] : '';
+            $submodule_rsegment = (isset($this->rsegments[0])) ? $this->rsegments[0] : '';
+        }
+        
+        if($submodule_segment != '' AND is_dir(MODULES .'sub.'.$submodule_segment))
+        {
+            $this->set_sub_module($submodule_segment);
+            
+            array_shift($this->segments);    
+        }
+        elseif($submodule_rsegment != '' AND is_dir(MODULES .'sub.'.$submodule_rsegment))
+        {
+            $this->set_sub_module($submodule_rsegment);
+           
+            array_shift($this->rsegments);
+        }
+
     }
 
     // --------------------------------------------------------------------
@@ -395,31 +439,59 @@ Class OB_URI
     // --------------------------------------------------------------------
 
     /**
-     * Generate a key value pair from the URI string
-     *
-     * This function generates and associative array of URI data starting
-     * at the supplied segment. For example, if this is your URI:
-     *
-     *    example.com/user/search/name/joe/location/UK/gender/male
-     *
-     * You can use this function to generate an array with this prototype:
-     *
-     * array (
-     *            name => joe
-     *            location => UK
-     *            gender => male
-     *         )
-     *
-     * @access   public
-     * @param    integer    the starting segment number
-     * @param    array    an array of default values
-     * @return   array
-     */
+    * Fetch the user defined sub module.
+    * 
+    * @access   public
+    * @return   string
+    */
+    public function fetch_sub_module()
+    {
+        return $this->sub_module;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Set the user defined sub module.
+    * 
+    * @access   public
+    * @return   string | bool
+    */
+    public function set_sub_module($sub)
+    {
+        $this->sub_module = $sub;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Generate a key value pair from the URI string
+    *
+    * This function generates and associative array of URI data starting
+    * at the supplied segment. For example, if this is your URI:
+    *
+    *    example.com/user/search/name/joe/location/UK/gender/male
+    *
+    * You can use this function to generate an array with this prototype:
+    *
+    * array (
+    *            name => joe
+    *            location => UK
+    *            gender => male
+    *         )
+    *
+    * @access   public
+    * @param    integer    the starting segment number
+    * @param    array    an array of default values
+    * @return   array
+    */
     public function uri_to_assoc($n = 3, $default = array())
     {
          return $this->_uri_to_assoc($n, $default, 'segment');
     }
 
+    // --------------------------------------------------------------------
+    
     /**
      * Identical to above only it uses the re-routed segment array
      *
@@ -661,7 +733,6 @@ Class OB_URI
     {
         return $this->uri_string;
     }
-
 
     // --------------------------------------------------------------------
 

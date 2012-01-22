@@ -304,11 +304,11 @@ Class OB_Profiler {
                 $output .= "<tr><td class=\"td\">&#36;_GET[".$key."]&nbsp;&nbsp;</td><td class=\"td_val\">";
                 if (is_array($val))
                 {
-                    $output .= "<pre>" . htmlspecialchars(stripslashes(print_r($val, true))) . "</pre>";
+                    $output .= "<pre>" . htmlspecialchars($this->clean_string(print_r($val, true))) . "</pre>";
                 }
                 else
                 {
-                    $output .= htmlspecialchars(stripslashes($val));
+                    $output .= htmlspecialchars($this->clean_string($val));
                 }
                 $output .= "</td></tr>";
             }
@@ -351,11 +351,11 @@ Class OB_Profiler {
                 $output .= "<tr><td class=\"td\">&#36;_POST[".$key."]&nbsp;&nbsp;</td><td class=\"td_val\">";
                 if (is_array($val))
                 {
-                    $output .= "<pre>" . htmlspecialchars(stripslashes(print_r($val, true))) . "</pre>";
+                    $output .= "<pre>" . htmlspecialchars($this->clean_string($val)) . "</pre>";
                 }
                 else
                 {
-                    $output .= htmlspecialchars(stripslashes($val));
+                    $output .= htmlspecialchars($this->clean_string($val));
                 }
                 $output .= "</td></tr>";
             }
@@ -531,9 +531,6 @@ Class OB_Profiler {
         $autorun = '';
         foreach(profiler_get('autorun') as $function => $arguments) { $autorun .= error_secure_path($function).'()'.'<br />'; }
         
-        $constants = '';
-        foreach(profiler_get('constants') as $constant => $cons_value) { $constants .= $constant.' - '.$cons_value.'<br />'; }
-        
         $base_helpers   = (isset($base_helpers{2}))   ? $base_helpers : '-';
         $app_helpers    = (isset($app_helpers{2}))    ? $app_helpers : '-';
         $helpers        = (isset($helpers{2}))        ? $helpers : '-';
@@ -543,14 +540,17 @@ Class OB_Profiler {
         $files          = (isset($files{2}))          ? $files : '-';
         $views          = (isset($views{2}))          ? $views : '-';
         $layouts        = (isset($layouts{2}))        ? $layouts : '-';
-        $constants      = (isset($constants{2}))      ? $constants : '-';
         $config_files   = (isset($config_files{2}))   ? $config_files : '-';
         
-        $output .= "<tr><td class=\"td\">Constants&nbsp;&nbsp;</td><td class=\"td_val\">".$constants."</td></tr>";
+        $autoloads = print_r(profiler_get('autoloads'),true);
+        $autoloads = preg_replace('/\[(.*?)\]/', '[<b>$1</b>]', $autoloads); // Highlight keys.
+        $autoloads = $this->clean_string($autoloads);
+
         $output .= "<tr><td class=\"td\">Config Files&nbsp;&nbsp;</td><td class=\"td_val\">".$config_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Lang Files&nbsp;&nbsp;</td><td class=\"td_val\">".$lang_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Obullo Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$base_helpers."</td></tr>";  
-        $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>"; 
+        $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>";
+        $output .= "<tr><td class=\"td\">Autoload Data&nbsp;&nbsp;</td><td class=\"td_val\">" .$autoloads."</td></tr>";
         $output .= "<tr><td class=\"td\">Autorun Functions&nbsp;&nbsp;</td><td class=\"td_val\">".$autorun."</td></tr>";
         $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$helpers."</td></tr>";
         $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";    
@@ -565,6 +565,24 @@ Class OB_Profiler {
         $output .= "</div>";
          
         return $output;  
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Clean string for profiler Js.
+    * 
+    * @access private
+    * @param string $text
+    * @param integer $wordwrap 
+    */
+    public function clean_string($text, $wordwrap = 60)
+    {
+        $text = wordwrap($text, $wordwrap,"\n");
+        $text = preg_replace('/[\t\s]+/s', ' ', $text);
+        $text = preg_replace('/[\r\n]/', '<br />', $text);
+        
+        return stripslashes($text);
     }
     
     // --------------------------------------------------------------------

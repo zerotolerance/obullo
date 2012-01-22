@@ -9,7 +9,7 @@ defined('BASE') or exit('Access Denied!');
  * @package         obullo    
  * @subpackage      Obullo.core    
  * @author          obullo.com
- * @copyright       The Team Obullo (c) 2009 - 2010.
+ * @copyright       The Team Obullo (c) 2009 - 2012.
  * @since           Version 1.0.1
  * @filesource
  * @license

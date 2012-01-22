@@ -23,10 +23,7 @@ Class RouterException extends CommonException {}
  * @package     Obullo
  * @subpackage  obullo
  * @category    URI
- * @author      Ersin Guvenc
- * @version     0.1 changed php4 rules as php5
- * @version     0.2 Routing structure changed as /directory/class/method/arg..
- * @version     0.3 added query string support d= directory & c= class & m= method
+ * @author      Obullo Team.
  * @link
  */
 Class OB_Router {
@@ -48,52 +45,104 @@ Class OB_Router {
     * Constructor
     * Runs the route mapping function.
     *
-    * @version  0.1
-    * @version  0.2 added config index method and include route
-    * @version  0.3 added module route support
+    * @return void
     */
     public function __construct()
     {
         $this->uri = core_class('URI');
         
-        //-------- Check Possible Module Routes -------//
+        $this->_detect_sub_module();
+        $this->_set_routing();         
         
-        $this->uri->_fetch_uri_string();
-        $this->uri->_parse_request_uri();
-        $this->uri->_remove_url_suffix();
-        $this->uri->_explode_segments();
-        $this->uri->_reindex_segments();
-   
-        $module = $this->uri->segment(0);
+        log_me('debug', 'Router Class Initialized', false, true);
+    }
+    
+    //---------------------------------------------------------------------
+    
+    /**
+    * Detec possible sub modules and
+    * set routing rules at the the top level.
+    * 
+    * @return void
+    */
+    public function _detect_sub_module()
+    {
+        ############## Clone URI Object ############## 
         
-        if(file_exists(MODULES .$module. DS .'config'. DS .'routes'. EXT))
+        $uri = clone core_class('URI');
+        
+        ############## Clone URI Object ############## 
+        
+        $uri->_fetch_uri_string();
+        $uri->_parse_request_uri();
+        $uri->_remove_url_suffix();
+        $uri->_explode_segments();
+        $uri->_reindex_segments();
+        $uri->_parse_sub_module();
+        
+        $routes = get_config('routes'); //  Get the application routes.
+        
+        if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('submodule_trigger')]) AND $this->hmvc == FALSE)
         {
-            $routes = get_static('routes', '', MODULES .$module. DS .'config');
-            
-            if(isset($routes) AND is_array($routes))
-            {
-                $routes = array_merge(get_config('routes'), $routes);
-            }
-            
-            log_me('debug', '[ '.ucfirst($module).' ] Module Router Settings Initialized', false, true);
+            $sub_module     = $uri->fetch_sub_module();
+            $module_segment = trim($uri->_filter_uri($_GET[config_item('submodule_trigger')]));
         } 
-        else
+        else 
         {
-            $routes = get_config('routes');
+            $sub_module     = $uri->fetch_sub_module();
+            $module_segment = $uri->segment(0);
         }
         
-        $this->uri->clear();
+        // Get possible sub.modules directory
+        $GLOBALS['sub_path'] = ($sub_module == '') ? '' : 'sub.'.$sub_module. DS .'modules'. DS;
+        $module = ($module_segment == '' AND $module_segment != FALSE) ? $routes['default_controller']: $module_segment;
 
-        //-------- End Check Possible Module Routes -------//
+        if(strpos(trim($module, '/'), '/') > 0) // Check possible module route slash
+        {
+           $default = explode('/' ,$module);
+           $module  = $default[0];
+        }
+        
+        if($sub_module != '') // Sub Module
+        { 
+            if( file_exists(MODULES .'sub.'.$sub_module. DS .'config'. DS .'routes'. EXT))
+            {
+                $sub_module_routes = get_static('routes', '', MODULES .'sub.'.$sub_module. DS .'config');
+            }
+            
+            if(isset($sub_module_routes) AND is_array($sub_module_routes))
+            {
+                $routes = array_merge($routes, $sub_module_routes);
+                
+                log_me('debug', '[ '.ucfirst($sub_module).' ] Sub-Module and Application routes Merged', false, true);
+            }
+        }
+        
+        if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'config'. DS .'routes'. EXT))
+        {   
+            $module_routes = get_static('routes', '', MODULES .$GLOBALS['sub_path'].$module. DS .'config');
+            
+            if(isset($module_routes) AND is_array($module_routes))
+            {
+                $routes = array_merge($routes, $module_routes);
+                
+                log_me('debug', '[ '.ucfirst($module).' ] Module Router Settings Initialized', false, true);
+            }
+        }
+        
+        // Clean Unnecessary slashes !!
+        $routes = array_map(create_function( '$a', 'return trim($a, "/");' ), $routes);
+        
+        ##############
+        
+        $uri->clear();        // Clear URI class variables.
+        
+        ##############
         
         $this->routes = ( ! isset($routes) OR ! is_array($routes)) ? array() : $routes;
         unset($routes);
 
         $this->method = $this->routes['index_method'];
-
-        $this->_set_routing();
-        
-        log_me('debug', 'Router Class Initialized', false, true);
     }
     
     // --------------------------------------------------------------------
@@ -118,6 +167,8 @@ Class OB_Router {
         $this->subfolder           = '';
         $this->uri_protocol        = 'auto';
         $this->default_controller  = '';
+        
+        $GLOBALS['sub_path']       = '';    // Reset sub module path
     }
 
     // --------------------------------------------------------------------
@@ -229,7 +280,10 @@ Class OB_Router {
 
         // Compile the segments into an array
         $this->uri->_explode_segments();
-
+        
+        // Parse possible sub module
+        $this->uri->_parse_sub_module();
+        
         // Parse any custom routing that may exist
         $this->_parse_routes();
 
@@ -257,7 +311,7 @@ Class OB_Router {
     public function _set_request($segments = array())
     {
         $segments = $this->_validate_request($segments);
-
+        
         if (count($segments) == 0)
         return;
 
@@ -265,8 +319,8 @@ Class OB_Router {
 
         if (isset($segments[2]))
         {
-                // A standard method request
-                $this->set_method($segments[2]);
+           // A standard method request
+           $this->set_method($segments[2]);
         }
         else
         {
@@ -303,14 +357,14 @@ Class OB_Router {
     * @return   array
     */
     public function _validate_request($segments)
-    {
+    {   
         if( ! isset($segments[0]) ) return $segments;
-                                        
+        
         $folder = 'controllers';
         
         if(defined('CMD') AND $this->hmvc == FALSE)  // Command Line Request
         {
-            if(is_dir(MODULES .$segments[0]. DS .'tasks')) 
+            if(is_dir(MODULES .$GLOBALS['sub_path'].$segments[0]. DS .'tasks')) 
             {                   
                 $folder = 'tasks'; 
             }
@@ -318,11 +372,12 @@ Class OB_Router {
             {
                 array_unshift($segments, 'tasks');
             }
-        }                 
+        }
                                         
-        if (is_dir(MODULES . $segments[0]) OR defined('CMD'))  // Check module
+        if (is_dir(MODULES .$GLOBALS['sub_path'].$segments[0]) OR defined('CMD'))  // Check module
         {
-            $ROOT = MODULES;
+            $ROOT = MODULES .$GLOBALS['sub_path'];
+            
             $this->set_directory($segments[0]);
 
             if( ! empty($segments[1]))
@@ -422,20 +477,20 @@ Class OB_Router {
             return FALSE;
         }
         else
-        {
+        {  
             // If we've gotten this far it means that the URI does not correlate to a valid
             // controller class.  We will now see if there is an override
             if ( ! empty($this->routes['404_override']))
             {
-                    $x = explode('/', $this->routes['404_override']);
+                $x = explode('/', $this->routes['404_override']);
 
-                    $this->set_directory($x[0]);
-                    $this->set_class($x[1]);
-                    $this->set_method(isset($x[2]) ? $x[2] : 'index');
+                $this->set_directory($x[0]);
+                $this->set_class($x[1]);
+                $this->set_method(isset($x[2]) ? $x[2] : 'index');
 
-                    return $x;
+                return $x;
             }
-            
+
             $error_page = (isset($segments[1])) ? $segments[0].'/'.$segments[1] : $segments[0];
             
             show_404($error_page); 
@@ -455,7 +510,7 @@ Class OB_Router {
     * @return    void
     */
     public function _parse_routes()
-    {
+    { 
         // Do we even have any custom routing to deal with?
         // There is a default scaffolding trigger, so we'll look just for 1
         if (count($this->routes) == 1)
@@ -463,13 +518,27 @@ Class OB_Router {
             $this->_set_request($this->uri->segments);
             return;
         }
+        
+        //---------- sub.module support ---------
+        
+        $segments = $this->uri->segments;
+     
+        if($this->uri->fetch_sub_module() != '')
+        {
+            // Turn the segment array into a URI string
+            array_unshift($segments, $this->uri->fetch_sub_module());
+            $uri  = implode('/', $segments);
+        } 
+        else
+        {
+            $uri = implode('/', $this->uri->segments);
+        }
 
-        // Turn the segment array into a URI string
-        $uri = implode('/', $this->uri->segments);
-
+        //---------- sub.module support ---------
+        
         // Is there a literal match?  If so we're done
         if (isset($this->routes[$uri]))
-        {
+        { 
             $this->_set_request(explode('/', $this->routes[$uri]));
             return;
         }
@@ -493,7 +562,7 @@ Class OB_Router {
                 return;
             }
         }
-
+        
         // If we got this far it means we didn't encounter a
         // matching route so we'll set the site default route
         $this->_set_request($this->uri->segments);
@@ -571,7 +640,7 @@ Class OB_Router {
     {
         $this->directory = $dir.'';  // Obullo changes..
     }
-
+    
     // --------------------------------------------------------------------
     
     /**

@@ -18,7 +18,7 @@ defined('BASE') or exit('Access Denied!');
  * @package     Obullo
  * @subpackage  Helpers
  * @category    Helpers
- * @author      Ersin Guvenc
+ * @author      Obullo Team.
  * @link        
  */
 
@@ -39,7 +39,7 @@ defined('BASE') or exit('Access Denied!');
  */        
 if( ! function_exists('log_write') ) 
 {
-    function log_write($level = 'error', $msg, $php_error = FALSE, $module_log = FALSE)
+    function log_write($level = 'error', $msg = '', $php_error = FALSE, $module_log = FALSE)
     {        
         $log_path  = '';
         $threshold = 1;
@@ -52,7 +52,7 @@ if( ! function_exists('log_write') )
             $config = core_class('Config');
             $router = core_class('Router');
             
-            $log_path = MODULES .$router->fetch_directory() . DS .'core'. DS .'logs'. DS;
+            $log_path = MODULES .$GLOBALS['sub_path'].$router->fetch_directory() . DS .'core'. DS .'logs'. DS;
             
             if($config->item('log_path') != '')
             {

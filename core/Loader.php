@@ -312,8 +312,12 @@ Class OB_Loader {
         {
             if (isset($OB->$model_var) AND is_object($OB->$model_var)) { return; }
         }
+        
+        #####################
 
         require_once($file);
+        
+        #####################
         
         $model = ucfirst($model_name);
 
@@ -556,9 +560,9 @@ Class OB_Loader {
                 }    
             }
             
-            if(file_exists(MODULES .$module. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
+            if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'helpers'. DS .$prefix. $helper. EXT))  // module extend support.
             {
-                include(MODULES .$module. DS .'helpers'. DS .$prefix. $helper. EXT);
+                include(MODULES .$GLOBALS['sub_path'].$module. DS .'helpers'. DS .$prefix. $helper. EXT);
 
                 self::$_base_helpers[$prefix . $helper] = $prefix . $helper;
             }
@@ -611,13 +615,20 @@ Class OB_Loader {
     */
     private static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE, $extension = FALSE, $case_sensitive = FALSE)
     {
-        $real_name  = ($case_sensitive) ? $filename : strtolower($filename);
-        $root       = rtrim(MODULES, DS); 
+        $sub_module_path = $GLOBALS['sub_path'];
+        
+        if( ! is_string($filename))
+        {
+            throw new LoaderException('Loader function filenames must be string.');
+        }
+        
+        $real_name  = ($case_sensitive) ? trim($filename, '/') : strtolower(trim($filename, '/'));
+        $root       = rtrim(MODULES. $sub_module_path, DS); 
         
         if($extension)  // main extension library or helper file.
         {
             $return['file_name'] = $real_name;
-            $return['file']      = MODULES . $real_name . DS . $real_name. EXT;
+            $return['file']      = MODULES .$sub_module_path.$real_name . DS . $real_name. EXT;
 
             return $return; 
         }
@@ -631,6 +642,8 @@ Class OB_Loader {
 
         if(strpos($real_name, '../') === 0)   // ../module folder request
         {
+            $sub_module_path = ''; // clear sub module path
+            
             $paths      = explode('/', substr($real_name, 3));
             $file_name  = array_pop($paths);         // get file name
             $modulename = array_shift($paths);       // get module name
@@ -641,7 +654,28 @@ Class OB_Loader {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
             
-            $file = MODULES . $modulename . DS . $folder . DS . $sub_path . $file_name. EXT;
+            $file = MODULES . $sub_module_path.$modulename . DS . $folder . DS . $sub_path . $file_name. EXT;
+            
+            $return['file_name'] = $file_name;
+            $return['file']      = $file;
+
+            return $return;
+        }
+        
+        if(strpos($real_name, 'sub.') === 0)   // sub.module/module folder request
+        {
+            $paths          = explode('/', $real_name); 
+            $file_name      = array_pop($paths);           // get file name
+            $sub_modulename = array_shift($paths);     // get sub module name
+            $modulename     = array_shift($paths);     // get module name
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
+            }
+            
+            $file = MODULES .$sub_modulename. DS .'modules'. DS .$modulename. DS .$folder . DS . $sub_path . $file_name. EXT;
             
             $return['file_name'] = $file_name;
             $return['file']      = $file;
@@ -649,7 +683,7 @@ Class OB_Loader {
             return $return;
         }
 
-        if(strpos($real_name, '/') > 0)         //  inside folder request
+        if(strpos($real_name, '/') > 0)         //  Sub folder request
         {
             $paths      = explode('/',$real_name);   // paths[0] = path , [1] file name
             $file_name  = array_pop($paths);          // get file name

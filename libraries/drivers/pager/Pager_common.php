@@ -15,8 +15,6 @@ defined('BASE') or exit('Access Denied!');
 
 // ------------------------------------------------------------------------
 
-Class PagerException extends CommonException {}
-
 /**
  * Obullo Pager Common File
  *

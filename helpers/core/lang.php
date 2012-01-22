@@ -11,8 +11,7 @@ defined('BASE') or exit('Access Denied!');
  * @filesource
  * @license
  */
- 
-Class LangException extends CommonException {}
+
 
 /**
  * Obullo Language Helper
@@ -94,7 +93,7 @@ if( ! function_exists('lang_load') )
         {
             if( ! is_dir($folder))
             {
-                throw new LangException('The language folder '.$folder.' does not a folder.');
+                throw new Exception('The language folder '.$folder.' does not a folder.');
             }
             
             $lang = get_static($file_info['filename'], 'lang', rtrim($folder, DS)); 
@@ -140,6 +139,8 @@ if( ! function_exists('_lang_load_file'))
 {
     function _lang_load_file($file_url, $base = '', $extra_path = '')
     {
+        $sub_module_path = $GLOBALS['sub_path'];
+        
         if($extra_path != '')
         {
             $extra_path = str_replace('/', DS, trim($extra_path, '/')). DS;
@@ -149,6 +150,8 @@ if( ! function_exists('_lang_load_file'))
         
         if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
         {
+            $sub_module_path = '';  // clear sub module path
+            
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
@@ -159,8 +162,8 @@ if( ! function_exists('_lang_load_file'))
             $paths    = array();
             if( strpos($filename, '/') !== FALSE)
             {
-                $paths      = explode('/', $filename);
-                $filename   = array_pop($paths);
+                $paths    = explode('/', $filename);
+                $filename = array_pop($paths);
             }
 
             $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
@@ -187,12 +190,12 @@ if( ! function_exists('_lang_load_file'))
         }
         
         $path        = APP .'lang'. DS .$sub_path .$extra_path;
-        $module_path = MODULES .$modulename. DS .'lang'. DS .$sub_path. $extra_path;
+        $module_path = MODULES .$sub_module_path.$modulename. DS .'lang'. DS .$sub_path. $extra_path;
         
         if(file_exists($module_path. $filename. EXT))  // first check module path
         {
             if(file_exists($path. $filename. EXT))    // we send array so we will merge module and application $lang
-            {                                          // variables.
+            {                                         // variables.
                 $path = array($path, $module_path);
             }
             else
@@ -226,8 +229,6 @@ if( ! function_exists('lang') )
         return $item;
     }
 }
-
-
 
 
 /* End of file lang.php */

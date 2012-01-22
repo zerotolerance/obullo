@@ -8,10 +8,12 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         obullo
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @filesource
  * @license
  */
+
+Class ViewException extends CommonException {}
 
 // ------------------------------------------------------------------------
 
@@ -110,7 +112,8 @@ Class OB_View {
     // ------------------------------------------------------------------------
     
     /**
-    *
+    * Load view file private function.
+    * 
     * @param type $file_url
     * @param type $folder
     * @param string $extra_path
@@ -120,7 +123,24 @@ Class OB_View {
     */
     function _load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE, $custom = FALSE)
     {
-        if($base)  // if  /obullo/scripts
+        $sub_module_path  = $GLOBALS['sub_path'];
+        $application_view = FALSE;
+        
+        $file_url  = strtolower(trim($file_url, '/'));
+        
+        if(strpos($file_url, 'app/') === 0)   // application folder request
+        {
+           $file_url = substr($file_url, 4);
+           $application_view = TRUE;
+        }
+        
+        if(strpos($file_url, 'ob/') === 0)    // obullo folder request
+        {
+           $file_url = substr($file_url, 3);
+           $base = TRUE;
+        }
+        
+        if($base)  // if  /obullo/views
         {
             return array('filename' => $file_url, 'path' => BASE .$folder. DS);
         }
@@ -130,11 +150,29 @@ Class OB_View {
             return array('filename' => $file_url, 'path' => BASE .$folder. DS);
         }
         
-        $file_url  = strtolower($file_url);
         $extension = FALSE;
-        
-        if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
+     
+        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
         {
+            $sub_module_path = ''; // clear sub module path
+            
+            $paths          = explode('/', $file_url); 
+            $filename       = array_pop($paths);       // get file name
+            $sub_modulename = array_shift($paths);     // get sub module name
+            $modulename     = array_shift($paths);     // get module name
+            
+            $sub_module_path = $sub_modulename. DS .'modules'. DS;
+            
+            /*
+            if(is_extension($sub_modulename, $module))
+            {
+                $extension = TRUE; 
+            }
+             */
+        }elseif(strpos($file_url, '../') === 0)  // if  ../modulename/file request
+        {
+            $sub_module_path = ''; // clear sub module path
+            
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
@@ -170,17 +208,26 @@ Class OB_View {
             $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
         }
         
-        $path        = APP .$folder. DS .$sub_path .$extra_path;
-        $module_path = MODULES .$modulename. DS .$folder. DS .$sub_path. $extra_path;
+        if($extension)
+        {
+            $extra_path = '';  // We don't need extra path for extensions
+        }
         
-        if(file_exists($module_path. $filename. EXT))  // first check module path
+        $module_path = MODULES .$sub_module_path.$modulename. DS .$folder. DS .$sub_path. $extra_path;
+        $path        = $module_path;
+        
+        if(file_exists(APP .$folder. DS .$sub_path .$extra_path . $filename. EXT))
+        {
+            $path = APP .$folder. DS .$sub_path .$extra_path;
+        }
+        elseif(file_exists($module_path. $filename. EXT))  // first check module path
         {
             $path = $module_path;
         }
-    
-        if($extension)
+        
+        if($application_view)
         {
-            $path = MODULES .$modulename. DS .$folder. DS .$sub_path;  // We don't need extra path for extensions
+            $path = APP .$folder. DS .$sub_path .$extra_path;
         }
     
         return array('filename' => $filename, 'path' => $path);

@@ -436,7 +436,7 @@ if ( ! function_exists('safe_mailto'))
 
         $data['x'] = array_reverse($x);
 
-    return script_base('safe_mail', $data);
+        return view('ob/safe_mail', $data);
     }
 }
 

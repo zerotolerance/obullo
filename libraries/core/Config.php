@@ -60,9 +60,10 @@ Class OB_Config
     {
         $file_info = $this->_load_file($file_url);
         
-        $file = ($file_info['filename'] == '') ? 'config' : str_replace(EXT, '', $file_info['filename']);
+        $file      = ($file_info['filename'] == '') ? 'config' : str_replace(EXT, '', $file_info['filename']);
+        $file_path = $file_info['path'];
     
-        if (in_array($file, $this->is_loaded, TRUE))
+        if (in_array($file_path, $this->is_loaded, TRUE))
         {
             return TRUE;
         }
@@ -77,7 +78,11 @@ Class OB_Config
             throw new ConfigException('The configuration file '.$file_info['path'] .$file. EXT .' does not exist.');
         }
     
+        ######################
+        
         include($file_info['path'] .$file. EXT);
+        
+        ######################
 
         if ( ! isset($config) OR ! is_array($config))
         {
@@ -106,11 +111,14 @@ Class OB_Config
             $this->config = array_merge($this->config, $config);
         }
 
-        $this->is_loaded[] = $file;
-        profiler_set('config_files', $file, $file);
+        $this->is_loaded[] = $file_path;
+        
+        profiler_set('config_files', $file_path .$file. EXT, $file_path .$file. EXT);
+        
         unset($config);
 
         log_me('debug', 'Config file loaded: '.$file_info['path'] .$file. EXT);
+        
         return TRUE;
     }
       
@@ -124,21 +132,56 @@ Class OB_Config
     * @return array
     */
     public function _load_file($file_url, $extra_path = '')
-    {
+    {   
+        $sub_module_path = $GLOBALS['sub_path'];
+        
         if($extra_path != '')
         {
             $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
         }
         
-        $file_url  = strtolower($file_url);
-
+        $file_url  = strtolower(trim($file_url, '/'));
+        
         if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
         {
+            $sub_module_path = '';  // clear sub module path
+            
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
+            }
+            
         }
-        else    // if current modulename/file
+       
+        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
+        {
+            $paths          = explode('/', $file_url); 
+            $filename       = array_pop($paths);       // get file name
+            $sub_modulename = array_shift($paths);     // get sub module name
+            $modulename     = array_shift($paths);     // get module name
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;
+            }
+            
+            if($modulename == '')
+            {
+                $module_path = MODULES .$sub_modulename. DS .'config'. DS;
+            }
+            else
+            {
+                $module_path = MODULES .$sub_modulename. DS .'modules'. DS .$modulename. DS .'config'. DS . $sub_path;
+            }
+
+        }
+        else       // if current modulename/file
         {
             $filename = $file_url;          
             $paths    = array();
@@ -149,16 +192,19 @@ Class OB_Config
             }
 
             $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
-        }
-
-        $sub_path   = '';
-        if( count($paths) > 0)
-        {
-            $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
+            }
+            
+            $module_path = MODULES .$sub_module_path.$modulename. DS .'config'. DS .$sub_path. $extra_path;
         }
         
-        $path        = APP .'config'. DS .$sub_path .$extra_path;
-        $module_path = MODULES .$modulename. DS .'config'. DS .$sub_path. $extra_path;
+        
+        $path = APP .'config'. DS .$sub_path .$extra_path;        
+        
         
         if(file_exists($module_path. $filename. EXT))  // first check module path
         {

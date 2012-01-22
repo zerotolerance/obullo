@@ -448,7 +448,7 @@ Class OB_DB extends OB_DBAc_sw {
     */
     public function row()
     {
-        return current($this->Stmt->fetchAll(PDO::FETCH_OBJ));
+        return $this->Stmt->fetch(PDO::FETCH_OBJ);
     }
 
     // --------------------------------------------------------------------
@@ -656,16 +656,16 @@ Class OB_DB extends OB_DBAc_sw {
         switch (sizeof($arg))
         {
            case 0:
-           return current($this->Stmt->fetchAll(PDO::FETCH_OBJ));
+           return $this->Stmt->fetch(PDO::FETCH_OBJ);
              break;
            case 1:
-           return current($this->Stmt->fetchAll($arg[0]));
+           return $this->Stmt->fetch($arg[0]);
              break;
            case 2:
-           return current($this->Stmt->fetchAll($arg[0], $arg[1]));
+           return $this->Stmt->fetch($arg[0], $arg[1]);
              break;
            case 3:
-           return current($this->Stmt->fetchAll($arg[0], $arg[1], $arg[2]));
+           return $this->Stmt->fetch($arg[0], $arg[1], $arg[2]);
              break;
         }
     }

@@ -26,7 +26,9 @@ defined('BASE') or exit('Access Denied!');
 * @version 1.5 added PHP5 library interface class, added spl_autoload_register()
 *              renamed register_static() function, added replace support ..
 */
-                       
+
+Class CommonException extends Exception {};
+
 /**
 * Register core libraries
 * 
@@ -54,7 +56,9 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
     $getObject = $registry->get_object($Class);   
                                                    
     if ($getObject !== NULL)
-    return $getObject;
+    {
+        return $getObject;
+    }
                       
     if(file_exists(BASE .'libraries'. DS .'core'. DS .$Class. EXT))
     {
@@ -119,8 +123,10 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
         // --------------------------------------------------------------------
                       
         if(is_object($Object))
-        return $Object;
-
+        {
+            return $Object;
+        }
+        
     }
 
     return NULL;  // if register func return to null
@@ -239,11 +245,11 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
             }
             
             // Modules extend support
-            if(file_exists(MODULES .$module. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  
+            if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  
             {
                 if( ! isset($new_objects[$Class]) )  // check new object instance
                 {
-                    require(MODULES .$module. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT);
+                    require(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT);
                 }
                 
                 $classname = $prefix. $Class;
@@ -355,9 +361,9 @@ function ob_autoload($real_name)
         }
 
         // If Module Global Controller file exist ..
-        if(file_exists(MODULES .$module. DS .'parents'. DS .$real_name. EXT))
+        if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'parents'. DS .$real_name. EXT))
         {            
-            require(MODULES .$module. DS .'parents'. DS .$real_name. EXT);
+            require(MODULES .$GLOBALS['sub_path'].$module. DS .'parents'. DS .$real_name. EXT);
 
             profiler_set('parents', $real_name, MODULES .$module. DS .'parents'. DS .$real_name. EXT);
 
@@ -392,9 +398,9 @@ function ob_autoload($real_name)
 
     // __autoload libraries load support.
     // --------------------------------------------------------------------
-    if(file_exists(MODULES .$module. DS .'libraries'. DS .$class. EXT))
+    if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. DS .$class. EXT))
     {
-        require(MODULES .$module. DS .'libraries'. DS .$class. EXT);
+        require(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. DS .$class. EXT);
 
         profiler_set('libraries', 'module_'.$class.'_autoloaded', $class);
         return;
@@ -463,11 +469,12 @@ if( ! function_exists('lib'))
 */
 function get_static($filename = 'config', $var = '', $folder = '')
 {
-    static $static = array();
+    static $loaded    = array();
+    static $variables = array();
     
-    $key = $folder. DS .$filename. EXT;
+    $key = trim($folder. DS .$filename. EXT);
     
-    if ( ! isset($static[$key]))
+    if ( ! isset($loaded[$key]))  // Just reqiure once !
     {
         if ( ! file_exists($folder. DS .$filename. EXT))
         {
@@ -480,9 +487,16 @@ function get_static($filename = 'config', $var = '', $folder = '')
             return;
         }
 
+        #######################
+        
         require($folder. DS .$filename. EXT);
-
-        if($var == '') $var = &$filename;
+        
+        #######################
+        
+        if($var == '') 
+        {
+            $var = &$filename;
+        }
 
         if($filename != 'autoload' AND $filename != 'constants')
         {
@@ -496,10 +510,11 @@ function get_static($filename = 'config', $var = '', $folder = '')
             }
         }
 
-        $static[$key] =& $$var;
+        $variables[$key] =& $$var;
+        $loaded[$key] = $key;
      }
 
-    return $static[$key];
+    return $variables[$key];
 }
 
 // --------------------------------------------------------------------
@@ -516,15 +531,26 @@ function get_config($filename = 'config', $var = '')
 {
     if($filename == 'database')
     {
-        $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory(); 
+        $database = get_static($filename, $var, APP .'config');
         
-        if(file_exists(MODULES .$module. DS .'config'. DS .'database'.EXT)) // Module database support.
+        $sub_module = core_class('URI')->fetch_sub_module();
+        $module     = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory(); 
+        
+        // Sub Module database support.
+        if( $sub_module != '' AND file_exists(MODULES .'sub.'.$sub_module. DS .'config'. DS .'database'.EXT))
         {
-            $mod_db = get_static($filename, $var, MODULES .$module. DS .'config');
-            $app_db = get_static($filename, $var, APP .'config');
-            
-            return array_merge($app_db, $mod_db);
+            $sub_module_db = get_static($filename, $var, MODULES .'sub.'.$sub_module. DS .'config');
+            $database      = array_merge($database, $sub_module_db); // override to application variables.
+        } 
+        
+        // Module database support.
+        if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'config'. DS .'database'.EXT)) 
+        {
+            $module_db = get_static($filename, $var, MODULES .$GLOBALS['sub_path'].$module. DS .'config');
+            $database  = array_merge($database, $module_db); // override to sub module and application db variables.
         }
+        
+        return $database;
     }
    
     return get_static($filename, $var, APP .'config');
@@ -619,7 +645,7 @@ function log_me($level = 'error', $message = '', $php_error = FALSE, $core_level
                                       // write module logs into current module.
         if (is_object($router))
         {
-            if (is_dir(MODULES .$router->fetch_directory(). DS .'core'. DS . 'logs'))
+            if (is_dir(MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS . 'logs'))
             {
                 $config = core_class('Config');
 
@@ -920,12 +946,12 @@ function ext_item($name, $item, $index = 'application')
 if( ! function_exists('show_404')) 
 {
     function show_404($page = '')
-    {   
-        log_me('error', '404 Page Not Found --> '.$page);
-        
+    {    
+        log_me('error', '404 Page Not Found --> '.$page, false, true);
+
         echo show_http_error('404 Page Not Found', $page, 'ob_404', 404);
 
-        exit;
+        exit();
     }
 }
 
@@ -945,14 +971,14 @@ if( ! function_exists('show_error'))
 {
     function show_error($message, $status_code = 500, $heading = 'An Error Was Encountered')
     {
-        log_me('error', 'HTTP Error --> '.$message);
+        log_me('error', 'HTTP Error --> '.$message, false, true);
         
         // Some times we use utf8 chars in errors.
         header('Content-type: text/html; charset='.config_item('charset')); 
         
         echo show_http_error($heading, $message, 'ob_general', $status_code);
         
-        exit;
+        exit();
     }
 }
                    
@@ -989,7 +1015,6 @@ if( ! function_exists('show_http_error'))
     }
 }
 
-
 // -------------------------------------------------------------------- 
 
 /**
@@ -1004,6 +1029,45 @@ if( ! function_exists('is_assoc_array'))
     function is_assoc_array( $a )
     {
         return is_array( $a ) && ( count( $a ) !== array_reduce( array_keys( $a ), create_function( '$a, $b', 'return ($b === $a ? $a + 1 : 0);' ), 0 ) );
+    }
+}
+
+// -------------------------------------------------------------------- 
+
+/**
+ * Remove Invisible Characters
+ *
+ * This prevents sandwiching null characters
+ * between ascii characters, like Java\0script.
+ *
+ * @access	public
+ * @param	string
+ * @return	string
+ */
+if ( ! function_exists('remove_invisible_characters'))
+{
+    function remove_invisible_characters($str, $url_encoded = TRUE)
+    {
+        $non_displayables = array();
+
+        // every control character except newline (dec 10)
+        // carriage return (dec 13), and horizontal tab (dec 09)
+
+        if ($url_encoded)
+        {
+            $non_displayables[] = '/%0[0-8bcef]/';	// url encoded 00-08, 11, 12, 14, 15
+            $non_displayables[] = '/%1[0-9a-f]/';	// url encoded 16-31
+        }
+
+        $non_displayables[] = '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/S';	// 00-08, 11, 12, 14-31, 127
+
+        do
+        {
+            $str = preg_replace($non_displayables, '', $str, -1, $count);
+        }
+        while ($count);
+
+        return $str;
     }
 }
 

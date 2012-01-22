@@ -612,7 +612,7 @@ Class OB_Validator {
             // --------------------------------------------------------------------
             
             // Strip the parameter (if exists) from the rule
-            // Rules can contain parameters: max_length[5], callback_request[get][/request/uri]
+            // Rules can contain parameters: max_length[5], callback_request[get][/module/class/method]
             $param = FALSE;
             if (preg_match_all("/(.*?)\[(.*?)\]/", $rule, $matches))
             {

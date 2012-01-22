@@ -327,12 +327,12 @@ Class OB_Output {
                 $output  = preg_replace("|</body>.*?</html>|is", '', $output);
                 
                 // Add profiler script before the body end tag. ( Obullo Changes )
-                $output .= script_base('profiler', $data);  
+                $output .= view('ob/profiler', $data);  
                 $output .= '</body></html>';
             }
             else
             {
-                $output .= script_base('profiler', $data);
+                $output .= view('ob/profiler', $data);
             }
         } 
         
@@ -371,14 +371,18 @@ Class OB_Output {
         $path       = $config->item('cache_path');
         $cache_path = ($path == '') ?  APP .'core'. DS .'cache'. DS : $path;
     
-        //----------- MODULES SUPPORT -------------//
+        //----------- SUB MODULES AND MODULES SUPPORT -------------//
         
-        if (is_dir(MODULES .$router->fetch_directory(). DS .'core'. DS . 'cache'))
+        if(is_dir(MODULES .'sub.'.$OB->uri->fetch_sub_module(). DS .'core'. DS . 'cache'))
         {
-            $cache_path = MODULES .$router->fetch_directory(). DS .'core'. DS .'cache'. DS;
+            $cache_path = MODULES .'sub.'.$OB->uri->fetch_sub_module(). DS .'core'. DS .'cache'. DS;
+        }
+        elseif (is_dir(MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS . 'cache'))
+        {
+            $cache_path = MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS .'cache'. DS;
         }
         
-        //----------- MODULES SUPPORT -------------//
+        //----------- SUB MODULES AND MODULES SUPPORT -------------//
 
         if ( ! is_dir($cache_path) OR ! is_really_writable($cache_path))
         {
@@ -439,14 +443,18 @@ Class OB_Output {
     {        
         $cache_path = ($config->item('cache_path') == '') ? APP .'core'. DS .'cache'. DS : $config->item('cache_path');
 
-        //----------- MODULES SUPPORT -------------//
-        
-        if (is_dir(MODULES .$GLOBALS['d']. DS .'core'. DS . 'cache'))
+        //----------- SUB MODULES AND MODULES SUPPORT -------------//
+
+        if(is_dir(MODULES .'sub.'.$URI->fetch_sub_module(). DS .'core'. DS . 'cache'))
         {
-            $cache_path = MODULES .$GLOBALS['d']. DS .'core'. DS .'cache'. DS;
+            $cache_path = MODULES .'sub.'.$URI->fetch_sub_module(). DS .'core'. DS .'cache'. DS;
         }
-        
-        //----------- MODULES SUPPORT -------------//
+        elseif (is_dir(MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'core'. DS . 'cache'))
+        {
+            $cache_path = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'core'. DS .'cache'. DS;
+        }
+
+        //----------- SUB MODULES AND MODULES SUPPORT -------------//
         
         // Build the file path.  The file name is an MD5 hash of the full URI
         $uri =  $config->base_url() . $config->item('index_page') . $URI->uri_string;

@@ -315,66 +315,38 @@ if( ! function_exists('xss_clean') )
         /*
         * Remove Invisible Characters
         */
-        $str = _remove_invisible_characters($str);
+        $str = remove_invisible_characters($str);
 
-        /*
-        * Protect GET variables in URLs
-        */
-
-        // 901119URL5918AMP18930PROTECT8198
-
-        $str = preg_replace('|\&([a-z\_0-9\-]+)\=([a-z\_0-9\-]+)|i', xss_hash()."\\1=\\2", $str);
-
-        /*
-        * Validate standard character entities
-        *
-        * Add a semicolon if missing.  We do this to enable
-        * the conversion of entities to ASCII later.
-        *
-        */
-        $str = preg_replace('#(&\#?[0-9a-z]{2,})([\x00-\x20])*;?#i', "\\1;\\2", $str);
-
-        /*
-        * Validate UTF16 two byte encoding (x00) 
-        *
-        * Just as above, adds a semicolon if missing.
-        *
-        */
-        $str = preg_replace('#(&\#x?)([0-9A-F]+);?#i',"\\1\\2;",$str);
-
-        /*
-        * Un-Protect GET variables in URLs
-        */
-        $str = str_replace(xss_hash(), '&', $str);
-
-        /*
-        * URL Decode
-        *
-        * Just in case stuff like this is submitted:
-        *
-        * <a href="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">Google</a>
-        *
-        * Note: Use rawurldecode() so it does not remove plus signs
-        *
-        */
+        // Validate Entities in URLs
+	$str = _validate_entities($str);
+        
+         /*
+         * URL Decode
+         *
+         * Just in case stuff like this is submitted:
+         *
+         * <a href="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">Google</a>
+         *
+         * Note: Use rawurldecode() so it does not remove plus signs
+         *
+         */
         $str = rawurldecode($str);
-
+        
         /*
-        * Convert character entities to ASCII 
-        *
-        * This permits our tests below to work reliably.
-        * We only convert entities that are within tags since
-        * these are the ones that will pose security problems.
-        *
-        */
-
+         * Convert character entities to ASCII
+         *
+         * This permits our tests below to work reliably.
+         * We only convert entities that are within tags since
+         * these are the ones that will pose security problems.
+         *
+         */
         $str = preg_replace_callback("/[a-z]+=([\'\"]).*?\\1/si", '_convert_attribute', $str);
         $str = preg_replace_callback("/<\w+.*?(?=>|<|$)/si", '_html_entity_decode_callback', $str);
 
         /*
-        * Remove Invisible Characters Again!
-        */
-        $str = _remove_invisible_characters($str);
+         * Remove Invisible Characters Again!
+         */
+        $str = remove_invisible_characters($str);
 
         /*
         * Convert all tabs to spaces
@@ -439,6 +411,7 @@ if( ! function_exists('xss_clean') )
         *
         */
         $words = array('javascript', 'expression', 'vbscript', 'script', 'applet', 'alert', 'document', 'write', 'cookie', 'window');
+        
         foreach ($words as $word)
         {
             $temp = '';
@@ -597,46 +570,7 @@ if( ! function_exists('xss_hash') )
         return $_ob->security->xss_hash;
     }
 }
-// --------------------------------------------------------------------
 
-/**
-* Remove Invisible Characters
-*
-* This prevents sandwiching null characters
-* between ascii characters, like Java\0script.
-*
-* @access   public
-* @param    string
-* @return   string
-*/
-if( ! function_exists('_remove_invisible_characters') ) 
-{
-    function _remove_invisible_characters($str)
-    {
-        static $non_displayables;
-
-        if ( ! isset($non_displayables))
-        {
-            // every control character except newline (dec 10), carriage return (dec 13), and horizontal tab (dec 09),
-            $non_displayables = array(
-                                        '/%0[0-8bcef]/',            // url encoded 00-08, 11, 12, 14, 15
-                                        '/%1[0-9a-f]/',             // url encoded 16-31
-                                        '/[\x00-\x08]/',            // 00-08
-                                        '/\x0b/', '/\x0c/',         // 11, 12
-                                        '/[\x0e-\x1f]/'             // 14-31
-                                    );
-        }
-
-        do
-        {
-            $cleaned = $str;
-            $str = preg_replace($non_displayables, '', $str);
-        }
-        while ($cleaned != $str);
-
-        return $str;
-    }
-}
 // --------------------------------------------------------------------
 
 /**
@@ -904,6 +838,53 @@ if( ! function_exists('encode_php_tags') )
     function encode_php_tags($str)
     {
         return str_replace(array('<?php', '<?PHP', '<?', '?>'),  array('&lt;?php', '&lt;?PHP', '&lt;?', '?&gt;'), $str);
+    }
+}
+
+
+/**
+ * Validate URL entities
+ *
+ * Called by xss_clean()
+ *
+ * @param 	string	
+ * @return 	string
+ */
+if( ! function_exists('_validate_entities') ) 
+{
+    function _validate_entities($str)
+    {
+        /*
+         * Protect GET variables in URLs
+         */
+
+         // 901119URL5918AMP18930PROTECT8198
+
+        $str = preg_replace('|\&([a-z\_0-9\-]+)\=([a-z\_0-9\-]+)|i', xss_hash()."\\1=\\2", $str);
+
+        /*
+         * Validate standard character entities
+         *
+         * Add a semicolon if missing.  We do this to enable
+         * the conversion of entities to ASCII later.
+         *
+         */
+        $str = preg_replace('#(&\#?[0-9a-z]{2,})([\x00-\x20])*;?#i', "\\1;\\2", $str);
+
+        /*
+         * Validate UTF16 two byte encoding (x00)
+         *
+         * Just as above, adds a semicolon if missing.
+         *
+         */
+        $str = preg_replace('#(&\#x?)([0-9A-F]+);?#i',"\\1\\2;",$str);
+
+        /*
+         * Un-Protect GET variables in URLs
+         */
+        $str = str_replace(xss_hash(), '&', $str);
+
+        return $str;
     }
 }
 /* End of file security.php */

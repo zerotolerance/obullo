@@ -6,10 +6,9 @@ defined('BASE') or exit('Access Denied!');
 * Procedural Session Implementation With stdClass. 
 * Less coding, and More Control.
 * 
-* @author      Ersin Guvenc.
+* @author      Obullo Team.
 * 
 */
-Class SessionException extends CommonException {}
 
 if( ! isset($_ob->session)) 
 {
@@ -62,10 +61,12 @@ if( ! function_exists('sess_start'))
             if(file_exists($driver_file))
             {
                 require($driver_file);
+                
                 loader::$_base_helpers[$prefix . $driver.'_driver'] = $prefix . $driver.'_driver';
             }
             
             require(BASE .'helpers'. DS .'drivers'. DS .'session'. DS .$driver.'_driver'. EXT);
+            
             loader::$_base_helpers[$driver.'_driver'] = $driver.'_driver';
 
             _sess_start($params);

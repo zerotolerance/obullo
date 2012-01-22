@@ -36,9 +36,9 @@ defined('BASE') or exit('Access Denied!');
 * @param  array  $options construct parameters
 * @return string
 */
-if( ! function_exists('driver_lib')) 
+if( ! function_exists('lib_driver')) 
 {
-    function driver_lib($folder = '', $class = '', $options = array())
+    function lib_driver($folder = '', $class = '', $options = array())
     {
         $classname = ucfirst(strtolower($class));                            
         
@@ -46,17 +46,30 @@ if( ! function_exists('driver_lib'))
 
         if ( ! class_exists($classname)) 
         {
-            include_once $classfile;
+            include_once($classfile);
         }
-                
+        
         $classname = 'OB_'.$classname;
         $prefix    = config_item('subclass_prefix');  // MY_
+        $module    = core_class('Router')->fetch_directory();
         
-        if(file_exists(APP .'libraries'. DS .$prefix. $class. EXT))  // Application extend support
+        // Modules extend support
+        if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. DS .'drivers'. DS .$prefix. $class. EXT))  
         {
-            if ( ! class_exists($classname)) 
+            if ( ! class_exists($prefix. $class)) 
             {
-                require(APP .'libraries'. DS .$prefix. $class. EXT);
+                require(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. DS .'drivers'. DS .$prefix. $class. EXT);
+            }
+            
+            $classname = $prefix. $class;
+
+            profiler_set('libraries', 'php_'. $class . '_driver', $prefix . $class);
+        }
+        elseif(file_exists(APP .'libraries'. DS .'drivers'. DS .$prefix. $class. EXT))  // Application extend support
+        {
+            if ( ! class_exists($prefix. $class)) 
+            {
+                require(APP .'libraries'. DS .'drivers'. DS .$prefix. $class. EXT);
             }
             
             $classname = $prefix. $class;

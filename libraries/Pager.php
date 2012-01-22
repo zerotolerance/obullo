@@ -13,9 +13,11 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
  
+Class PagerException extends CommonException {}
+
 // ------------------------------------------------------------------------
 
-require_once 'drivers'. DS .'pager'. DS .'Pager_common.php';
+require_once ('drivers'. DS .'pager'. DS .'Pager_common.php');
 
 /**                 
  * Obullo Pager Class
@@ -48,9 +50,9 @@ Class OB_Pager
                                          
         loader::helper('core/driver');
                                             
-        // @todo lib('drivers/query/Query_Mysql_Compiler');
+        // @todo lib('driver/folder/classname', $options);
                                             
-        return driver_lib($folder = 'pager', $classname, $options);
+        return lib_driver($folder = 'pager', $classname, $options);
     }
 
 }

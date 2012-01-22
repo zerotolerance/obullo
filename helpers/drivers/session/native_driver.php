@@ -4,9 +4,9 @@ defined('BASE') or exit('Access Denied!');
 /**
 * Obullo Framework (c) 2010.
 * Procedural Session Implementation With stdClass. 
-* Less coding, Less Memory.
+* Less coding and More Control.
 * 
-* @author      Ersin Guvenc.
+* @author      Obullo Team.
 * @version     0.1
 * @version     0.2 added extend support
 * @version     0.3 added config_item('sess_die_cookie') and sess() func.

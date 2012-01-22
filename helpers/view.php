@@ -12,21 +12,12 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
 
-
-Class ViewException extends CommonException {}
-
 /**
  * Obullo View Helper
  *
  * @package     Obullo
  * @subpackage  Helpers
  * @category    Language
- * @author      Ersin Guvenc
- * @version     0.1
- * @version     0.2 added empty $data string support
- * @version     0.3 added set_view_folder function, added return , fail gracefully function for views.
- * @version     0.4 added img_folder to view_set_folder() function.
- * @version     0.5 renamed all function prefix as "view_".
  * @link
  */
 
@@ -314,27 +305,6 @@ if ( ! function_exists('_set_view_data'))
             $_ob->view->view_data = $data;
         }
   }
-}
-
-// ------------------------------------------------------------------------
-
-/**
-* Load inline script file from
-* base folder.
-*
-* @param string $filename
-* @param array  $data
-*/
-if( ! function_exists('script_base') )
-{
-    function script_base($filename = '', $data = '')
-    {
-        $file_info = lib('ob/view')->_load_file($filename, 'scripts', '', TRUE);
-
-        profiler_set('scripts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
-
-        return load_view($file_info['path'], $file_info['filename'], $data, TRUE, FALSE, 'script');
-    }
 }
 
 // ------------------------------------------------------------------------

@@ -66,5 +66,76 @@ if ( ! function_exists('xml_convert'))
     }    
 }
 
+// ------------------------------------------------------------------------
+
+/**
+* Convert array data to xml
+* 
+* @param array $data
+* @param string $xml
+* @return xml
+*/
+if( ! function_exists('xml_writer'))
+{
+    function xml_writer($data, $cdata = FALSE, $encoding = 'UTF-8')
+    { 
+        if ( ! extension_loaded('libxml') )
+        {
+            throw new Exception('PECL libxml extension not loaded on your server !');
+        }
+
+        $xml = new XMLWriter();
+        $xml->openMemory();
+        $xml->startDocument('1.0', $encoding);
+        $xml->startElement('root');
+        
+        _write_xml($xml, $data, $cdata);
+
+        $xml->endElement();
+        
+        return $xml->outputMemory(true);
+    }
+}
+// ------------------------------------------------------------------------
+
+/**
+ * Xml writer private function
+ * 
+ * @param XMLWriter $xml
+ * @param array $data
+ * @param boolen $cdata 
+ */
+if( ! function_exists('_write_xml'))
+{
+    function _write_xml($xml, $data, $cdata)
+    {
+        foreach($data as $key => $value)
+        {
+            if(is_array($value))
+            {
+               $xml->startElement($key);
+               
+                _write_xml($xml, $value, $cdata);
+                
+               $xml->endElement();
+
+               continue;
+            }
+
+            if($cdata) // full CDATA tags
+            {
+                $xml->startElement($key);
+                $xml->writeCData($value);
+                $xml->endElement();
+            } 
+            else
+            {   
+                $xml->writeElement($key, $value);
+            }
+        }
+    }
+}
+
+
 /* End of file xml.php */
 /* Location: ./obullo/helpers/xml.php */

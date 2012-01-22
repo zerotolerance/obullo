@@ -13,8 +13,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
 
-Class InputException extends CommonException {}
-
 // ------------------------------------------------------------------------
 
 if( ! isset($_ob->input))   // Helper Constructor
@@ -160,11 +158,14 @@ if( ! function_exists('_clean_input_data') )
         }
 
         // We strip slashes if magic quotes is on to keep things consistent
-        if (get_magic_quotes_gpc())
+        if (function_exists('get_magic_quotes_gpc') AND get_magic_quotes_gpc())
         {
             $str = stripslashes($str);
-        }
+        }  
 
+        // Remove control characters
+	$str = remove_invisible_characters($str);
+        
         // Should we filter the input data?
         if ($_ob->input->use_xss_clean === TRUE)
         {
@@ -622,6 +623,7 @@ if( ! function_exists('i_hmvc'))
         return FALSE;
     } 
 }
+// --------------------------------------------------------------------
 
 
 /* End of file input.php */

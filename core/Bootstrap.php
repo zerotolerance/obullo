@@ -22,9 +22,7 @@ defined('BASE') or exit('Access Denied!');
  * @subpackage      Obullo.core
  * @category        Front Controller
  * @version         1.0
- */  
-
-Class CommonException extends Exception {};
+ */
 
 //  Include application header files.
 // -------------------------------------------------------------------- 
@@ -80,13 +78,13 @@ if( ! function_exists('ob_system_run'))
         _sanitize_globals();  // Initalize to input filter. ( Sanitize must be above the GLOBALS !! )             
                                   
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
-        $GLOBALS['s']   = $router->fetch_subfolder();   // Check subfolder exist
+        $GLOBALS['s']   = $router->fetch_subfolder();   // Get subfolder if exists
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
         $output    = core_class('Output');
         $config    = core_class('Config'); 
-        
+                
         if ($output->_display_cache($config, $uri) == TRUE) { exit; }  // Check REQUEST uri if there is a Cached file exist 
         
         $folder = 'controllers';
@@ -95,7 +93,7 @@ if( ! function_exists('ob_system_run'))
         {                
             if($GLOBALS['d'] != 'tasks')    // Check module and application folders.
             {                                      
-                if(is_dir(MODULES .$GLOBALS['d']. DS .'tasks'))
+                if(is_dir(MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'tasks'))
                 {
                     $folder = 'tasks';
                 } 
@@ -106,7 +104,7 @@ if( ! function_exists('ob_system_run'))
         {
             $page_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
             
-            $controller = MODULES .$GLOBALS['d']. DS .$folder. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
+            $controller = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .$folder. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
             
             if(defined('CMD')) // call /app/tasks controller
             {
@@ -132,7 +130,7 @@ if( ! function_exists('ob_system_run'))
         {
             $page_uri = "{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
             
-            $controller = MODULES .$GLOBALS['d']. DS .$folder. DS .$GLOBALS['c']. EXT;
+            $controller = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .$folder. DS .$GLOBALS['c']. EXT;
             
             if(defined('CMD'))  // call /app/tasks controller
             {
@@ -151,7 +149,7 @@ if( ! function_exists('ob_system_run'))
             
             $arg_slice  = 3;
         }
-        
+
         require (BASE .'core'. DS .'Controller'. EXT);  // We load Model File with a 'ob_autoload' function which is
                                                         // located in obullo/core/common.php.
                                                                    

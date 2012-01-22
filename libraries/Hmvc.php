@@ -70,6 +70,10 @@ Class OB_Hmvc
     public static $start_time    = '';        // benchmark start time for profiler
     public static $request_count = 0;         // request count for profiler
 
+    // Rendering Output
+    public $decode_format    = '';    // Json, Xml ..
+    public $decode_assoc     = FALSE; // if true decode as (array) else decode as (object)
+    
     public function __construct()
     {
         log_me('debug', "HMVC Class Initialized");
@@ -90,45 +94,66 @@ Class OB_Hmvc
         $this->_set_conn_string($hmvc_uri);
 
         // Don't clone this(), we just do backup.
+        #######################################
+        
         $this->_this  = this();      // We need create backup $this object of main controller
                                      // becuse of it will change when using HMVC requests.
+        
+        #######################################
+        
         if($hmvc_uri != '')
         {
-            $URI    = core_class('URI');
-            $Router = core_class('Router');
+            $URI     = core_class('URI');
+            $Router  = core_class('Router');
+            $Config  = core_class('Config');
+            $Storage = load_class('Storage');
+            
+            # CLONE
+            #######################################
+            
+            $this->uri     = clone $URI;     // Create copy of original URI class.
+            $this->router  = clone $Router;  // Create copy of original Router class.
+            $this->config  = clone $Config;  // Create copy of original Config class.
+            $this->storage = clone $Storage; // Create copy of original Storage class and it's Objects.
 
-            $this->uri    = clone $URI;     // Create copy of original URI class.
-            $this->router = clone $Router;  // Create copy of original Router class.
-            $this->config = clone core_class('Config');  // Create copy of original Config class.
-            $this->storage = clone load_class('Storage'); // Create copy of original Storage class and it's Objects.
+            # CLEAR
+            #######################################
 
             $URI->clear();           // Reset uri objects we will reuse it for hmvc
             $Router->clear();        // Reset router objects we will reuse it for hmvc.
 
+            #######################################
+            
             $Router->hmvc = TRUE;    // We need to know Router class whether to use HMVC.
 
+            #######################################
+            
             $this->cache_time = $cache_time;
-            $this->uri_string = $URI->_filter_uri($hmvc_uri);   // secure URLS
+            $this->uri_string = $hmvc_uri;
 
             if(strpos($this->uri_string, '?') > 0)
             {
                 $uri_part = explode('?', urldecode($this->uri_string));  // support any possible url encode operation
                 $this->query_string = $uri_part[1];
 
-                $URI->set_uri_string($uri_part[0]);
+                $URI->set_uri_string($uri_part[0], FALSE); // FALSE null filter
             }
             else
             {
                 $URI->set_uri_string($this->uri_string);
             }
+                    
+            $Router->_detect_sub_module(); 
+            $this->hmvc_connect = $Router->_set_routing();      
 
-            $this->hmvc_connect = $Router->_set_routing();
-
+            // echo $Router->fetch_directory();
+            // echo $URI->fetch_sub_module();
+            
             return $this;
         }
 
         $this->uri_string = '';
-        
+
         return $this;
     }
 
@@ -341,7 +366,7 @@ Class OB_Hmvc
             {                                        // in Application or Module Controller.
                 $this->_reset_router(TRUE);
 
-                return $this->response();
+                return $this->_response();
             }
 
             self::$_conn_id[$conn_id] = $conn_id;    // store connection id.
@@ -360,19 +385,21 @@ Class OB_Hmvc
             $this->set_response($router->hmvc_response);
             $this->_reset_router();
 
-            return $this->response();
+            return $this->_response();
         }
-
+        
+        // Get possible sub.modules directory
+        $GLOBALS['sub_path'] = ($URI->fetch_sub_module() == '') ? '' : 'sub.'.$URI->fetch_sub_module(). DS .'modules'. DS;
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
         $GLOBALS['s']   = $router->fetch_subfolder();   // Get requested subfolder
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
-
+        
         // A Hmvc uri must be unique otherwise may collission with standart uri, 
         // also we need it for cache functionality.
         $URI->uri_string = rtrim($URI->uri_string, '/').'/__ID__'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
-
+    
         ob_start();
 
         if($output->_display_cache($config, $URI, TRUE) !== FALSE) // Check request uri if there is a HMVC cached file exist.
@@ -383,25 +410,25 @@ Class OB_Hmvc
 
             $this->_reset_router();
 
-            return $this->response();
+            return $this->_response();
         }
 
         if(ob_get_level() > 0) ob_end_clean();
-
+        
         if($GLOBALS['s'] != '')  // sub folder request ?
         {
             $hmvc_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
 
-            $controller = MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
+            $controller = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
             
             // Check the sub controller exists or not
             if ( ! file_exists($controller))
             {
-                $this->set_response('404 - Hmvc request not found: '.$hmvc_uri);
+                $this->set_response('404 - Hmvc request not found: Hmvc unable to load your controller.');
 
                 $this->_reset_router();
                 
-                return $this->response();
+                return $this->_response();
             }
 
             $arg_slice  = 4;
@@ -413,16 +440,16 @@ Class OB_Hmvc
         {
             $hmvc_uri = "{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
 
-            $controller = MODULES .$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
+            $controller = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
             
             // Check the controller exists or not
             if ( ! file_exists($controller))
             {
-                $this->set_response('Hmvc unable to load your controller. Check your routes in Routes.php file is valid.');
+                $this->set_response('404 - Hmvc request not found: Hmvc unable to load your controller.');
 
                 $this->_reset_router();
 
-                return $this->response();
+                return $this->_response();
             }
             
             $arg_slice  = 3;
@@ -442,7 +469,7 @@ Class OB_Hmvc
 
             $this->_reset_router();
 
-            return $this->response();
+            return $this->_response();
         }
 
         // If Everyting ok Declare Called Controller !
@@ -455,7 +482,7 @@ Class OB_Hmvc
 
             $this->_reset_router();
 
-            return $this->response();
+            return $this->_response();
         }
         
         ob_start();
@@ -485,9 +512,7 @@ Class OB_Hmvc
                        
         log_me('debug', 'Hmvc process completed succesfully.');
         
-        return $this->response();
-        
-        return $this;
+        return $this->_response();
     }
 
     // --------------------------------------------------------------------
@@ -502,27 +527,39 @@ Class OB_Hmvc
     protected function _reset_router($no_loop = FALSE)
     {
         $GLOBALS['PUT'] = $_SERVER = $_POST = $_GET = $_REQUEST = array();
-        $_GET     = $this->_GET_BACKUP;           // Assign global variables we copied before ..
+        
+        # Assign global variables we copied before ..
+        ######################################
+        
+        $_GET     = $this->_GET_BACKUP;           
         $_POST    = $this->_POST_BACKUP;
         $_SERVER  = $this->_SERVER_BACKUP;
         $_REQUEST = $this->_REQUEST_BACKUP;
 
-        // Set original objects foreach HMVC requests we backup before  ..
+        # Set original objects foreach HMVC requests we backup before  ..
+        ######################################
+        
         $URI = core_class('URI');
 
-        $this->_this->uri    = core_class('URI', $this->uri);
-        $this->_this->router = core_class('Router', $this->router);
-        $this->_this->config = core_class('Config', $this->config);
+        $this->_this->uri     = core_class('URI', $this->uri);
+        $this->_this->router  = core_class('Router', $this->router);
+        $this->_this->config  = core_class('Config', $this->config);
         $this->_this->storage = load_class('Storage', $this->storage);
 
         this($this->_this);         // Set original $this to controller instance that we backup before
+    
+        # Assign Obullo global variables ..
+        ######################################
 
-        $GLOBALS['d']   = $this->router->fetch_directory();   // Assign Original Router methods we copied before
+        $GLOBALS['sub_path'] = ($this->uri->fetch_sub_module() == '') ? '' : 'sub.'.$this->uri->fetch_sub_module(). DS .'modules'. DS;
+        $GLOBALS['d']   = $this->router->fetch_directory();   
         $GLOBALS['s']   = $this->router->fetch_subfolder();
         $GLOBALS['c']   = $this->router->fetch_class();
         $GLOBALS['m']   = $this->router->fetch_method();
 
         $this->clear();  // reset all HMVC variables.
+        
+        ######################################
 
         if($no_loop == FALSE)
         {
@@ -574,17 +611,40 @@ Class OB_Hmvc
     // --------------------------------------------------------------------
 
     /**
-    * Get final hmvc output.
-    *
-    * @return   string
+    * Get none-decoded original Hmvc
+    * response.
+    * 
+    * @return string
     */
     public function response()
     {
         return $this->response;
     }
+   
+    // --------------------------------------------------------------------
+    
+    /**
+    * Render final hmvc output.
+    *
+    * @access private
+    * @return   string
+    */
+    public function _response()
+    {   
+        if($this->decode_format == 'json')
+        {
+           $row = json_decode($this->response(), $this->decode_assoc);
+            
+           $this->_reset_decode_vars();
+            
+           return $row;
+        }
+        
+        return $this->response();
+    }
 
     // --------------------------------------------------------------------
-
+    
     /**
     * Create HMVC connection string next
     * we will convert it to connection id.
@@ -630,6 +690,37 @@ Class OB_Hmvc
         }
 
         $this->is_reset = FALSE;
+    }
+
+    // --------------------------------------------------------------------
+    
+    /**
+    * Decode encoded string.
+    * Default json.
+    * 
+    * @return object
+    */
+    public function decode($format = 'json', $assoc = FALSE)
+    {
+        $this->decode_format = strtolower($format);
+        $this->decode_assoc  = (bool)$assoc; // else decode as object
+        
+        return $this;
+    }
+    
+    // --------------------------------------------------------------------
+
+    /**
+    * Reset the decoding variables 
+    * before return to hmvc response.  
+    * 
+    * @access private
+    * @return void 
+    */
+    public function _reset_decode_vars()
+    {
+        $this->decode_format = '';
+        $this->decode_assoc  = FALSE;
     }
     
     

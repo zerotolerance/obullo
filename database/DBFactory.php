@@ -131,7 +131,7 @@ Class OB_DBFactory {
              break;
            
           default:
-          throw new DBFactoryException('This Database Driver does not support: '. $dbdriver); 
+          throw new DBFactoryException('Obullo database library does not support: '. $dbdriver); 
            
         } // end switch.
         
@@ -143,7 +143,7 @@ Class OB_DBFactory {
         
         if ( ! in_array($dbdriver, PDO::getAvailableDrivers()))  // check the PDO driver is available
         {
-            throw new DBFactoryException('The ' . $dbdriver . ' driver is not currently installed on your server !');
+            throw new DBFactoryException('The PDO' . $dbdriver . ' driver is not currently installed on your server !');
         }
         
         $driver_class = 'Obullo_DB_Driver_'.ucfirst($driver_name);
