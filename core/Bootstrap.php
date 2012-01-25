@@ -92,7 +92,7 @@ if( ! function_exists('ob_system_run'))
         if(defined('CMD'))  // Command Line Request
         {                
             if($GLOBALS['d'] != 'tasks')    // Check module and application folders.
-            {                                      
+            {                    
                 if(is_dir(MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'tasks'))
                 {
                     $folder = 'tasks';

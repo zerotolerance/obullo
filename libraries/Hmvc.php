@@ -146,9 +146,6 @@ Class OB_Hmvc
             $Router->_detect_sub_module(); 
             $this->hmvc_connect = $Router->_set_routing();      
 
-            // echo $Router->fetch_directory();
-            // echo $URI->fetch_sub_module();
-            
             return $this;
         }
 

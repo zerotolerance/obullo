@@ -51,8 +51,14 @@ if( ! function_exists('log_write') )
         {
             $config = core_class('Config');
             $router = core_class('Router');
+            $uri    = core_class('URI');
             
             $log_path = MODULES .$GLOBALS['sub_path'].$router->fetch_directory() . DS .'core'. DS .'logs'. DS;
+            
+            if(is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs'))
+            {
+                $log_path = MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs'. DS;
+            }
             
             if($config->item('log_path') != '')
             {
@@ -79,7 +85,7 @@ if( ! function_exists('log_write') )
             $log_path = rtrim($log_path, DS) . DS .'cmd' . DS; 
         }         
         
-        if ( ! is_dir($log_path) OR ! is_really_writable($log_path))
+        if ( ! is_dir(rtrim($log_path, DS)) OR ! is_really_writable(rtrim($log_path, DS)))
         {
             $enabled = FALSE;
         }

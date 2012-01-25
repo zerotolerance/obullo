@@ -642,18 +642,25 @@ function log_me($level = 'error', $message = '', $php_error = FALSE, $core_level
                                // otherwise log functionality not works.
         
         $router = core_class('Router');  // If current module /logs dir exists
-                                      // write module logs into current module.
-        if (is_object($router))
-        {
+        $uri    = core_class('URI');     // write module logs into current module.
+        
+        if (is_object($router) AND is_object($uri))
+        {   
+            $config = core_class('Config');
+
+            if ($config->item('log_threshold') == 0)
+            {
+                return;
+            }
+            
             if (is_dir(MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS . 'logs'))
             {
-                $config = core_class('Config');
+                log_write($level, $message, $php_error, TRUE);
 
-                if ($config->item('log_threshold') == 0)
-                {
-                    return;
-                }
-
+                return;
+            }
+            elseif(is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs')) // Sub module
+            {
                 log_write($level, $message, $php_error, TRUE);
 
                 return;

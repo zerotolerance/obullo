@@ -384,7 +384,7 @@ Class OB_Output {
         
         //----------- SUB MODULES AND MODULES SUPPORT -------------//
 
-        if ( ! is_dir($cache_path) OR ! is_really_writable($cache_path))
+        if ( ! is_dir(rtrim($cache_path, DS)) OR ! is_really_writable(rtrim($cache_path, DS)))
         {
             return;
         }
