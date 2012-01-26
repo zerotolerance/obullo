@@ -44,15 +44,14 @@ if( ! function_exists('element') )
 {
     function element($item, $array, $default = FALSE)
     {
-	    if ( ! isset($array[$item]) OR $array[$item] == "")
-	    {
-		    return $default;
-	    }
+        if ( ! isset($array[$item]) OR $array[$item] == "")
+        {
+            return $default;
+        }
 
-	    return $array[$item];
+        return $array[$item];
     }
 }	
-
 
 // ------------------------------------------------------------------------
 
@@ -67,13 +66,88 @@ if( ! function_exists('random_element') )
 {
     function random_element($array)
     {
-	    if ( ! is_array($array))
-	    {
-		    return $array;
-	    }
-	    return $array[array_rand($array)];
+        if ( ! is_array($array))
+        {
+            return $array;
+        }
+        
+        return $array[array_rand($array)];
     }
 }	
+
+// ------------------------------------------------------------------------
+
+/**
+* Convert Array to Object
+* 
+* @param array $array
+* @return stdClass 
+*/
+if( ! function_exists('array_to_object') ) 
+{
+    function array_to_object($array)
+    {
+        if( ! is_array($array))
+        {
+            return $array;
+        }
+
+        $object = new stdClass();
+        
+        if (is_array($array) AND count($array) > 0)
+        {
+            foreach ($array as $key => $value)
+            {
+                $key = strtolower(trim($key));
+
+                if ( ! empty($key))
+                {
+                    $object->{$name} = array_to_object($value);
+                }
+            }
+        }
+        else
+        {
+            return FALSE;
+        }
+
+        return $object; 
+    }
+}
+
+// ------------------------------------------------------------------------
+    
+/**
+* Convert object variables
+* to array.
+* 
+* @param object $object
+* @return array 
+*/
+if( ! function_exists('object_to_array') ) 
+{
+    function object_to_array($object)
+    {
+        return (is_object($object)) ? get_object_vars($object) : $object;
+    }
+}
+
+// -------------------------------------------------------------------- 
+
+/**
+* Check Array is_associative
+* or not.
+* 
+* @param type $a
+* @return type 
+*/
+if( ! function_exists('is_assoc_array')) 
+{
+    function is_assoc_array( $a )
+    {
+        return is_array( $a ) && ( count( $a ) !== array_reduce( array_keys( $a ), create_function( '$a, $b', 'return ($b === $a ? $a + 1 : 0);' ), 0 ) );
+    }
+}
 
 
 /* End of file array.php */

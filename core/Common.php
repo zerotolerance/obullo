@@ -1025,23 +1025,6 @@ if( ! function_exists('show_http_error'))
 // -------------------------------------------------------------------- 
 
 /**
- * Check Array is_associative
- * or not.
- * 
- * @param type $a
- * @return type 
- */
-if( ! function_exists('is_assoc_array')) 
-{
-    function is_assoc_array( $a )
-    {
-        return is_array( $a ) && ( count( $a ) !== array_reduce( array_keys( $a ), create_function( '$a, $b', 'return ($b === $a ? $a + 1 : 0);' ), 0 ) );
-    }
-}
-
-// -------------------------------------------------------------------- 
-
-/**
  * Remove Invisible Characters
  *
  * This prevents sandwiching null characters

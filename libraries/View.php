@@ -72,7 +72,9 @@ Class OB_View {
         
         if( empty($data) ) $data = array();
 
-        $data = view_object_to_array($data);
+        loader::helper('ob/array');
+        
+        $data = object_to_array($data);
 
         if(sizeof($data) > 0) { extract($data, EXTR_SKIP); }
 

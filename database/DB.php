@@ -226,6 +226,8 @@ Class OB_DB extends OB_DBAc_sw {
     {
         if(is_array($array))
         {
+            loader::helper('ob/array');
+            
             if( ! is_assoc_array($array))
             {
                 throw new DBException(lang('db_bind_data_must_assoc'));
@@ -324,8 +326,10 @@ Class OB_DB extends OB_DBAc_sw {
     */
     public function last_query($prepared = FALSE)
     {
+        loader::helper('ob/array');
+        
         // let's make sure, is it prepared query ?
-        if($prepared == TRUE AND self::_is_assoc($this->last_values))
+        if($prepared == TRUE AND is_assoc_array($this->last_values))
         {
             $bind_keys = array();
             foreach(array_keys($this->last_values[$this->exec_count]) as $k)

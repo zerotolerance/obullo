@@ -116,6 +116,8 @@ Class Controller {
 
         if(is_array($autoload))
         {
+            loader::helper('ob/array');
+            
             foreach(array_keys($autoload) as $key)
             {
                 if(count($autoload[$key]) > 0)

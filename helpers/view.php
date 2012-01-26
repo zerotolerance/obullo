@@ -334,24 +334,5 @@ if ( ! function_exists('load_view'))
     }
 }
 
-// ------------------------------------------------------------------------
-
-/**
-* Object to Array
-*
-* Takes an object as input and converts the class variables to array key/vals
-*
-* @access   private
-* @param    object
-* @return   array
-*/
-if ( ! function_exists('view_object_to_array'))
-{
-    function view_object_to_array($object)
-    {
-        return (is_object($object)) ? get_object_vars($object) : $object;
-    }
-}
-
 /* End of file view.php */
 /* Location: ./obullo/helpers/view.php */
