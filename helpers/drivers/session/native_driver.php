@@ -17,7 +17,7 @@ if( ! function_exists('_sess_start') )
     {                       
         log_me('debug', "Session Native Driver Initialized"); 
 
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
 
         foreach (array('sess_expiration', 'sess_match_ip', 'sess_die_cookie',
         'sess_match_useragent', 'sess_cookie_name', 'cookie_path', 'cookie_domain', 
@@ -132,7 +132,7 @@ if( ! function_exists('sess_destroy') )
 {
     function sess_destroy()
     {   
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         unset($_SESSION);
         
@@ -263,7 +263,7 @@ if( ! function_exists('_session_id_expired') )
 { 
     function _session_id_expired()
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         if ( ! isset( $_SESSION['regenerated'] ) )
         {
@@ -295,7 +295,7 @@ if( ! function_exists('sess_set_flash') )
 { 
     function sess_set_flash($newdata = array(), $newval = '')  // ( obullo changes ... )
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         if (is_string($newdata))
         {
@@ -325,7 +325,7 @@ if( ! function_exists('sess_keep_flash') )
 { 
     function sess_keep_flash($key) // ( obullo changes ...)
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         // 'old' flashdata gets removed.  Here we mark all 
         // flashdata as 'new' to preserve it from _flashdata_sweep()
@@ -357,7 +357,7 @@ if( ! function_exists('sess_get_flash') )
 { 
     function sess_get_flash($key, $prefix = '', $suffix = '')  // obullo changes ...
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         $flashdata_key = $_ob->session->flashdata_key.':old:'.$key;
         
@@ -399,7 +399,7 @@ if( ! function_exists('_flashdata_mark') )
 { 
     function _flashdata_mark()
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         $userdata = sess_alldata();
         foreach ($userdata as $name => $value)
@@ -448,7 +448,7 @@ if( ! function_exists('_get_time') )
 {
     function _get_time()
     {   
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         $time = time();
         if (strtolower($_ob->session->time_reference) == 'gmt')

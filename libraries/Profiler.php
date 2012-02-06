@@ -2,13 +2,13 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2010.
+ * @copyright       Obull Team (c) 2010.
  * @filesource
  * @license
  */
@@ -52,7 +52,7 @@ Class OB_Profiler {
      {
          $profile = array();
          
-         $_ob = load_class('Storage');
+         $_ob = lib('ob/Storage');
           
          foreach ($_ob->benchmark->marker as $key => $val)
          {
@@ -496,19 +496,21 @@ Class OB_Profiler {
         $helpers  = '';
         foreach(loader::$_helpers as $helper) { $helpers .= error_secure_path($helper) .'<br />'; }
         
-        $libraries  = '';
-        foreach(profiler_get('libraries') as $lib_key => $lib) 
+        $ob_libraries  = '';
+        foreach(profiler_get('ob_libraries') as $lib_key => $lib) 
         { 
             if(strpos($lib, $subclass_prefix) === 0)
             {
-                $libraries .= str_replace($subclass_prefix, "<span class='subclass_prefix'>$subclass_prefix</span>", error_secure_path($lib)).'<br />';
+                $ob_libraries .= str_replace($subclass_prefix, "<span class='subclass_prefix'>$subclass_prefix</span>", error_secure_path($lib)).'<br />';
             } 
             else
             {
-                $libraries .= error_secure_path($lib) .'<span class="class_operations"> (' . $lib_key . ') </span><br />'; 
+                $ob_libraries .= error_secure_path($lib) .'<span class="class_operations"> (' . $lib_key . ') </span><br />'; 
             }
-
         }
+        
+        $libraries  = '';
+        foreach(profiler_get('libraries') as $libs) { $libraries .= error_secure_path($libs) .'<br />'; }
         
         $models  = '';
         foreach(profiler_get('models') as $mod) { $models .= error_secure_path($mod) .'<br />'; }
@@ -534,6 +536,7 @@ Class OB_Profiler {
         $base_helpers   = (isset($base_helpers{2}))   ? $base_helpers : '-';
         $app_helpers    = (isset($app_helpers{2}))    ? $app_helpers : '-';
         $helpers        = (isset($helpers{2}))        ? $helpers : '-';
+        $ob_libraries   = (isset($ob_libraries{2}))   ? $ob_libraries : '-';
         $libraries      = (isset($libraries{2}))      ? $libraries : '-';
         $models         = (isset($models{2}))         ? $models : '-';
         $databases      = (isset($databases{2}))      ? $databases : '-';
@@ -553,7 +556,8 @@ Class OB_Profiler {
         $output .= "<tr><td class=\"td\">Autoload Data&nbsp;&nbsp;</td><td class=\"td_val\">" .$autoloads."</td></tr>";
         $output .= "<tr><td class=\"td\">Autorun Functions&nbsp;&nbsp;</td><td class=\"td_val\">".$autorun."</td></tr>";
         $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$helpers."</td></tr>";
-        $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Obullo Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$ob_libraries."</td></tr>";
+        $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";  
         $output .= "<tr><td class=\"td\">Models&nbsp;&nbsp;</td><td class=\"td_val\">".$models."</td></tr>";    
         $output .= "<tr><td class=\"td\">Databases&nbsp;&nbsp;</td><td class=\"td_val\">".$databases."</td></tr>";      
         $output .= "<tr><td class=\"td\">Views&nbsp;&nbsp;</td><td class=\"td_val\">".$views."</td></tr>";    

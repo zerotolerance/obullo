@@ -4,12 +4,13 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @subpackage      Obullo.core
  * @category        Front Controller     
  * @author          obullo.com
+ * @copyright       Obullo Team
  * @since           Version 1.0
  * @version         0.1
  * @version         0.2 added unset object
@@ -19,8 +20,8 @@ defined('BASE') or exit('Access Denied!');
  
 Abstract Class Obullo_Registry
 {
-    abstract protected function get($key);
-    abstract protected function set($key, $val);
+    abstract protected function get($level, $key);
+    abstract protected function set($level, $key, $val);
 } 
  
 Class OB_Registry extends Obullo_Registry {
@@ -37,7 +38,7 @@ Class OB_Registry extends Obullo_Registry {
     * @access public 
     */  
     public static function instance()
-    {
+    {        
         if( ! isset(self::$instance))
         {
             self::$instance = new self();
@@ -55,12 +56,13 @@ Class OB_Registry extends Obullo_Registry {
     * @param    string $key
     * @return   object | NULL.
     */
-    protected function get($key)
+    protected function get($level = 'core', $key)
     {
-        if(isset(self::$objs[$key]))
+        if(isset(self::$objs[$level][$key]))
         {
-            return self::$objs[$key];
+            return self::$objs[$level][$key];
         }
+        
         return NULL;
     }
 
@@ -73,9 +75,9 @@ Class OB_Registry extends Obullo_Registry {
     * @param    string $key
     * @param    object $val
     */
-    protected function set($key,$val)
+    protected function set($level = 'core', $key, $val)
     {
-        self::$objs[$key] = $val;
+        self::$objs[$level][$key] = $val;
     }
 
     // --------------------------------------------------------------------
@@ -87,9 +89,9 @@ Class OB_Registry extends Obullo_Registry {
     * @param    string $key
     * @param    object $val
     */
-    public static function unset_object($key)
+    public static function unset_object($level = 'core', $key)
     {
-        unset(self::$objs[$key]);
+        unset(self::$objs[$level][$key]);
     }
     
     // --------------------------------------------------------------------
@@ -100,9 +102,9 @@ Class OB_Registry extends Obullo_Registry {
     * @param    string $key
     * @return   object
     */
-    public static function get_object($key)
+    public static function get_object($level = 'core', $key)
     {
-        return self::instance()->get($key);
+        return self::instance()->get($level, $key);
     }
     
     // --------------------------------------------------------------------
@@ -113,9 +115,9 @@ Class OB_Registry extends Obullo_Registry {
     * @param    string $key
     * @param    object $instance
     */
-    public static function set_object($key, $instance)
+    public static function set_object($level = 'core', $key, $instance)
     {
-        return self::instance()->set($key, $instance);
+        return self::instance()->set($level, $key, $instance);
     }
 
 }

@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @author          obullo.com
@@ -17,7 +17,7 @@ defined('BASE') or exit('Access Denied!');
 
 if( ! isset($_ob->input))   // Helper Constructor
 {
-    $_ob = load_class('Storage');
+    $_ob = lib('ob/Storage');
     $_ob->input = new stdClass();
 
     $_ob->input->use_xss_clean      = FALSE;
@@ -25,7 +25,7 @@ if( ! isset($_ob->input))   // Helper Constructor
     $_ob->input->user_agent         = FALSE;
     $_ob->input->allow_get_array    = FALSE;
 
-    $_config = core_class('Config');
+    $_config = lib('ob/Config');
 
     $_ob->input->use_xss_clean      = ($_config->item('global_xss_filtering') === TRUE) ? TRUE : FALSE;
     $_ob->input->allow_get_array    = ($_config->item('enable_query_strings') === TRUE) ? TRUE : FALSE;
@@ -49,7 +49,7 @@ if( ! function_exists('_sanitize_globals') )
 {
     function _sanitize_globals()
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
 
         // Would kind of be "wrong" to unset any of these GLOBALS
         $protected = array('_SERVER', '_GET', '_POST', '_FILES', '_REQUEST', '_SESSION', '_ENV', '_controller',
@@ -145,7 +145,7 @@ if( ! function_exists('_clean_input_data') )
 {
     function _clean_input_data($str)
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
 
         if (is_array($str))
         {
@@ -378,7 +378,7 @@ if( ! function_exists('i_ip_address') )
 {
     function i_ip_address()
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
 
         if ($_ob->input->ip_address !== FALSE)
         {
@@ -482,7 +482,7 @@ if( ! function_exists('i_user_agent') )
 {
     function i_user_agent()
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
 
         if ($_ob->input->user_agent !== FALSE)
         {
@@ -615,7 +615,7 @@ if( ! function_exists('i_hmvc'))
 {
     function i_hmvc()
     {    
-        if(core_class('Router')->is_hmvc())
+        if(lib('ob/Router')->is_hmvc())
         {
             return TRUE;
         }

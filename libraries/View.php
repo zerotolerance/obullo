@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @author          obullo.com
@@ -31,6 +31,54 @@ Class ViewException extends CommonException {}
 
 Class OB_View {
     
+    public $view_folder       = '';
+    public $layout_folder     = '';
+    public $layout_folder_msg = FALSE;
+    public $css_folder        = '/';
+    public $img_folder        = '/';
+
+    public $view_var          = array(); // String type view variables
+    public $view_array        = array(); // Array type view variables
+    public $view_data         = array(); // Mixed type view variables
+    public $layout_name       = '';
+    
+    /**
+    * Constructor
+    *
+    * Sets the View variables and runs the compilation routine
+    *
+    * @version   0.1
+    * @access    public
+    * @return    void
+    */
+    public function __construct()
+    {
+        $this->view_folder      = DS .'';
+        $this->layout_folder    = DS .'';
+        
+        log_me('debug', "View Class Initialized");
+    }
+    
+    // ------------------------------------------------------------------------
+
+    /**
+    * Main view load function
+    *
+    * @access   private
+    * @param    string   $path file path
+    * @param    string   $filename
+    * @param    array    $data template vars
+    * @param    boolean  $string
+    * @param    boolean  $return
+    * @return   void
+    */
+    public function load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
+    {
+        return $this->view($path, $filename, $data, $string, $return, $func);
+    }
+    
+    // ------------------------------------------------------------------------
+    
     /**
     * Load view files.
     * 
@@ -44,39 +92,39 @@ Class OB_View {
     */
     public function view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
-        $_ob = load_class('Storage');
-        
-        foreach (get_object_vars(this()) as $_ob_key => $_ob_var) // This allows using "$this" variable in views files.
+        if(is_object(this()))
         {
-            if ( ! isset($this->$_ob_key))
+            foreach(array_keys(get_object_vars(this())) as $key) // This allows to using "$this" variable in all views files.
             {
-                $this->{$_ob_key} =& this()->$_ob_key;
+                if ( ! isset($this->$key))
+                {
+                    $this->{$key} = &this()->$key;
+                }             
             }
         }
         
-        _set_view_data($data);
-        
-	$data = $_ob->view->view_data;
+        //-----------------------------------
+                
+        $data = $this->_set_view_data($data); // Enables you to set data that is persistent in all views.
+
+        //-----------------------------------
         
         if ( ! file_exists($path . $filename . EXT) )
         {
             if($return)
             {
-                log_me('debug', ucfirst($func).' file failed gracefully: '. $path . $filename . EXT);
+                log_me('debug', ucfirst($func).' file failed gracefully: '. error_secure_path($path). $filename . EXT);
 
                 return;     // fail gracefully
             }
 
-            throw new ViewException('Unable locate the '.$func.' file: '. $path . $filename . EXT);
+            throw new ViewException('Unable locate the '.$func.' file: '. error_secure_path($path). $filename . EXT);
         }
-        
-        if( empty($data) ) $data = array();
 
-        loader::helper('ob/array');
-        
-        $data = object_to_array($data);
-
-        if(sizeof($data) > 0) { extract($data, EXTR_SKIP); }
+        if(is_array($data) AND count($data) > 0) 
+        { 
+            extract($data, EXTR_SKIP); 
+        }
 
         ob_start();
 
@@ -93,18 +141,21 @@ Class OB_View {
             include($path . $filename . EXT);
         }
 
-        log_me('debug', ucfirst($func).' file loaded: '.$path . $filename . EXT);
+        log_me('debug', ucfirst($func).' file loaded: '.error_secure_path($path). $filename . EXT);
 
         if($string === TRUE)
         {
-            $content = ob_get_contents();
+            $output = ob_get_contents();
             @ob_end_clean();
 
-            return $content;
+            return $output;
         }
-
-        // Set Global views inside to Output Class for caching functionality..
-        core_class('Output')->append_output(ob_get_contents());
+        
+        // Render possible Exceptional errors.
+        $output = ob_get_contents();
+        
+        // Set Layout views inside to Output Class for caching functionality.
+        lib('ob/Output')->append_output($output);
 
         @ob_end_clean();
 
@@ -116,14 +167,14 @@ Class OB_View {
     /**
     * Load view file private function.
     * 
-    * @param type $file_url
-    * @param type $folder
+    * @param string $file_url
+    * @param string $folder
     * @param string $extra_path
-    * @param type $base
-    * @param type $custom
-    * @return type 
+    * @param bool $base
+    * @param bool $custom
+    * @return array 
     */
-    function _load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE, $custom = FALSE)
+    function _load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE)
     {
         $sub_module_path  = $GLOBALS['sub_path'];
         $application_view = FALSE;
@@ -147,31 +198,25 @@ Class OB_View {
             return array('filename' => $file_url, 'path' => BASE .$folder. DS);
         }
         
-        if($custom) 
-        {
-            return array('filename' => $file_url, 'path' => BASE .$folder. DS);
-        }
-        
-        $extension = FALSE;
-     
-        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
+        if(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
         {
             $sub_module_path = ''; // clear sub module path
             
-            $paths          = explode('/', $file_url); 
+            $paths          = explode('/', substr($file_url, 3)); 
             $filename       = array_pop($paths);       // get file name
             $sub_modulename = array_shift($paths);     // get sub module name
             $modulename     = array_shift($paths);     // get module name
             
-            $sub_module_path = $sub_modulename. DS .'modules'. DS;
+            $sub_module_path = $sub_modulename. DS .SUB_MODULES;
             
-            /*
-            if(is_extension($sub_modulename, $module))
+            $sub_path   = '';
+            if( count($paths) > 0)
             {
-                $extension = TRUE; 
+                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
             }
-             */
-        }elseif(strpos($file_url, '../') === 0)  // if  ../modulename/file request
+
+        }
+        elseif(strpos($file_url, '../') === 0)  // if  ../modulename/file request
         {
             $sub_module_path = ''; // clear sub module path
             
@@ -179,12 +224,30 @@ Class OB_View {
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
             
-            $module = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
-            
-            if(is_extension($modulename, $module))
+            $sub_path   = '';
+            if( count($paths) > 0)
             {
-                $extension = TRUE; 
+                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
             }
+
+            //---------- Extension Support -----------//
+            
+            if(extension('enabled', $modulename) == 'yes') // If its a enabled extension
+            {
+                if(strpos(extension('path', $modulename), 'sub.') === 0) // If extension working path is a sub.module.
+                {
+                    $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.$filename;
+
+                    if($sub_path != '')
+                    {
+                        $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.str_replace(DS, '/', $sub_path).'/'.$filename;
+                    }
+     
+                    return $this->_load_file($file_url);
+                }
+            }
+            
+            //---------- Extension Support -----------//
         }
         else    // if current modulename/file
         {
@@ -196,23 +259,18 @@ Class OB_View {
                 $filename   = array_pop($paths);
             }
 
-            $modulename = $GLOBALS['d'];
-        }
-
-        $sub_path   = '';
-        if( count($paths) > 0)
-        {
-            $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
+            $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : lib('ob/Router')->fetch_directory();
+                        
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
+            }
         }
 
         if($extra_path != '')
         {
             $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
-        }
-        
-        if($extension)
-        {
-            $extra_path = '';  // We don't need extra path for extensions
         }
         
         $module_path = MODULES .$sub_module_path.$modulename. DS .$folder. DS .$sub_path. $extra_path;
@@ -231,10 +289,40 @@ Class OB_View {
         {
             $path = APP .$folder. DS .$sub_path .$extra_path;
         }
-    
+        
         return array('filename' => $filename, 'path' => $path);
     }
-
+    
+    // ------------------------------------------------------------------------
+    
+    /**
+    * Enables you to set data that is persistent in all views
+    *
+    * @author CJ Lazell
+    * @param array $data
+    * @access public
+    * @return void
+    */
+    public function _set_view_data($data = '')
+    {
+        if($data == '') return;
+        
+        if(is_object($data)) // object to array.
+        {
+            return get_object_vars($data);
+        }
+        
+        if(is_array($data) AND count($data) > 0 AND count($this->view_data) > 0)
+        {
+            $this->view_data = array_merge((array)$this->view_data, (array)$data);
+        }
+        else 
+        {
+            $this->view_data = $data;
+        }
+        
+        return $this->view_data;
+    }
     
 }
 

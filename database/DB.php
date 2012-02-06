@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  *
  * @package         Obullo
@@ -25,6 +25,8 @@ function ob_query_timer($mark = '')
 
     return ($sm + $ss);
 }
+
+require (BASE .'config'. DS .'db_constants'. EXT);
 
 /**
  * DB Class.

@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @author          obullo.com
@@ -36,7 +36,7 @@ if ( ! function_exists('task_run'))
 {
     function task_run($uri, $debug = FALSE)
     {
-        $uri    = explode('/', $uri);
+        $uri    = explode('/', trim($uri));
         $module = array_shift($uri);
 
         foreach($uri as $i => $section)

@@ -2,15 +2,14 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @since           Version 1.0
- * @filesource
  * @license
  */
 
@@ -40,20 +39,20 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
 {
     static $new_objects = array();                
     
-    $Class    = ucfirst($realname);
+    $Class    = ucfirst(strtolower($realname));
     $registry = OB_Registry::instance();
     
     // if we need to reset any registered object .. 
     // --------------------------------------------------------------------
     if(is_object($new_object))
     {
-        $registry->unset_object($Class);
-        $registry->set_object($Class, $new_object);
+        $registry->unset_object('core', $Class);
+        $registry->set_object('core', $Class, $new_object);
         
         return $new_object;
     }
     
-    $getObject = $registry->get_object($Class);   
+    $getObject = $registry->get_object('core', $Class);   
                                                    
     if ($getObject !== NULL)
     {
@@ -72,6 +71,7 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
         if($params_or_no_ins === FALSE)
         {
             profiler_set('libraries', 'php_'.$Class.'_no_instantiate', $Class);
+            
             return TRUE;
         }
 
@@ -109,14 +109,14 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
         {
             if(is_array($params_or_no_ins)) // construct support.
             {
-                $registry->set_object($Class, new $classname($params_or_no_ins));
+                $registry->set_object('core', $Class, new $classname($params_or_no_ins));
 
             } else
             {
-                $registry->set_object($Class, new $classname());
+                $registry->set_object('core', $Class, new $classname());
             }
 
-            $Object = $registry->get_object($Class);
+            $Object = $registry->get_object('core', $Class);
         }
 
         // return to singleton object.
@@ -127,6 +127,10 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
             return $Object;
         }
         
+    }
+    else 
+    {
+        throw new Exception('The core class '.$Class. ' not found.');
     }
 
     return NULL;  // if register func return to null
@@ -169,20 +173,20 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         $sub_path = DS . implode(DS, $paths);  // build sub path  ( e.g ./drivers/pager/)
     }
     
-    $Class    = ucfirst($realname);
+    $Class    = ucfirst(strtolower($realname));
     $registry = OB_Registry::instance();
     
     // if we need to reset any registered object .. 
     // --------------------------------------------------------------------
     if(is_object($new_object))
     {
-        $registry->unset_object($Class);
-        $registry->set_object($Class, $new_object);
+        $registry->unset_object('load', $Class);
+        $registry->set_object('load', $Class, $new_object);
         
         return $new_object;
     }
 
-    $getObject = $registry->get_object($Class);
+    $getObject = $registry->get_object('load', $Class);
                                                    
     if ($getObject !== NULL)
     {
@@ -206,57 +210,73 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
         $classname   = 'OB_'.$Class;
         $prefix      = config_item('subclass_prefix');  // MY_
-        $module      = core_class('Router')->fetch_directory();
-        $extensions  = get_config('extensions');
         
-        //------------------ OVERRIDE SUPPORT ------------------//
+        $module      = lib('ob/Router')->fetch_directory();
+        $sub_module  = lib('ob/URI')->fetch_sub_module();
+        $module_path = $GLOBALS['sub_path'].$module;
         
         if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
         {
-            $extension_lib_override = FALSE;
-            
-            if(is_array($extensions))
+            $module_xml = lib('ob/Module'); // parse module.xml 
+
+            if($module_xml->xml() != FALSE)
             {
-                foreach($extensions as $name => $array)   // Extension Override Support
+                $extensions = $module_xml->get_extensions();
+
+                if(count($extensions) > 0)   // Parse Extensions
                 {
-                    foreach($array as $ext_name => $options)           // Parse values.
-                    {
-                        if(isset($options['lib_override']) AND is_array($options['lib_override']))
+                    foreach($extensions as $ext_name => $extension)
+                    { 
+                        $attr = $extension['attributes'];
+                        
+                        if($attr['enabled'] == 'yes')
                         {
-                            foreach($options['lib_override'] as $lib_override)
+                            if(isset($extension['override']['libraries']))
                             {
-                                if($lib_override == $Class)
+                                foreach($extension['override']['libraries'] as $library)
                                 {
-                                    $extension_lib_override = TRUE;
-                                    $extension = $ext_name;
-                                }
+                                    if( ! isset($overriden_objects[$library]))  // Singleton
+                                    {
+                                        if($Class == $library) // Do file_exist for defined library.
+                                        {
+                                            if(file_exists($attr['root'] .$ext_name. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  
+                                            {
+                                                if( ! isset($new_objects[$Class]) )  // check new object instance
+                                                {
+                                                    require($attr['root'] .$ext_name. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT);
+                                                }
+
+                                                $classname = $prefix. $Class;
+
+                                                profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+
+                                                $overriden_objects[$library] = $library;
+                                            }
+                                        }
+                                    }
+                                }   
                             }
-                        }                            
+                        }
                     }
                 }
-            }                            
-
-            if($extension_lib_override)
-            {
-                if(is_extension($extension, $module))  // if extension enabled .. 
-                { 
-                    $module = $extension;
-                }
             }
-            
-            // Modules extend support
+        }
+        
+        if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
+        {
             if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  
             {
                 if( ! isset($new_objects[$Class]) )  // check new object instance
                 {
                     require(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT);
                 }
-                
+
                 $classname = $prefix. $Class;
-     
+
                 profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-                
+
                 $overriden_objects[$Class] = $Class;
+
             }  
             elseif(file_exists(APP .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  // Application extend support
             {
@@ -264,20 +284,18 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
                 {
                     require(APP .'libraries'. $sub_path . DS .$prefix. $Class. EXT);
                 }
-                
+
                 $classname = $prefix. $Class;
 
                 profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-                
+
                 $overriden_objects[$Class] = $Class;
             }     
-            
         }
         
-        //------------------ END OVERRIDE SUPPORT ------------------// 
-        
-        // __construct params support.
+        // __construct() params support.
         // --------------------------------------------------------------------
+        
         if($new_object == TRUE)
         {
             if(is_array($params_or_no_ins))  // construct support.
@@ -295,14 +313,14 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         {
             if(is_array($params_or_no_ins)) // construct support.
             {
-                $registry->set_object($Class, new $classname($params_or_no_ins));
+                $registry->set_object('load', $Class, new $classname($params_or_no_ins));
 
             } else
             {
-                $registry->set_object($Class, new $classname());
+                $registry->set_object('load', $Class, new $classname());
             }
 
-            $Object = $registry->get_object($Class);
+            $Object = $registry->get_object('load', $Class);
         }
 
         // return to singleton object.
@@ -313,6 +331,10 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
             return $Object;
         }
         
+    }
+    else 
+    {
+        throw new Exception('The Obullo library '.$Class. ' not found.');
     }
 
     return NULL;  // if register func return to null
@@ -342,16 +364,17 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 function ob_autoload($real_name)
 {
     if(class_exists($real_name))
-    return;
+    {
+        return;
+    }
     
-    $module = core_class('Router')->fetch_directory();
+    $module = lib('ob/Router')->fetch_directory();
 
-    // Parents folder files: App_controller and Global Controllers
+    // Parent Controllers
     // --------------------------------------------------------------------
     if(substr(strtolower($real_name), -11) == '_controller')
     {
-        // If Global Controller file exist ..
-        if(file_exists(APP .'parents'. DS .$real_name. EXT))
+        if(file_exists(APP .'parents'. DS .$real_name. EXT)) // If Application Parent Controller file exist ..
         {
             require(APP .'parents'. DS .$real_name. EXT);
 
@@ -360,12 +383,12 @@ function ob_autoload($real_name)
             return;
         }
 
-        // If Module Global Controller file exist ..
+        // If Module Parent Controller file exist ..
         if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'parents'. DS .$real_name. EXT))
         {            
             require(MODULES .$GLOBALS['sub_path'].$module. DS .'parents'. DS .$real_name. EXT);
 
-            profiler_set('parents', $real_name, MODULES .$module. DS .'parents'. DS .$real_name. EXT);
+            profiler_set('parents', $real_name, MODULES .$GLOBALS['sub_path'].$module. DS .'parents'. DS .$real_name. EXT);
 
             return;
         }
@@ -391,6 +414,7 @@ function ob_autoload($real_name)
     if($real_name == 'Model' OR $real_name == 'VM')
     {
         require(BASE .'core'. DS .$real_name. EXT);
+        
         return;
     }
 
@@ -403,6 +427,7 @@ function ob_autoload($real_name)
         require(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. DS .$class. EXT);
 
         profiler_set('libraries', 'module_'.$class.'_autoloaded', $class);
+        
         return;
     }
     
@@ -411,6 +436,7 @@ function ob_autoload($real_name)
         require(APP .'libraries'. DS .$class. EXT);
 
         profiler_set('libraries', $class.'_autoloaded', $class);
+        
         return;
     }
     
@@ -431,23 +457,40 @@ spl_autoload_register('ob_autoload', true);
 if( ! function_exists('lib'))
 {
     function lib($class, $params_or_no_instance = '', $new_object = NULL)
-    {
-        if($new_object == NULL || $new_object == FALSE) 
+    {    
+        //------------ Begin core classes --------------
+        
+        $class = strtolower($class);
+
+        if(strpos($class, 'ob/') === 0) // Obullo Libraries.
+        {               
+           $class = substr($class, 3);
+           
+           if(in_array($class, array('router', 'uri', 'module'), true))
+           {
+               return core_class($class, $new_object, $params_or_no_instance);
+           }    
+           
+           if($class == 'output' || $class == 'config') // core clases but located in libraries directory.
+           {
+               return load_class($class, $new_object, $params_or_no_instance);
+           }
+        }
+
+        //------------ End core classes --------------
+        
+        if($new_object === NULL || $new_object === FALSE)  // User Libraries.
         {   
-            if(i_hmvc()) // We must create new instance for each hmvc requests
+            if(function_exists('i_hmvc'))  // allow using lib() function at bootstrap level.
             {
-                $new_object = TRUE;
+                if(i_hmvc()) // We must create new instance for each hmvc requests.
+                {
+                    $new_object = TRUE;
+                }
             }
         }
-        
-        if(strpos($class, 'ob/') === 0)
-        {               
-           $class = strtolower(substr($class, 3));
-        }
-        
-        // @todo if strpos('../', $class) so go loader::lib($class);
-        
-        return load_class(strtolower($class), $new_object, $params_or_no_instance);
+
+        return load_class($class, $new_object, $params_or_no_instance);
     }
 }
 
@@ -482,7 +525,7 @@ function get_static($filename = 'config', $var = '', $folder = '')
             
             log_me('debug', $error_msg);
             
-            throw new CommonException($error_msg);
+            throw new Exception($error_msg);
             
             return;
         }
@@ -506,7 +549,7 @@ function get_static($filename = 'config', $var = '', $folder = '')
                 
                 log_me('debug', $error_msg);
                 
-                throw new CommonException($error_msg);
+                throw new Exception($error_msg);
             }
         }
 
@@ -531,10 +574,10 @@ function get_config($filename = 'config', $var = '')
 {
     if($filename == 'database')
     {
-        $database = get_static($filename, $var, APP .'config');
+        $database   = get_static($filename, $var, APP .'config');
         
-        $sub_module = core_class('URI')->fetch_sub_module();
-        $module     = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory(); 
+        $sub_module = lib('ob/URI')->fetch_sub_module();
+        $module     = lib('ob/Router')->fetch_directory(); 
         
         // Sub Module database support.
         if( $sub_module != '' AND file_exists(MODULES .'sub.'.$sub_module. DS .'config'. DS .'database'.EXT))
@@ -622,60 +665,6 @@ function db_item($item, $index = 'db')
 // --------------------------------------------------------------------
 
 /**
-* Error Logging Interface
-*
-* We use this as a simple mechanism to access the logging
-* class and send messages to be logged.
-*
-* @access    public
-* @return    void
-*/
-function log_me($level = 'error', $message = '', $php_error = FALSE, $core_level = FALSE)
-{    
-    if (config_item('log_threshold') == 0)
-    {
-        return;
-    }
-    
-    if ($core_level == FALSE)  // Router and URI classes are core level class
-    {                          // so they must be write logs to application log folder,
-                               // otherwise log functionality not works.
-        
-        $router = core_class('Router');  // If current module /logs dir exists
-        $uri    = core_class('URI');     // write module logs into current module.
-        
-        if (is_object($router) AND is_object($uri))
-        {   
-            $config = core_class('Config');
-
-            if ($config->item('log_threshold') == 0)
-            {
-                return;
-            }
-            
-            if (is_dir(MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS . 'logs'))
-            {
-                log_write($level, $message, $php_error, TRUE);
-
-                return;
-            }
-            elseif(is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs')) // Sub module
-            {
-                log_write($level, $message, $php_error, TRUE);
-
-                return;
-            }
-        }
-    }
-    
-    log_write($level, $message, $php_error);
-
-    return;
-}
-
-// --------------------------------------------------------------------
-
-/**
 * Tests for file writability
 *
 * is_writable() returns TRUE on Windows servers when you really can't write to
@@ -697,7 +686,7 @@ function is_really_writable($file)
     // write a file then read it.  Bah...
     if (is_dir($file))
     {
-        $file = rtrim($file, '/').'/'.md5(rand(1,100));
+        $file = rtrim($file, DS). DS .md5(rand(1,100));
 
         if (($fp = @fopen($file, FOPEN_WRITE_CREATE)) === FALSE)
         {
@@ -715,6 +704,7 @@ function is_really_writable($file)
     }
 
     fclose($fp);
+    
     return TRUE;
 }
 
@@ -755,7 +745,7 @@ function is_php($version = '5.0.0')
 */
 function profiler_set($type, $key, $val)
 {
-    load_class('Storage')->profiler_var[$type][$key] = $val;
+    lib('ob/Storage')->profiler_var[$type][$key] = $val;
 }
 
 // --------------------------------------------------------------------  
@@ -769,12 +759,12 @@ function profiler_set($type, $key, $val)
 */
 function profiler_get($type)
 {
-    $_ob = load_class('Storage');
+    $_ob = lib('ob/Storage');
     
     if( isset($_ob->profiler_var[$type]))
     {
         return $_ob->profiler_var[$type];
-    };
+    }
 
     return array();
 }
@@ -863,83 +853,6 @@ function set_status_header($code = 200, $text = '')
         header("HTTP/1.1 {$code} {$text}", TRUE, $code);
     }
 }
-
-// ------------------------------------------------------------------------
-
-/**
-* Check the string is a Obullo extension 
-* which is defined in config/extensions.php
-* 
-* @param  string $name
-* @return boolean
-*/
-function is_extension($name = '', $current_module = '')
-{                         
-    static $enabled_extensions = array();
-    
-    if($name == '') return FALSE;
-    
-    $extensions = get_config('extensions');
-    
-    if(is_array($extensions))
-    {
-        $defined_extensions = array_keys($extensions);
-
-        if(count($defined_extensions) > 0) 
-        {
-            foreach($defined_extensions as $ext_key)
-            {
-                if(isset($enabled_extensions[$ext_key][$name]))
-                {
-                    return TRUE;
-                }
-                
-                if(isset($extensions[$ext_key][$name]) AND is_dir(MODULES . $name))           
-                {         
-                    if($extensions[$ext_key][$name]['enabled'])   // Check extension is enabled.
-                    {
-                        if($ext_key == 'application') // If extension configured for application.
-                        {
-                            $enabled_extensions[$ext_key][$name] = $name;
-                            return TRUE;
-                        }
-                        elseif($ext_key == $current_module)   // If extension configured for current module.
-                        {
-                            $enabled_extensions[$ext_key][$name] = $name;
-                            return TRUE;
-                        }
-                        
-                    }
-                }                
-            }
-        }
-    }
-    
-    return FALSE;
-}
-
-// ------------------------------------------------------------------------ 
-
-/**
-* Get current extension configuration.
-* 
-* @param   string $name
-* @param   string $item
-* @param   string $index
-* @return  mixed | NULL
-*/
-function ext_item($name, $item, $index = 'application')
-{
-    $extensions = get_config('extensions');
-
-    if(isset($extensions[$index][$name][$item]))
-    {
-        return $extensions[$index][$name][$item];
-    }
-    
-    return NULL;
-}
-
 
 //----------------------------------------------------------------------- 
  

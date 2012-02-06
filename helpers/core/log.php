@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
@@ -21,6 +21,63 @@ defined('BASE') or exit('Access Denied!');
  * @author      Obullo Team.
  * @link        
  */
+
+// --------------------------------------------------------------------
+
+/**
+* Error Logging Interface
+*
+* We use this as a simple mechanism to access the logging
+* class and send messages to be logged.
+*
+* @access    public
+* @return    void
+*/
+if( ! function_exists('log_me') ) 
+{
+    function log_me($level = 'error', $message = '', $php_error = FALSE, $core_level = FALSE)
+    {    
+        if (config_item('log_threshold') == 0)
+        {
+            return;
+        }
+
+        if ($core_level == FALSE)  // Router and URI classes are core level class
+        {                          // so they must be write logs to application log folder,
+                                   // otherwise log functionality not works.
+
+            $router = lib('ob/Router');  // If current module /logs dir exists
+            $uri    = lib('ob/URI');     // write module logs into current module.
+
+            if (is_object($router) AND is_object($uri))
+            {   
+                $config = lib('ob/Config');
+
+                if ($config->item('log_threshold') == 0)
+                {
+                    return;
+                }
+
+                if (is_dir(MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS . 'logs'))
+                {
+                    log_write($level, $message, $php_error, TRUE);
+
+                    return;
+                }
+                elseif(is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs')) // Sub module
+                {
+                    log_write($level, $message, $php_error, TRUE);
+
+                    return;
+                }
+            }
+        }
+
+        log_write($level, $message, $php_error);
+
+        return;
+    }
+}
 
 // --------------------------------------------------------------------
 
@@ -46,27 +103,50 @@ if( ! function_exists('log_write') )
         $date_fmt  = 'Y-m-d H:i:s';
         $enabled   = TRUE;
         $levels    = array('ERROR' => '1', 'DEBUG' => '2',  'INFO' => '3', 'ALL' => '4');
-        
+        $level     = strtoupper($level);
+
         if($module_log)
         {
-            $config = core_class('Config');
-            $router = core_class('Router');
-            $uri    = core_class('URI');
+            $config = lib('ob/Config');
+            $router = lib('ob/Router');
+            $uri    = lib('ob/URI');
             
-            $log_path = MODULES .$GLOBALS['sub_path'].$router->fetch_directory() . DS .'core'. DS .'logs'. DS;
+            $log_threshold   = $config->item('log_threshold');
+            $log_date_format = $config->item('log_date_format');
+
+            $module_or_extension_log = FALSE;
             
-            if(is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs'))
+            //---- Keep the Module logs in Current Module ---//
+            
+            if(preg_match('/\[(.*?)\]/', $msg, $matches))  // If its a custom module log request [ module ] : message
+            {                                              // keep the logs in module/core/logs folder.
+                $module = trim($matches[1]);
+                $module_ext_path = MODULES .$GLOBALS['sub_path'].$module. DS .'core'. DS .'logs'. DS;
+                
+                if(extension('enabled', $module) == 'yes')  // Check if its a extension.
+                {
+                    $module_ext_path = extension('root', $module).$module. DS .'core'. DS .'logs'. DS;
+                }
+                
+                if(is_really_writable($module_ext_path))
+                {
+                    $log_path = $module_ext_path;
+                    $module_or_extension_log = TRUE;   
+                }
+            }
+
+            if($module_or_extension_log == FALSE) // If not current module request write to logs sub.module/core if it exist.
             {
-                $log_path = MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs'. DS;
+                if(is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs'))
+                {
+                    $log_path = MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs'. DS;
+                }
             }
             
             if($config->item('log_path') != '')
             {
                 $log_path = $config->item('log_path');   
             }
-            
-            $log_threshold   = $config->item('log_threshold');
-            $log_date_format = $config->item('log_date_format');
         } 
         else
         {
@@ -85,7 +165,7 @@ if( ! function_exists('log_write') )
             $log_path = rtrim($log_path, DS) . DS .'cmd' . DS; 
         }         
         
-        if ( ! is_dir(rtrim($log_path, DS)) OR ! is_really_writable(rtrim($log_path, DS)))
+        if ( ! is_dir(rtrim($log_path, DS)) OR ! is_really_writable($log_path))
         {
             $enabled = FALSE;
         }
@@ -104,8 +184,6 @@ if( ! function_exists('log_write') )
         {
             return FALSE;
         }
-
-        $level = strtoupper($level);
         
         if ( ! isset($levels[$level]) OR ($levels[$level] > $threshold))
         {

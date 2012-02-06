@@ -2,29 +2,18 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009 - 2011.
+ * Obullo Framework (c) 2009 - 2012.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo    
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team.
  * @since           Version 1.0
  * @filesource
  * @license
  */
  
- /**
- * Obullo Controllers 2010 - 2011
- * 
- * @package         Obullo   
- * @subpackage      Core.controller 
- * @category        Controller
- * 
- * @version 0.1 removed Obullo.php and moved all contents to Controller.php.
- * @version 0.2 @deprecated global controllers functionality, deleted parse_parents() func.
- */
-
 define('OBULLO_VERSION', '1.0.1');
  
  /**
@@ -58,10 +47,10 @@ Class Controller {
     {   
         self::$instance = &$this;
 
-        $this->config = core_class('Config');
-        $this->router = core_class('Router');
-        $this->uri    = core_class('URI');
-        $this->output = core_class('Output');
+        $this->config = lib('ob/Config');
+        $this->router = lib('ob/Router');
+        $this->uri    = lib('ob/URI');
+        $this->output = lib('ob/Output');
         
         // NOTE: Autoload, autorun and constants should be load at Controller
         // level because of Hmvc library do request to Controller file.
@@ -78,7 +67,7 @@ Class Controller {
             // -------------------------------------------------------------------- 
             if(file_exists(MODULES .'sub.'.$sub_module. DS .'config'. DS .'config'. EXT))
             {
-                loader::config('sub.'.$sub_module.'/config');
+                loader::config('../sub.'.$sub_module.'/config');
             }
             
             // CONSTANTS
@@ -254,7 +243,7 @@ function __merge_autoloaders($module, $file = 'autoload', $var = '', $type = 'Au
                 $values[$key] = array_merge($sub_module_vars[$key], $array); 
             }
             
-            log_me('debug', '[ '.ucfirst($sub_module).' ] Sub-Module and Application '.$type.' Merged', false, true);
+            log_me('debug', '[ '.ucfirst($sub_module).' ]: Sub-Module and Application '.$type.' Merged', false, true);
         }
         
         if( ! file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'config'. DS .$file. EXT))
@@ -265,8 +254,6 @@ function __merge_autoloaders($module, $file = 'autoload', $var = '', $type = 'Au
     
     if( file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'config'. DS .$file. EXT))
     {           
-        log_me('debug', '[ '.ucfirst($module).' ] Module '.$type.' Initialized', false, true);
-        
         $module_vars = get_static($file, $var, MODULES .$GLOBALS['sub_path'].$module. DS .'config');
        
         if(isset($sub_module_vars))  // Merge Sub-Module and Application Variables
@@ -280,7 +267,7 @@ function __merge_autoloaders($module, $file = 'autoload', $var = '', $type = 'Au
             $values[$key] = array_merge($module_vars[$key], $array);
         }
         
-        log_me('debug', '[ '.ucfirst($module).' ] Module and Application '.$type.' Merged', false, true);
+        log_me('debug', '[ '.ucfirst($module).' ]: Module and Application '.$type.' Merged', false, true);
     } 
     else 
     {  

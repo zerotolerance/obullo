@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
@@ -51,7 +51,7 @@ if( ! function_exists('lib_driver'))
         
         $classname = 'OB_'.$classname;
         $prefix    = config_item('subclass_prefix');  // MY_
-        $module    = core_class('Router')->fetch_directory();
+        $module    = lib('ob/Router')->fetch_directory();
         
         // Modules extend support
         if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. DS .'drivers'. DS .$prefix. $class. EXT))  

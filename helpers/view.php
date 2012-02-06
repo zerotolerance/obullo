@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @author          obullo.com
@@ -21,25 +21,6 @@ defined('BASE') or exit('Access Denied!');
  * @link
  */
 
-if( ! isset($_ob->view))  // Helper Constructror
-{
-    $_ob = load_class('Storage');
-    $_ob->view = new stdClass();
-
-    $_ob->view->view_folder      = DS .'';
-    $_ob->view->layout_folder    = DS .'';
-    $_ob->view->css_folder       = '/';
-    $_ob->view->img_folder       = '/';
-    $_ob->view->script_folder    = DS .'';
-
-    $_ob->view->view_var         = array();
-    $_ob->view->layout_name      = '';
-
-    log_me('debug', "View Helper Initialized");
-}
-
-// ------------------------------------------------------------------------
-
 /**
 * Create view variables for layouts
 * 
@@ -53,14 +34,14 @@ if ( ! function_exists('view_var'))
 {
     function view_var($key, $val = '', $use_layout = FALSE, $layout_data = array())
     {
-        $_ob = load_class('Storage');
+        $view = lib('ob/View');
 
         if($val == '')
         {
-            if(isset($_ob->view->view_var[$key]))
+            if(isset($view->view_var[$key]))
             {
                 $var = '';
-                foreach($_ob->view->view_var[$key] as $value)
+                foreach($view->view_var[$key] as $value)
                 {
                     $var .= $value;
                 }
@@ -69,11 +50,16 @@ if ( ! function_exists('view_var'))
             }
         }
 
-        $_ob->view->view_var[$key][] = $val;
+        if($val == array())
+        {
+            return view_array($key, $val, $use_layout, $layout_data);
+        }
+        
+        $view->view_var[$key][] = $val;
 
         if($use_layout)  // include setted layout.
         {
-            view_layout($_ob->view->layout_name, $layout_data);
+            view_layout($view->layout_name, $layout_data);
         }
 
         return;
@@ -95,15 +81,15 @@ if ( ! function_exists('view_array'))
 {
     function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
     {
-        $val= (array)$val;
-        $_ob = load_class('Storage');
+        $val  = (array)$val;
+        $view = lib('ob/View');
 
         if($val == array())
         {
-            if(isset($_ob->view->view_array[$key]))
+            if(isset($view->view_array[$key]))
             {
                 $var = array();
-                foreach($_ob->view->view_array[$key] as $value)
+                foreach($view->view_array[$key] as $value)
                 {
                     $var[] = $value;
                 }
@@ -114,12 +100,12 @@ if ( ! function_exists('view_array'))
 
         foreach($val as $value)
         {
-            $_ob->view->view_array[$key][] = $value;
+            $view->view_array[$key][] = $value;
         }
 
         if($use_layout)  // include setted layout.
         {
-            view_layout($_ob->view->layout_name, $layout_data);
+            view_layout($view->layout_name, $layout_data);
         }
 
         return;
@@ -138,9 +124,7 @@ if ( ! function_exists('view_set'))
 {
     function view_set($layout)
     {
-        $_ob = load_class('Storage');
-        
-        $_ob->view->layout_name = $layout;
+        lib('ob/View')->layout_name = $layout;
     }
 }
 
@@ -149,9 +133,8 @@ if ( ! function_exists('view_set'))
 /**
 * Create your custom folders and
 * change all your view paths to supporting
-* multiple interfaces (iphone interface etc ..)
+* filexible subfolders.
 *
-* @author   Ersin Guvenc
 * @param    string $func view function
 * @param    string $folder view folder (no trailing slash)
 * @param    string $failure_msg
@@ -162,41 +145,41 @@ if ( ! function_exists('view_set_folder'))
 {
     function view_set_folder($func = 'view', $folder = '', $failure_msg = FALSE)
     {
-        $_ob = load_class('Storage');
+        $view = lib('ob/View');
 
         switch ($func)
         {
             case 'view':
-                $_ob->view->view_folder     = $folder;
-                $_ob->view->view_folder_msg = $failure_msg;
+                $view->view_folder     = $folder;
+                $view->view_folder_msg = $failure_msg;
                 
                 log_me('debug', "View() Function Paths Changed");
              break;
 
            case 'view_layout':
-                $_ob->view->layout_folder     = $folder;
-                $_ob->view->layout_folder_msg = $failure_msg;
+                $view->layout_folder     = $folder;
+                $view->layout_folder_msg = $failure_msg;
 
                 log_me('debug', "View_layout() Function Paths Changed");
              break;
 
            case 'css':
-                $_ob->view->css_folder      = $folder;
-                $_ob->view->css_folder_msg  = $failure_msg;
+                $view->css_folder      = $folder;
+                $view->css_folder_msg  = $failure_msg;
 
                 log_me('debug', "Css() Function Paths Changed");
              break;
 
            case 'js':
-                $_ob->view->js_folder       = $folder;
-                $_ob->view->js_folder_msg   = $failure_msg;
+                $view->js_folder       = $folder;
+                $view->js_folder_msg   = $failure_msg;
 
                 log_me('debug', "Js() Function Paths Changed");
              break;
 
            case 'img':
-                $_ob->view->img_folder      = $folder;
-                $_ob->view->img_folder_msg  = $failure_msg;
+                $view->img_folder      = $folder;
+                $view->img_folder_msg  = $failure_msg;
 
                 log_me('debug', "Img() Function Paths Changed");
                break;
@@ -220,23 +203,23 @@ if ( ! function_exists('view'))
 {
     function view($file_url, $data = '', $string = TRUE)
     {
-        $_ob = load_class('Storage');
+        $view = lib('ob/View');
         
         $return     = FALSE;
         $extra_path = '';
         
-        if(isset($_ob->view->view_folder{1})) // if view folder changed don't show errors ..
+        if(isset($view->view_folder{1})) // if view folder changed don't show errors ..
         { 
-            if($_ob->view->view_folder_msg) $return = TRUE;
+            if($view->view_folder_msg) $return = TRUE;
             
-            $extra_path = $_ob->view->view_folder;
+            $extra_path = $view->view_folder;
         }    
 
-        $file_info = lib('ob/view')->_load_file($file_url, 'views', $extra_path);
+        $file_info = $view->_load_file($file_url, 'views', $extra_path);
         
         profiler_set('views', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
+        return $view->load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
     }
 }
 
@@ -257,82 +240,26 @@ if ( ! function_exists('view_layout'))
 {
     function view_layout($file_url, $data = '', $string = FALSE)
     {
-        $_ob = load_class('Storage');
+        $view = lib('ob/View');
         
         $return     = FALSE;
         $extra_path = '';
         
-        if(isset($_ob->view->layout_folder{1}))  // if view_layout folder changed don't show errors ..
+        if(isset($view->layout_folder{1}))  // if view_layout folder changed don't show errors ..
         { 
-            if($_ob->view->layout_folder_msg) $return = TRUE; 
+            if($view->layout_folder_msg) $return = TRUE; 
             
-            $extra_path = $_ob->view->layout_folder;   
+            $extra_path = $view->layout_folder;   
         }  
         
-        $file_info = lib('ob/view')->_load_file($file_url, 'views', $extra_path);
+        $file_info = $view->_load_file($file_url, 'views', $extra_path);
 
         profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
+        return $view->load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
     }
 }
 
-// ------------------------------------------------------------------------
-
-/**
-* _set_view_data
-*
-* Enables you to set data that is persistent in all views
-*
-* @author CJ Lazell
-* @param array $data
-* @access public
-* @return void
-*/
-
-if ( ! function_exists('_set_view_data'))
-{
-  function _set_view_data($data = array())
-  {
-        $_ob = load_class('Storage');
-        
-        if(isset($_ob->view->view_data)) 
-        {
-            $_ob->view->view_data = array_merge((array)$_ob->view->view_data, (array)$data);
-        }
-        else 
-        {
-            $_ob->view->view_data = $data;
-        }
-  }
-}
-
-// ------------------------------------------------------------------------
-
-/**
-* Main view function
-*
-* @author   Ersin Guvenc
-* @access   private
-* @param    string   $path file path
-* @param    string   $filename
-* @param    array    $data template vars
-* @param    boolean  $string
-* @param    boolean  $return
-* @version  0.1
-* @version  0.2 added empty $data
-* @version  0.3 added $return param
-* @version  0.4 added log_me()
-* @version  0.4 added added short_open_tag support
-* @return   void
-*/
-if ( ! function_exists('load_view'))
-{
-    function load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
-    {
-        return lib('ob/view')->view($path, $filename, $data, $string, $return, $func);
-    }
-}
 
 /* End of file view.php */
 /* Location: ./obullo/helpers/view.php */

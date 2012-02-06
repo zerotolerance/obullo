@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
@@ -43,14 +43,14 @@ if( ! function_exists('form_open') )
 {
     function form_open($action = '', $attributes = '', $hidden = array())
     {
-        $OB = this();
+        $config = lib('ob/Config');
 
         if ($attributes == '')
         {
             $attributes = 'method="post"';
         }
 
-        $action = ( strpos($action, '://') === FALSE) ? $OB->config->site_url($action) : $action;
+        $action = ( strpos($action, '://') === FALSE) ? $config->site_url($action) : $action;
 
         $form = '<form action="'.$action.'"';
 
@@ -59,7 +59,7 @@ if( ! function_exists('form_open') )
         $form .= '>';
         
         // CSRF Support
-        if ($OB->config->item('csrf_protection') === TRUE)
+        if ($config->item('csrf_protection') === TRUE)
         {
             loader::helper('ob/security');
             
@@ -1078,7 +1078,7 @@ if( ! function_exists('_get_validation_object') )
             return FALSE;
         }
         
-        return load_class('Validator');
+        return lib('ob/Validator');
     }
 }
 

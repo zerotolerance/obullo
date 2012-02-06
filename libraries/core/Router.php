@@ -4,12 +4,12 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @subpackage      Obullo.core
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obull Team
  * @filesource
  * @license
  */
@@ -49,12 +49,18 @@ Class OB_Router {
     */
     public function __construct()
     {
-        $this->uri = core_class('URI');
+        // Warning :
+        // 
+        // Don't load any library in this Class because of Obullo use 
+        // the Router Class at Bootstrap loading level. When you try load any library
+        // you will get a Fatal Error.
         
+        $this->uri = lib('ob/URI');
+
         $this->_detect_sub_module();
         $this->_set_routing();         
         
-        log_me('debug', 'Router Class Initialized', false, true);
+        log_me('debug', 'Router Class Initialized', false, true); // core level log
     }
     
     //---------------------------------------------------------------------
@@ -69,7 +75,7 @@ Class OB_Router {
     {
         ############## Clone URI Object ############## 
         
-        $uri = clone core_class('URI');
+        $uri = clone lib('ob/URI');
         
         ############## Clone URI Object ############## 
         
@@ -94,7 +100,7 @@ Class OB_Router {
         }
         
         // Get possible sub.modules directory
-        $GLOBALS['sub_path'] = ($sub_module == '') ? '' : 'sub.'.$sub_module. DS .'modules'. DS;
+        $GLOBALS['sub_path'] = ($sub_module == '') ? '' : 'sub.'.$sub_module. DS .SUB_MODULES;
         $module = ($module_segment == '' AND $module_segment != FALSE) ? $routes['default_controller']: $module_segment;
 
         if(strpos(trim($module, '/'), '/') > 0) // Check possible module route slash
@@ -114,7 +120,7 @@ Class OB_Router {
             {
                 $routes = array_merge($routes, $sub_module_routes);
                 
-                log_me('debug', '[ '.ucfirst($sub_module).' ] Sub-Module and Application routes Merged', false, true);
+                log_me('debug', '[ '.ucfirst($sub_module).' ]: Sub-Module and Application routes Merged', false, true);
             }
         }
         
@@ -126,7 +132,7 @@ Class OB_Router {
             {
                 $routes = array_merge($routes, $module_routes);
                 
-                log_me('debug', '[ '.ucfirst($module).' ] Module Router Settings Initialized', false, true);
+                log_me('debug', '[ '.ucfirst($module).' ]: Module Router Settings Initialized', false, true);
             }
         }
         
@@ -155,7 +161,7 @@ Class OB_Router {
     */
     public function clear()
     {
-        $this->uri                 = core_class('URI');   // reset cloned URI object.
+        $this->uri                 = lib('ob/URI');   // reset cloned URI object.
         $this->config              = '';
         $this->hmvc                = FALSE;
         $this->hmvc_response       = '';
@@ -175,7 +181,7 @@ Class OB_Router {
 
     /**
     * Clone URI object for HMVC Requests, When we
-    * use HMVC we use $this->uri = clone load_class('URI');
+    * use HMVC we use $this->uri = clone lib('ob/URI');
     * that means we say to Router class when Clone word used in HMVC library
     * use cloned URI object instead of orginal ( ersin ).
     */
@@ -474,6 +480,8 @@ Class OB_Router {
         {
             $this->hmvc_response = 'Hmvc request not found.';
 
+            log_me('debug', 'Hmvc request not found.', false, true);
+            
             return FALSE;
         }
         else
@@ -725,4 +733,4 @@ Class OB_Router {
 // END Router Class
 
 /* End of file Router.php */
-/* Location: ./obullo/libraries/Router.php */
+/* Location: ./obullo/libraries/core/Router.php */

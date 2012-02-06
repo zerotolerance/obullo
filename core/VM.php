@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         Obullo
  * @author          Obullo.com  
@@ -364,6 +364,8 @@ Class VM extends Model {
     {
         $this->no_input[$key] = $key;
     }
+    
+    // --------------------------------------------------------------------
     
     /**
     * Alias of no_save() function.

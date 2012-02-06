@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
@@ -29,7 +29,7 @@ defined('BASE') or exit('Access Denied!');
  
 if( ! isset($_ob->benchmark))  // Helper Constructor
 {
-    $_ob = load_class('Storage');
+    $_ob = lib('ob/Storage');
     
     $_ob->benchmark = new stdClass();
     $_ob->benchmark->marker = array();
@@ -52,7 +52,7 @@ if( ! function_exists('benchmark_mark') )
 {
     function benchmark_mark($name)
     {
-        $_ob = load_class('Storage'); 
+        $_ob = lib('ob/Storage'); 
         
         $_ob->benchmark->marker[$name] = microtime();
     }
@@ -73,7 +73,7 @@ if( ! function_exists('benchmark_elapsed_time') )
 {
     function benchmark_elapsed_time($point1 = '', $point2 = '', $decimals = 4)
     {
-        $_ob = load_class('Storage'); 
+        $_ob = lib('ob/Storage'); 
         
         if ($point1 == '')
         {

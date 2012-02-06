@@ -3,7 +3,7 @@
 /**
 * Obullo Framework (c) 2010.
 *
-* PHP5 MVC Based Minimalist Software.
+* PHP5 HMVC Based Scalable Software.
 * 
 * @package       obullo       
 * @author        obullo.com

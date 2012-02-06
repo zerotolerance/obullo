@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
@@ -39,7 +39,7 @@ if( ! function_exists('nl2br_except_pre') )
 {
     function nl2br_except_pre($str)
     {
-	    return load_class('Typo')->nl2br_except_pre($str);
+        return lib('ob/Typo')->nl2br_except_pre($str);
     }
 }
 // ------------------------------------------------------------------------
@@ -57,7 +57,7 @@ if( ! function_exists('auto_typo') )
 {
     function auto_typo($str, $reduce_linebreaks = FALSE)
     {
-        return load_class('Typo')->auto_typo($str, $reduce_linebreaks);
+        return lib('ob/Typo')->auto_typo($str, $reduce_linebreaks);
     }
 }
     

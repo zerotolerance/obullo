@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
@@ -48,7 +48,7 @@ Class OB_Calendar {
     */
     public function __construct($config = array())
     {        
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         if ( ! in_array('calendar_lang', $_ob->lang->is_loaded, TRUE))
         {

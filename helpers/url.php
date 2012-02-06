@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @author          obullo.com
@@ -38,7 +38,7 @@ if ( ! function_exists('base_url'))
 {
     function base_url($uri = '')
     {
-        return this()->config->base_url($uri);
+        return lib('ob/Config')->base_url($uri);
     }
 }
 
@@ -58,7 +58,7 @@ if ( ! function_exists('public_url'))
 {
     function public_url($uri = '', $no_ext_uri_slash = FALSE, $no_folder = FALSE)
     {
-        return this()->config->public_url($uri, $no_folder, $no_ext_uri_slash);
+        return lib('ob/Config')->public_url($uri, $no_folder, $no_ext_uri_slash);
     }
 }
 // ------------------------------------------------------------------------
@@ -78,7 +78,7 @@ if ( ! function_exists('site_url'))
 {
     function site_url($uri = '', $suffix = TRUE)
     {
-        return this()->config->site_url($uri, $suffix);
+        return lib('ob/Config')->site_url($uri, $suffix);
     }
 }
 // ------------------------------------------------------------------------
@@ -93,7 +93,7 @@ if ( ! function_exists('current_url'))
 {
     function current_url()
     {
-        return this()->config->site_url(this()->uri->uri_string());
+        return lib('ob/Config')->site_url(lib('ob/URI')->uri_string());
     }
 }
 // ------------------------------------------------------------------------
@@ -113,7 +113,7 @@ if ( ! function_exists('uri_extension'))
 {
     function uri_extension()
     {
-        return this()->uri->extension();
+        return lib('ob/URI')->extension();
     }
 }
 // ------------------------------------------------------------------------
@@ -135,7 +135,7 @@ if ( ! function_exists('module'))
         }
         else
         {
-            $module = core_class('Router')->fetch_directory();
+            $module = lib('ob/Router')->fetch_directory();
         }
         
         if($uri == '')
@@ -146,6 +146,30 @@ if ( ! function_exists('module'))
         return $module .'/'. ltrim($uri, '/');
     }
 }
+// ------------------------------------------------------------------------
+
+/**
+* Get current sub module name
+*
+* @access   public
+* @param    string uri
+* @return   string
+*/
+if ( ! function_exists('sub_module'))
+{
+    function sub_module($uri = '')
+    {
+        $sub_module = lib('ob/URI')->fetch_sub_module();
+        
+        if($uri == '')
+        {
+            return $sub_module;
+        }
+
+        return $sub_module .'/'. ltrim($uri, '/');
+    }
+}
+
 // ------------------------------------------------------------------------
 
 /**
@@ -191,11 +215,11 @@ if ( ! function_exists('anchor'))
 
         if ( ! is_array($uri))
         {
-            $site_url = ( ! preg_match('!^\w+://! i', $uri)) ? this()->config->site_url($uri, $suffix) : $uri;
+            $site_url = ( ! preg_match('!^\w+://! i', $uri)) ? lib('ob/Config')->site_url($uri, $suffix) : $uri;
         }
         else
         {
-            $site_url = this()->config->site_url($uri, $suffix);
+            $site_url = lib('ob/Config')->site_url($uri, $suffix);
         }
 
         if ($title == '')
@@ -255,66 +279,67 @@ if ( ! function_exists('anchor_popup'))
 {
     function anchor_popup($uri = '', $title = '', $attributes = FALSE, $suffix = TRUE)
     {
-            $ssl = FALSE;  // ssl support
-            if(strpos($uri, 'https://') === 0)
+        $ssl = FALSE;  // ssl support
+        if(strpos($uri, 'https://') === 0)
+        {
+            if(config_item('ssl')) // Global ssl config.
             {
-                if(config_item('ssl')) // Global ssl config.
-                {
-                    $ssl = TRUE;
-                }
-                $uri = str_replace('https://',  '',  $uri);
+                $ssl = TRUE;
             }
+            
+            $uri = str_replace('https://',  '',  $uri);
+        }
 
-	    $title = (string) $title;
+        $title = (string) $title;
 
-	    $site_url = ( ! preg_match('!^\w+://! i', $uri)) ? this()->config->site_url($uri, $suffix) : $uri;
+        $site_url = ( ! preg_match('!^\w+://! i', $uri)) ? lib('ob/Config')->site_url($uri, $suffix) : $uri;
 
-            # if ssl used do not use https:// for standart anchors.
-            # if your HTTP server NGINX add below the line to your fastcgi_params file.
-            # fastcgi_param  HTTPS		  $ssl_protocol;
-            # then $_SERVER['HTTPS'] variable will be available for PHP (fastcgi).
+        # if ssl used do not use https:// for standart anchors.
+        # if your HTTP server NGINX add below the line to your fastcgi_params file.
+        # fastcgi_param  HTTPS		  $ssl_protocol;
+        # then $_SERVER['HTTPS'] variable will be available for PHP (fastcgi).
 
-            if(isset($_SERVER['HTTPS']) AND $_SERVER['HTTPS'] != '' AND $_SERVER['HTTPS'] != 'off')
-            {
-                if($ssl == FALSE)
-                {
-                    $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
-                }
-            }
-
-            if($ssl)
+        if(isset($_SERVER['HTTPS']) AND $_SERVER['HTTPS'] != '' AND $_SERVER['HTTPS'] != 'off')
+        {
+            if($ssl == FALSE)
             {
                 $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
-                $site_url = str_replace('http://',  'https://',  $site_url);
             }
+        }
 
-	    if ($title == '')
-	    {
-		    $title = $site_url;
-	    }
+        if($ssl)
+        {
+            $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
+            $site_url = str_replace('http://',  'https://',  $site_url);
+        }
 
-	    if ($attributes === FALSE)
-	    {
-		    return "<a href='javascript:void(0);' onclick=\"window.open('".$site_url."', '_blank');\">".$title."</a>";
-	    }
+        if ($title == '')
+        {
+                $title = $site_url;
+        }
 
-	    if ( ! is_array($attributes))
-	    {
-		    $attributes = array();
-	    }
+        if ($attributes === FALSE)
+        {
+                return "<a href='javascript:void(0);' onclick=\"window.open('".$site_url."', '_blank');\">".$title."</a>";
+        }
 
-	    foreach (array('width' => '800', 'height' => '600', 'scrollbars' => 'yes', 'status' => 'yes', 'resizable' => 'yes', 'screenx' => '0', 'screeny' => '0', ) as $key => $val)
-	    {
-		    $atts[$key] = ( ! isset($attributes[$key])) ? $val : $attributes[$key];
-		    unset($attributes[$key]);
-	    }
+        if ( ! is_array($attributes))
+        {
+                $attributes = array();
+        }
 
-	    if ($attributes != '')
-	    {
-		    $attributes = _parse_attributes($attributes);
-	    }
+        foreach (array('width' => '800', 'height' => '600', 'scrollbars' => 'yes', 'status' => 'yes', 'resizable' => 'yes', 'screenx' => '0', 'screeny' => '0', ) as $key => $val)
+        {
+                $atts[$key] = ( ! isset($attributes[$key])) ? $val : $attributes[$key];
+                unset($attributes[$key]);
+        }
 
-	    return "<a href='javascript:void(0);' onclick=\"window.open('".$site_url."', '_blank', '"._parse_attributes($atts, TRUE)."');\"$attributes>".$title."</a>";
+        if ($attributes != '')
+        {
+                $attributes = _parse_attributes($attributes);
+        }
+
+        return "<a href='javascript:void(0);' onclick=\"window.open('".$site_url."', '_blank', '"._parse_attributes($atts, TRUE)."');\"$attributes>".$title."</a>";
     }
 }
 // ------------------------------------------------------------------------
@@ -623,7 +648,7 @@ if ( ! function_exists('redirect'))
                 $sharp     = TRUE;
             }
 
-            $uri = this()->config->site_url($uri, $suffix);
+            $uri = lib('ob/Config')->site_url($uri, $suffix);
 
             if($sharp == TRUE AND isset($sharp_uri[1]))
             {

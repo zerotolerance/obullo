@@ -2,13 +2,13 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @filesource
  * @license
  */
@@ -23,7 +23,7 @@ Class ConfigException extends CommonException {}
  * @package     Obullo
  * @subpackage  Libraries
  * @category    Libraries
- * @author      Ersin Guvenc
+ * @author      Obullo Team
  * @link        
  */
 Class OB_Config
@@ -37,13 +37,16 @@ Class OB_Config
     * Sets the $config data from the primary config.php file as a class variable
     *
     * @access  public
-    * @param   string   the config file name
-    * @param   boolean  if configuration values should be loaded into their own section
-    * @param   boolean  true if errors should just return false, false if an error message should be displayed
-    * @return  boolean  if the file was successfully loaded or not
+    * @return  void
     */
     public function __construct()
     {
+        // Warning :
+        // 
+        // Don't load any library in ***** __construct ******* function because of Obullo use 
+        // the Config class __construct() method at Bootstrap loading level. When you try loading any library
+        // in here you will get a Fatal Error.
+        
         $this->config = get_config();
     }
       
@@ -57,13 +60,13 @@ Class OB_Config
     * @return   boolean   if the file was loaded correctly
     */    
     public function load($file_url = '', $use_sections = FALSE, $fail_gracefully = FALSE)
-    {
+    { 
         $file_info = $this->_load_file($file_url);
         
         $file      = ($file_info['filename'] == '') ? 'config' : str_replace(EXT, '', $file_info['filename']);
-        $file_path = $file_info['path'];
+        $file_path = $file_info['path']; // Unique config files.
     
-        if (in_array($file_path, $this->is_loaded, TRUE))
+        if (in_array($file_info['path'] .$file. EXT, $this->is_loaded, TRUE))
         {
             return TRUE;
         }
@@ -81,7 +84,7 @@ Class OB_Config
         ######################
         
         include($file_info['path'] .$file. EXT);
-        
+                
         ######################
 
         if ( ! isset($config) OR ! is_array($config))
@@ -111,10 +114,10 @@ Class OB_Config
             $this->config = array_merge($this->config, $config);
         }
 
-        $this->is_loaded[] = $file_path;
+        $this->is_loaded[] = $file_info['path'] .$file. EXT;
         
         profiler_set('config_files', $file_path .$file. EXT, $file_path .$file. EXT);
-        
+
         unset($config);
 
         log_me('debug', 'Config file loaded: '.$file_info['path'] .$file. EXT);
@@ -142,25 +145,9 @@ Class OB_Config
         
         $file_url  = strtolower(trim($file_url, '/'));
         
-        if(strpos($file_url, '../') === 0)  // if  ../modulename/file request
+        if(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
         {
-            $sub_module_path = '';  // clear sub module path
-            
-            $paths      = explode('/', substr($file_url, 3));
-            $filename   = array_pop($paths);          // get file name
-            $modulename = array_shift($paths);        // get module name
-            
-            $sub_path   = '';
-            if( count($paths) > 0)
-            {
-                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
-            }
-            
-        }
-       
-        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
-        {
-            $paths          = explode('/', $file_url); 
+            $paths          = explode('/', substr($file_url, 3)); 
             $filename       = array_pop($paths);       // get file name
             $sub_modulename = array_shift($paths);     // get sub module name
             $modulename     = array_shift($paths);     // get module name
@@ -177,9 +164,43 @@ Class OB_Config
             }
             else
             {
-                $module_path = MODULES .$sub_modulename. DS .'modules'. DS .$modulename. DS .'config'. DS . $sub_path;
+                $module_path = MODULES .$sub_modulename. DS .SUB_MODULES .$modulename. DS .'config'. DS . $sub_path. $extra_path;
             }
-
+        }
+        elseif(strpos($file_url, '../') === 0)  // if  ../modulename/file request
+        {
+            $sub_module_path = '';  // clear sub module path
+            
+            $paths      = explode('/', substr($file_url, 3));
+            $filename   = array_pop($paths);          // get file name
+            $modulename = array_shift($paths);        // get module name
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;  // .modulename/folder/sub/file.php  sub dir support
+            }
+            
+            //---------- Extension Support -----------//
+            
+            if(extension('enabled', $modulename) == 'yes') // If its a enabled extension
+            {
+                if(strpos(extension('path', $modulename), 'sub.') === 0) // If extension working path is a sub.module.
+                {  
+                    $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.$filename;
+                    
+                    if($sub_path != '')
+                    {
+                        $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.str_replace(DS, '/', $sub_path).'/'.$filename;
+                    }
+                    
+                    return $this->_load_file($file_url);
+                }
+            }
+            
+            //---------- Extension Support -----------//
+            
+            $module_path = MODULES .$sub_module_path.$modulename. DS .'config'. DS .$sub_path. $extra_path;
         }
         else       // if current modulename/file
         {
@@ -191,7 +212,7 @@ Class OB_Config
                 $filename   = array_pop($paths);
             }
 
-            $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
+            $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : lib('ob/Router')->fetch_directory();
             
             $sub_path   = '';
             if( count($paths) > 0)
@@ -202,15 +223,13 @@ Class OB_Config
             $module_path = MODULES .$sub_module_path.$modulename. DS .'config'. DS .$sub_path. $extra_path;
         }
         
-        
         $path = APP .'config'. DS .$sub_path .$extra_path;        
-        
         
         if(file_exists($module_path. $filename. EXT))  // first check module path
         {
             $path = $module_path;
         }
-    
+
         return array('filename' => $filename, 'path' => $path);
     }
     
@@ -364,6 +383,7 @@ Class OB_Config
     public function base_folder()
     {
         $x = explode("/", preg_replace("|/*(.+?)/*$|", "\\1", trim(BASE, DS)));
+        
         return $this->base_url() . end($x).'/';
     }
       

@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
@@ -42,6 +42,8 @@ Class OB_Output {
     {
         log_me('debug', "Output Class Initialized");
     }
+    
+    // --------------------------------------------------------------------
     
     /**
     * Get Output
@@ -91,7 +93,7 @@ Class OB_Output {
         }
         else
         {
-            $this->final_output .= $output;
+            $this->final_output.= $output;
         }
     }
 
@@ -169,7 +171,7 @@ Class OB_Output {
     * @param    object $URI
     * @return   string
     */
-    public function _display_hmvc($output = '', $URI)
+    public function _display_hmvc($output = '', $URI = '')
     {            
         // Do we need to write a HMVC cache file?
         if ($URI->cache_time > 0)
@@ -316,7 +318,7 @@ Class OB_Output {
         if ($this->enable_profiler == TRUE)
         {
             // Get profiler output.
-            $profiler       = load_class('Profiler');
+            $profiler       = lib('ob/Profiler');
             $data['output'] = $profiler->run();
             
                                  
@@ -365,8 +367,8 @@ Class OB_Output {
     {
         $OB = this();
         
-        $router = core_class('Router');
-        $config = core_class('Config');
+        $router = lib('ob/Router');
+        $config = lib('ob/Config');
         
         $path       = $config->item('cache_path');
         $cache_path = ($path == '') ?  APP .'core'. DS .'cache'. DS : $path;

@@ -12,7 +12,7 @@ defined('BASE') or exit('Access Denied!');
 
 if( ! isset($_ob->session)) 
 {
-    $_ob = load_class('Storage');
+    $_ob = lib('ob/Storage');
     $_ob->session = new stdClass();    // Create new Sesssion Object.
     
     $_ob->session->sess_encrypt_cookie  = FALSE;

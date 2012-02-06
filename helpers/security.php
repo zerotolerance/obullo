@@ -2,9 +2,9 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
@@ -37,7 +37,7 @@ if( ! function_exists('_csrf_set_hash') )
 {
     function _csrf_set_hash()
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
 
         if ($_ob->security->csrf_hash == '')
         {
@@ -66,7 +66,7 @@ if( ! function_exists('_csrf_set_hash') )
  */
 if( ! isset($_ob->security)) 
 {
-    $_ob = load_class('Storage');
+    $_ob = lib('ob/Storage');
     
     $_ob->security = new stdClass();
     $_ob->security->xss_hash            = '';
@@ -130,7 +130,7 @@ if( ! function_exists('csrf_verify') )
 {
     function csrf_verify()
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
 
         // If no POST data exists we will set the CSRF cookie
         if (count($_POST) == 0)
@@ -178,7 +178,7 @@ if( ! function_exists('csrf_set_cookie') )
 {
     function csrf_set_cookie()
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
 
         $expire        = time() + $_ob->security->csrf_expire;
         $secure_cookie = (config_item('cookie_secure') === TRUE) ? 1 : 0;
@@ -245,7 +245,7 @@ if( ! function_exists('get_csrf_hash') )
 {
     function get_csrf_hash()
     {   
-        return load_class('Storage')->security->csrf_hash;
+        return lib('ob/Storage')->security->csrf_hash;
     }
 }
 
@@ -262,7 +262,7 @@ if( ! function_exists('get_csrf_token_name') )
 {
     function get_csrf_token_name()
     {   
-        return load_class('Storage')->security->csrf_token_name;
+        return lib('ob/Storage')->security->csrf_token_name;
     }
 }
 // --------------------------------------------------------------------
@@ -297,7 +297,7 @@ if( ! function_exists('xss_clean') )
 {
     function xss_clean($str, $is_image = FALSE)
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         /*
         * Is the string an array?
         *
@@ -558,7 +558,7 @@ if( ! function_exists('xss_hash') )
 {
     function xss_hash()
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         if ($_ob->security->xss_hash == '')
         {
@@ -690,7 +690,7 @@ if( ! function_exists('_html_entity_decode_callback') )
 {
     function _html_entity_decode_callback($match)
     {
-        $config  = core_class('Config');
+        $config  = lib('ob/Config');
         $charset = $config->item('charset');
 
         return _html_entity_decode($match[0], strtoupper($charset));

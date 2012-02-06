@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
@@ -25,7 +25,7 @@ defined('BASE') or exit('Access Denied!');
  
 if( ! isset($_ob->lang)) 
 {
-    $_ob = load_class('Storage');
+    $_ob = lib('ob/Storage');
     $_ob->lang = new stdClass();    // Create new language Object.
 
     $_ob->lang->language  = array();
@@ -61,7 +61,7 @@ if( ! function_exists('lang_load') )
             $langfile = substr($langfile, 4);
         }
         
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         if (in_array($langfile, $_ob->lang->is_loaded, TRUE))
         {
@@ -166,7 +166,7 @@ if( ! function_exists('_lang_load_file'))
                 $filename = array_pop($paths);
             }
 
-            $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : core_class('Router')->fetch_directory();
+            $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : lib('ob/Router')->fetch_directory();
         }
         
         //-------------- BASE LANG --------------//
@@ -222,7 +222,7 @@ if( ! function_exists('lang') )
 {
     function lang($item = '')
     {
-        $_ob = load_class('Storage');
+        $_ob = lib('ob/Storage');
         
         $item = ($item == '' OR ! isset($_ob->lang->language[$item])) ? FALSE : $_ob->lang->language[$item];
         

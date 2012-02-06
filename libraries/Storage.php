@@ -4,12 +4,12 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo    
  * @subpackage      Obullo.core    
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009 - 2010.
+ * @copyright       Obullo Team
  * @since           Version 1.0
  * @filesource
  * @license
@@ -21,14 +21,13 @@ defined('BASE') or exit('Access Denied!');
 * User can use this class to set custom Objects.
 * 
 * @version  0.1
-* @author   Ersin Guvenc
 */
 
 Class OB_Storage {
     
     // WARNING !
     // Reserved Variables, please don't override these public variables.
-    // ( $view, $lang, $log, $session, $security, $input, $benchmark ).
+    // ( $lang, $log, $session, $security, $input, $benchmark ).
     
     public $properties   = array();
     public $profiler_var = array();  // profiler variable
@@ -69,7 +68,7 @@ Class OB_Storage {
     
     /**
     * Clone Storage objects for HMVC Requests, When we
-    * use HMVC we use $this->storage = clone load_class('Storage');
+    * use HMVC we use $this->storage = clone lib('ob/Storage');
     * that means we say to Storage class when Clone word used in HMVC library 
     * use cloned Storage object instead of orginals ( ersin ).
     */

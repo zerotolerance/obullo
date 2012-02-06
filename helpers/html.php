@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @author          obullo.com
@@ -62,7 +62,7 @@ if( ! function_exists('css') )
         $title = $title_or_embed;
         $link = '<link ';
 
-        $_ob = load_class('Storage');   // obullo changes ..
+        $_ob = lib('ob/Storage');   // obullo changes ..
 
         // When user use view_set_folder('css', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';
@@ -181,7 +181,7 @@ if( ! function_exists('js') )
 
         $link = '<script type="'.$type.'" ';
 
-        $_ob = load_class('Storage');   // obullo changes ..
+        $_ob = lib('ob/Storage');   // obullo changes ..
 
         // When user use view_set_folder('js', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';
@@ -594,7 +594,7 @@ if( ! function_exists('img') )
             $src = array('src' => $src);
         }
 
-        $_ob = load_class('Storage');       // obullo changes ..
+        $_ob = lib('ob/Storage');       // obullo changes ..
                 
         $extra_path = '';
         if( isset($_ob->view->img_folder{1}) )  // When user use view_set_folder('img');
@@ -684,7 +684,7 @@ if( ! function_exists('_get_public_path') )
             $sub_modulename = array_shift($paths);     // get sub module name
             $modulename     = array_shift($paths);     // get module name
             
-            $sub_module_path = $sub_modulename. DS .'modules'. DS;
+            $sub_module_path = $sub_modulename. DS .SUB_MODULES;
 
         }
         elseif(strpos($file_url, '../') === 0)   // if ../modulename/public folder request 
@@ -711,7 +711,7 @@ if( ! function_exists('_get_public_path') )
             }
             else
             {
-                $modulename = core_class('Router')->fetch_directory();  
+                $modulename = lib('ob/Router')->fetch_directory();  
             }
         }
 

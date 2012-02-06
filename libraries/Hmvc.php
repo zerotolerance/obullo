@@ -4,7 +4,7 @@ defined('BASE') or exit('Access Denied!');
 /**
  * Obullo Framework (c) 2009.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @author          obullo.com
@@ -103,10 +103,10 @@ Class OB_Hmvc
         
         if($hmvc_uri != '')
         {
-            $URI     = core_class('URI');
-            $Router  = core_class('Router');
-            $Config  = core_class('Config');
-            $Storage = load_class('Storage');
+            $URI     = lib('ob/URI');
+            $Router  = lib('ob/Router');
+            $Config  = lib('ob/Config');
+            $Storage = lib('ob/Storage');
             
             # CLONE
             #######################################
@@ -369,10 +369,10 @@ Class OB_Hmvc
             self::$_conn_id[$conn_id] = $conn_id;    // store connection id.
         }
 
-        $URI    = core_class('URI');
-        $router = core_class('Router');
-        $config = core_class('Config');
-        $output = core_class('Output');
+        $URI    = lib('ob/URI');
+        $router = lib('ob/Router');
+        $config = lib('ob/Config');
+        $output = lib('ob/Output');
 
         //------------------------------------
         self::$start_time = ob_request_timer('start');
@@ -386,7 +386,7 @@ Class OB_Hmvc
         }
         
         // Get possible sub.modules directory
-        $GLOBALS['sub_path'] = ($URI->fetch_sub_module() == '') ? '' : 'sub.'.$URI->fetch_sub_module(). DS .'modules'. DS;
+        $GLOBALS['sub_path'] = ($URI->fetch_sub_module() == '') ? '' : 'sub.'.$URI->fetch_sub_module(). DS .SUB_MODULES;
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
         $GLOBALS['s']   = $router->fetch_subfolder();   // Get requested subfolder
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
@@ -536,19 +536,19 @@ Class OB_Hmvc
         # Set original objects foreach HMVC requests we backup before  ..
         ######################################
         
-        $URI = core_class('URI');
+        $URI = lib('ob/URI');
 
-        $this->_this->uri     = core_class('URI', $this->uri);
-        $this->_this->router  = core_class('Router', $this->router);
-        $this->_this->config  = core_class('Config', $this->config);
-        $this->_this->storage = load_class('Storage', $this->storage);
+        $this->_this->uri     = lib('ob/URI', '', $this->uri);
+        $this->_this->router  = lib('ob/Router', '', $this->router);
+        $this->_this->config  = lib('ob/Config', '', $this->config);
+        $this->_this->storage = lib('ob/Storage', '', $this->storage);
 
         this($this->_this);         // Set original $this to controller instance that we backup before
     
         # Assign Obullo global variables ..
         ######################################
 
-        $GLOBALS['sub_path'] = ($this->uri->fetch_sub_module() == '') ? '' : 'sub.'.$this->uri->fetch_sub_module(). DS .'modules'. DS;
+        $GLOBALS['sub_path'] = ($this->uri->fetch_sub_module() == '') ? '' : 'sub.'.$this->uri->fetch_sub_module(). DS .SUB_MODULES;
         $GLOBALS['d']   = $this->router->fetch_directory();   
         $GLOBALS['s']   = $this->router->fetch_subfolder();
         $GLOBALS['c']   = $this->router->fetch_class();
@@ -669,29 +669,6 @@ Class OB_Hmvc
     // --------------------------------------------------------------------
     
     /**
-    * Close HMVC Connection
-    * 
-    * If we have any possible hmvc exceptions
-    * reset the router variables, complete to HMVC process
-    * and return to original vars.
-    * 
-    * @return void
-    */
-    public function __destruct()
-    {                 
-        if($this->is_reset == FALSE)         
-        {                                   
-            $this->_reset_router($this->no_loop);
-            
-            return;
-        }
-
-        $this->is_reset = FALSE;
-    }
-
-    // --------------------------------------------------------------------
-    
-    /**
     * Decode encoded string.
     * Default json.
     * 
@@ -720,6 +697,30 @@ Class OB_Hmvc
         $this->decode_assoc  = FALSE;
     }
     
+
+    // --------------------------------------------------------------------
+    
+    /**
+    * Close HMVC Connection
+    * 
+    * If we have any possible hmvc exceptions
+    * reset the router variables, complete to HMVC process
+    * and return to original vars.
+    * 
+    * @return void
+    */
+    public function __destruct()
+    {                 
+        if($this->is_reset == FALSE)         
+        {                                   
+            $this->_reset_router($this->no_loop);
+            
+            return;
+        }
+
+        $this->is_reset = FALSE;
+    }
+
     
 }
 // END Hmvc Class

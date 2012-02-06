@@ -2,13 +2,13 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo     
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @since           Version 1.0
  * @filesource
  * @license
@@ -30,8 +30,7 @@ if( ! function_exists('ob_include_files'))
 {
     function ob_include_files()
     {
-        require (BASE .'constants'. DS .'db'. EXT);
-        require (BASE .'constants'. DS .'file'. EXT);
+        require (BASE .'config'. DS .'file_constants'. EXT);
         require (APP  .'config'. DS .'constants'. EXT);  // Your constants ..
         require (BASE .'core'. DS .'Registry'. EXT);
         require (BASE .'core'. DS .'Common'. EXT);
@@ -53,9 +52,14 @@ if( ! function_exists('ob_set_headers'))
     {   
         if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }   // Kill magic quotes 
         
-        core_class('URI');
-        core_class('Router');
+        ###  load core libraries ####
         
+        lib('ob/URI');
+        lib('ob/Router');
+        lib('ob/Module'); // Parse module.xml file if its exist. 
+        
+        ###  load core helpers ####
+
         loader::helper('core/error');
         loader::helper('core/input');
         loader::helper('core/lang');
@@ -69,8 +73,8 @@ if( ! function_exists('ob_system_run'))
 {
     function ob_system_run()
     {   
-        $uri       = core_class('URI'); 
-        $router    = core_class('Router');
+        $uri    = lib('ob/URI'); 
+        $router = lib('ob/Router');
         
         benchmark_mark('total_execution_time_start');
         benchmark_mark('loading_time_base_classes_start');
@@ -82,8 +86,8 @@ if( ! function_exists('ob_system_run'))
         $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
         $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
-        $output    = core_class('Output');
-        $config    = core_class('Config'); 
+        $output = lib('ob/Output');
+        $config = lib('ob/Config'); 
                 
         if ($output->_display_cache($config, $uri) == TRUE) { exit; }  // Check REQUEST uri if there is a Cached file exist 
         

@@ -2,9 +2,9 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
- * PHP5 MVC Based Minimalist Software.
+ * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo
  * @author          obullo.com
@@ -25,7 +25,7 @@ Class UriException extends CommonException {}
  * @author      Ersin Guvenc
  * @link
  */
-Class OB_URI
+Class OB_Uri
 {
     public $keyval      = array();
     public $uri_string;
@@ -47,7 +47,13 @@ Class OB_URI
     */
     public function __construct()
     {
-        log_me('debug', 'URI Class Initialized', false, true);
+        // Warning :
+        // 
+        // Don't load any library in this Class because of Obullo use 
+        // the URI Class at Bootstrap loading level. When you try loading any library
+        // you will get a Fatal Error.
+        
+        log_me('debug', 'URI Class Initialized', false, true); // core level log
     }
 
 
@@ -277,13 +283,13 @@ Class OB_URI
      */
     public function _filter_uri($str)
     {
-        $config = core_class('Config');
-        
-    	if ($str != '' && $config->item('permitted_uri_chars') != '' && $config->item('enable_query_strings') == FALSE)
+        // $class = lib('anyClass');  // Don't use any class in this level this will occur fatal errors !!!
+
+    	if ($str != '' && config_item('permitted_uri_chars') != '' && config_item('enable_query_strings') == FALSE)
         {
             // preg_quote() in PHP 5.3 escapes -, so the str_replace() and addition of - to preg_quote() is to maintain backwards
             // compatibility as many are unaware of how characters in the permitted_uri_chars will be parsed as a regex pattern
-            if ( ! preg_match('|^['.str_replace(array('\\-', '\-'), '-', preg_quote($config->item('permitted_uri_chars'), '-')).']+$|i', $str))
+            if ( ! preg_match('|^['.str_replace(array('\\-', '\-'), '-', preg_quote(config_item('permitted_uri_chars'), '-')).']+$|i', $str))
             {
                 show_error('The URI you submitted has disallowed characters.', 400);
             }
@@ -414,13 +420,18 @@ Class OB_URI
      */
     public function segment($n, $no_result = FALSE)
     {
+        if($n == 'sub') // Sub module segment.
+        {
+            return ($this->fetch_sub_module() == '') ? $no_result : $this->fetch_sub_module();
+        }
+        
         return ( ! isset($this->segments[$n])) ? $no_result : $this->segments[$n];
     }
 
     // --------------------------------------------------------------------
 
     /**
-     * Fetch a URI "routed" Segment
+     * Fetch a URI "routed" Segment ( Sub module isn't a rsegment based.)
      *
      * This function returns the re-routed URI segment (assuming routing rules are used)
      * based on the number provided.  If there is no routing this function returns the
@@ -583,6 +594,7 @@ Class OB_URI
 
         // Cache the array for reuse
         $this->keyval[$n] = $retval;
+        
         return $retval;
     }
 
@@ -752,4 +764,4 @@ Class OB_URI
 // END URI Class
 
 /* End of file URI.php */
-/* Location: ./obullo/libraries/URI.php */
+/* Location: ./obullo/libraries/core/URI.php */
