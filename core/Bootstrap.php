@@ -30,8 +30,8 @@ if( ! function_exists('ob_include_files'))
 {
     function ob_include_files()
     {
-        require (BASE .'config'. DS .'file_constants'. EXT);
         require (APP  .'config'. DS .'constants'. EXT);  // Your constants ..
+        require (BASE .'config'. DS .'file_constants'. EXT);
         require (BASE .'core'. DS .'Registry'. EXT);
         require (BASE .'core'. DS .'Common'. EXT);
         require (BASE .'core'. DS .'Loader'. EXT);
@@ -57,13 +57,14 @@ if( ! function_exists('ob_set_headers'))
         lib('ob/URI');
         lib('ob/Router');
         lib('ob/Module'); // Parse module.xml file if its exist. 
+        lib('ob/Lang');
+        lib('ob/Benchmark');
+        lib('ob/Input');
         
         ###  load core helpers ####
 
         loader::helper('core/error');
         loader::helper('core/input');
-        loader::helper('core/lang');
-        loader::helper('core/benchmark');
     }
 }
 
@@ -79,7 +80,7 @@ if( ! function_exists('ob_system_run'))
         benchmark_mark('total_execution_time_start');
         benchmark_mark('loading_time_base_classes_start');
         
-        _sanitize_globals();  // Initalize to input filter. ( Sanitize must be above the GLOBALS !! )             
+        lib('ob/Input')->_sanitize_globals();  // Initalize to input filter. ( Sanitize must be above the GLOBALS !! )             
                                   
         $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
         $GLOBALS['s']   = $router->fetch_subfolder();   // Get subfolder if exists

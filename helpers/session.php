@@ -10,28 +10,6 @@ defined('BASE') or exit('Access Denied!');
 * 
 */
 
-if( ! isset($_ob->session)) 
-{
-    $_ob = lib('ob/Storage');
-    $_ob->session = new stdClass();    // Create new Sesssion Object.
-    
-    $_ob->session->sess_encrypt_cookie  = FALSE;
-    $_ob->session->sess_expiration      = '7200';
-    $_ob->session->sess_match_ip        = FALSE;
-    $_ob->session->sess_match_useragent = TRUE;
-    $_ob->session->sess_cookie_name     = 'ob_session';
-    $_ob->session->cookie_prefix        = '';
-    $_ob->session->cookie_path          = '';
-    $_ob->session->cookie_domain        = '';
-    $_ob->session->sess_time_to_update  = 300;
-    $_ob->session->encryption_key       = '';
-    $_ob->session->flashdata_key        = 'flash';
-    $_ob->session->time_reference       = 'time';
-    $_ob->session->gc_probability       = 5;
-    $_ob->session->sess_id_ttl          = '';
-    $_ob->session->userdata             = array();
-}
- 
 /**
 * Be carefull you shouldn't declare sess_start
 * function more than one time, but don't worry
@@ -58,18 +36,19 @@ if( ! function_exists('sess_start'))
             $prefix      = config_item('subhelper_prefix');
             $driver_file = APP .'helpers'. DS .'drivers'. DS .'session'. DS .$prefix. $driver.'_driver'. EXT;
             
-            if(file_exists($driver_file))
+            if(file_exists($driver_file))   // Include User Session Driver if exist
             {
                 require($driver_file);
                 
                 loader::$_base_helpers[$prefix . $driver.'_driver'] = $prefix . $driver.'_driver';
             }
             
-            require(BASE .'helpers'. DS .'drivers'. DS .'session'. DS .$driver.'_driver'. EXT);
+            require(BASE .'helpers'. DS .'drivers'. DS .'session'. DS .$driver.'_driver'. EXT); // Include Session Driver
             
             loader::$_base_helpers[$driver.'_driver'] = $driver.'_driver';
 
-            _sess_start($params);
+            _sess_start($params); // Start the sessions
+            
             $session_start = TRUE;
             
             return TRUE;

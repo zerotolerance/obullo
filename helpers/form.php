@@ -61,9 +61,9 @@ if( ! function_exists('form_open') )
         // CSRF Support
         if ($config->item('csrf_protection') === TRUE)
         {
-            loader::helper('ob/security');
+            $security = lib('ob/Security');
             
-            $hidden[get_csrf_token_name()] = get_csrf_hash();
+            $hidden[$security->get_csrf_token_name()] = $security->get_csrf_hash();
         }
 
         if (is_array($hidden) AND count($hidden) > 0)

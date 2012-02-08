@@ -62,7 +62,7 @@ Class OB_View {
     // ------------------------------------------------------------------------
 
     /**
-    * Main view load function
+    * View load function
     *
     * @access   private
     * @param    string   $path file path
@@ -72,7 +72,7 @@ Class OB_View {
     * @param    boolean  $return
     * @return   void
     */
-    public function load_view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
+    public function load($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
         return $this->view($path, $filename, $data, $string, $return, $func);
     }
@@ -174,7 +174,7 @@ Class OB_View {
     * @param bool $custom
     * @return array 
     */
-    function _load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE)
+    public function _load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE)
     {
         $sub_module_path  = $GLOBALS['sub_path'];
         $application_view = FALSE;

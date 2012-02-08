@@ -14,12 +14,14 @@ defined('BASE') or exit('Access Denied!');
  * @filesource
  */
 
+Class LoaderException extends CommonException {}
+
+// ------------------------------------------------------------------------
+
 /**
  * Loader Class (Obullo Loader)
  * Load Obullo library, model, config, lang and any other files ...
  */
-
-Class LoaderException extends CommonException {}
 
 Class OB_Loader {
 
@@ -213,13 +215,14 @@ Class OB_Loader {
     public static function model($model, $object_name_or_no_ins = '', $params_or_no_ins = '')
     {
         $new_instance = FALSE;
+        
         if($object_name_or_no_ins === TRUE)
         {
             $new_instance = TRUE;
             $object_name_or_no_ins = '';
         }
         
-        if(strpos($model, 'app/') === 0)
+        if(strpos($model, 'app/') === 0) // Application Model
         {
             $data = self::_load_file(substr($model, 4), $folder = 'models', $app_folder = TRUE);
 
@@ -374,12 +377,18 @@ Class OB_Loader {
     */
     public static function helper($helper)
     {
+        // Obullo Helpers
+        // --------------------------------------------------------------------
+        
         if(strpos($helper, 'ob/') === 0)
         {
             return loader::_helper(substr($helper, 3));
         }
+                
+        // Application Helpers
+        // --------------------------------------------------------------------
         
-        if(strpos($helper, 'app/') === 0)
+        if(strpos($helper, 'app/') === 0) // Application Helpers
         {
             $helper = substr($helper, 4);
             
@@ -401,18 +410,24 @@ Class OB_Loader {
 
             throw new LoaderException('Unable to locate the application helper: ' .$data['file']);
         }
+                 
+        // Core helpers
+        // --------------------------------------------------------------------
         
-        if(strpos($helper, 'core/') === 0)
+        if(strpos($helper, 'core/') === 0) // Obullo Core Helpers
         {
             return loader::_helper(substr($helper, 5), true);
         }
+       
+        // Module Helpers
+        // --------------------------------------------------------------------
         
-        if( isset(self::$_helpers[$helper]) )   // User helpers.
+        if( isset(self::$_helpers[$helper]) )
         {
             return;
         }
         
-        $data = self::_load_file($helper, $folder = 'helpers'); 
+        $data = self::_load_file($helper, $folder = 'helpers');
 
         if(file_exists($data['file']))
         {
@@ -528,17 +543,32 @@ Class OB_Loader {
         $type = ($core) ? 'core' : 'base';
         
         throw new LoaderException('Unable to locate the '.$type.' helper: ' .$helper. EXT);
+        
     }
 
     // --------------------------------------------------------------------
 
+    /**
+    * Load language files.
+    * 
+    * @param string $file
+    * @param string $folder
+    * @param bool $return 
+    */
     public static function lang($file, $folder = '', $return = FALSE)
     {
-        lang_load($file, $folder, NULL, $return);
+        lib('ob/Lang')->load($file, $folder, NULL, $return);
     }
 
     // --------------------------------------------------------------------
-
+    
+    /**
+    * Load config files.
+    * 
+    * @param string $file
+    * @param bool $use_sections
+    * @param bool $fail_gracefully 
+    */
     public static function config($file, $use_sections = FALSE, $fail_gracefully = FALSE)
     {
         lib('ob/Config')->load($file, $use_sections, $fail_gracefully);
@@ -580,7 +610,7 @@ Class OB_Loader {
         if(strpos($real_name, '../sub.') === 0)   // sub.module/module folder request
         {
             $paths          = explode('/', substr($real_name, 3)); 
-            $file_name      = array_pop($paths);           // get file name
+            $filename       = array_pop($paths);           // get file name
             $sub_modulename = array_shift($paths);     // get sub module name
             $modulename     = array_shift($paths);     // get module name
             
@@ -590,9 +620,9 @@ Class OB_Loader {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
             
-            $file = MODULES .$sub_modulename. DS .SUB_MODULES. $modulename. DS .$folder . DS . $sub_path . $file_name. EXT;
+            $file = MODULES .$sub_modulename. DS .SUB_MODULES. $modulename. DS .$folder . DS . $sub_path . $filename. EXT;
             
-            $return['file_name'] = $file_name;
+            $return['file_name'] = $filename;
             $return['file']      = $file;
 
             return $return;
@@ -603,7 +633,7 @@ Class OB_Loader {
             $sub_module_path = ''; // clear sub module path
             
             $paths      = explode('/', substr($real_name, 3));
-            $file_name  = array_pop($paths);         // get file name
+            $filename   = array_pop($paths);         // get file name
             $modulename = array_shift($paths);       // get module name
 
             $sub_path   = '';
@@ -612,9 +642,28 @@ Class OB_Loader {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
             
-            $file = MODULES . $sub_module_path.$modulename . DS . $folder . DS . $sub_path . $file_name. EXT;
+            //---------- Extension Support -----------//
             
-            $return['file_name'] = $file_name;
+            if(extension('enabled', $modulename) == 'yes') // If its a enabled extension
+            {
+                if(strpos(extension('path', $modulename), 'sub.') === 0) // If extension working path is a sub.module.
+                {
+                    $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.$filename;
+
+                    if($sub_path != '')
+                    {
+                        $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.str_replace(DS, '/', $sub_path).'/'.$filename;
+                    }
+     
+                    return self::load_file($file_url);
+                }
+            }
+            
+            //---------- Extension Support -----------//
+            
+            $file = MODULES . $sub_module_path.$modulename . DS . $folder . DS . $sub_path . $filename. EXT;
+            
+            $return['file_name'] = $filename;
             $return['file']      = $file;
 
             return $return;
@@ -623,11 +672,11 @@ Class OB_Loader {
         if(strpos($real_name, '/') > 0)         //  Sub folder request
         {
             $paths      = explode('/',$real_name);   // paths[0] = path , [1] file name
-            $file_name  = array_pop($paths);          // get file name
+            $filename   = array_pop($paths);          // get file name
             $path       = implode(DS, $paths);
 
-            $return['file_name'] = $file_name;
-            $return['file']      = $root. DS .$sub_root. $path. DS .$file_name. EXT;
+            $return['file_name'] = $filename;
+            $return['file']      = $root. DS .$sub_root. $path. DS .$filename. EXT;
 
             return $return;
         }

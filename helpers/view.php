@@ -81,9 +81,9 @@ if ( ! function_exists('view_array'))
 {
     function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
     {
-        $val  = (array)$val;
         $view = lib('ob/View');
-
+        $val  = (array)$val;
+        
         if($val == array())
         {
             if(isset($view->view_array[$key]))
@@ -219,7 +219,7 @@ if ( ! function_exists('view'))
         
         profiler_set('views', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return $view->load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
+        return $view->load($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
     }
 }
 
@@ -256,7 +256,7 @@ if ( ! function_exists('view_layout'))
 
         profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
 
-        return $view->load_view($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
+        return $view->load($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
     }
 }
 

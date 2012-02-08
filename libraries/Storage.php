@@ -25,10 +25,6 @@ defined('BASE') or exit('Access Denied!');
 
 Class OB_Storage {
     
-    // WARNING !
-    // Reserved Variables, please don't override these public variables.
-    // ( $lang, $log, $session, $security, $input, $benchmark ).
-    
     public $properties   = array();
     public $profiler_var = array();  // profiler variable
 

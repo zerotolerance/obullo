@@ -97,7 +97,7 @@ Class OB_Exception {
         $data['sql']  = $sql;
         $data['type'] = $type;
 
-        $error_msg = lib('ob/View')->load_view(APP .'core'. DS .'errors'. DS, 'ob_exception', $data, true);
+        $error_msg = lib('ob/View')->load(APP .'core'. DS .'errors'. DS, 'ob_exception', $data, true);
         
         // Log Php Errors
         //-----------------------------------------------------------------------

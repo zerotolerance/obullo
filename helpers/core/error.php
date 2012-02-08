@@ -13,6 +13,18 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
  
+// ------------------------------------------------------------------------
+
+/**
+ * Obullo Captcha Helper
+ *
+ * @package     Obullo
+ * @subpackage  Helpers
+ * @category    Helpers
+ * @author      Obullo Team
+ * @link        
+ */
+
 /**
 * Catch All Exceptions
 * 

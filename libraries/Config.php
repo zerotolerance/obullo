@@ -41,7 +41,7 @@ Class OB_Config
     */
     public function __construct()
     {
-        // Warning :
+        // Warning : Do not use lib($class);
         // 
         // Don't load any library in ***** __construct ******* function because of Obullo use 
         // the Config class __construct() method at Bootstrap loading level. When you try loading any library
@@ -160,12 +160,18 @@ Class OB_Config
             
             if($modulename == '')
             {
-                $module_path = MODULES .$sub_modulename. DS .'config'. DS;
+                $module_path = MODULES .$sub_modulename. DS .'config'. DS .$extra_path;
             }
             else
             {
                 $module_path = MODULES .$sub_modulename. DS .SUB_MODULES .$modulename. DS .'config'. DS . $sub_path. $extra_path;
             }
+            
+            if( ! file_exists($module_path. $filename. EXT))  // first check module path
+            {
+                throw new ConfigException('Unable locate the file '. $module_path. $filename. EXT);
+            }
+            
         }
         elseif(strpos($file_url, '../') === 0)  // if  ../modulename/file request
         {
@@ -194,13 +200,19 @@ Class OB_Config
                         $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.str_replace(DS, '/', $sub_path).'/'.$filename;
                     }
                     
-                    return $this->_load_file($file_url);
+                    return $this->_load_file($file_url, $extra_path);
                 }
             }
             
             //---------- Extension Support -----------//
             
             $module_path = MODULES .$sub_module_path.$modulename. DS .'config'. DS .$sub_path. $extra_path;
+            
+            if( ! file_exists($module_path. $filename. EXT))  // first check module path
+            {
+                throw new ConfigException('Unable locate the file '. $module_path. $filename. EXT);
+            }
+            
         }
         else       // if current modulename/file
         {
@@ -212,7 +224,7 @@ Class OB_Config
                 $filename   = array_pop($paths);
             }
 
-            $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : lib('ob/Router')->fetch_directory();
+            $modulename = lib('ob/Router')->fetch_directory();
             
             $sub_path   = '';
             if( count($paths) > 0)
@@ -220,7 +232,21 @@ Class OB_Config
                 $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
             }
             
-            $module_path = MODULES .$sub_module_path.$modulename. DS .'config'. DS .$sub_path. $extra_path;
+            $sub_module = lib('ob/URI')->fetch_sub_module();
+            
+            if($sub_module != '' AND file_exists(MODULES .'sub.'.$sub_module. DS .'config'. DS .$sub_path. $extra_path. $filename. EXT))
+            {
+                $module_path = MODULES .'sub.'.$sub_module. DS .'config'. DS .$sub_path. $extra_path;
+            } 
+            else
+            {
+                $module_path = MODULES .$sub_module_path.$modulename. DS .'config'. DS .$sub_path. $extra_path;
+            }
+            
+            if( ! file_exists($module_path. $filename. EXT))  // first check module path
+            {
+                throw new ConfigException('Unable locate the file '. $module_path. $filename. EXT);
+            }
         }
         
         $path = APP .'config'. DS .$sub_path .$extra_path;        

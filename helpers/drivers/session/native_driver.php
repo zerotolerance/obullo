@@ -3,7 +3,7 @@ defined('BASE') or exit('Access Denied!');
 
 /**
 * Obullo Framework (c) 2010.
-* Procedural Session Implementation With stdClass. 
+* Procedural Session Implementation With Session Class. 
 * Less coding and More Control.
 * 
 * @author      Obullo Team.
@@ -17,19 +17,19 @@ if( ! function_exists('_sess_start') )
     {                       
         log_me('debug', "Session Native Driver Initialized"); 
 
-        $_ob = lib('ob/Storage');
+        $sess = lib('ob/Session');
 
         foreach (array('sess_expiration', 'sess_match_ip', 'sess_die_cookie',
         'sess_match_useragent', 'sess_cookie_name', 'cookie_path', 'cookie_domain', 
         'sess_time_to_update', 'time_reference', 'cookie_prefix') as $key)
         {
-            $_ob->session->$key = (isset($params[$key])) ? $params[$key] : config_item($key);
+            $sess->{$key} = (isset($params[$key])) ? $params[$key] : config_item($key);
         }
 
         // @todo _unserialize func. use strip_slashes() func. We can add it later if we need it in Native Library. ?
         // loader::helper('ob/string');
                 
-        if($_ob->session->sess_die_cookie)
+        if($sess->sess_die_cookie)
         {
             session_set_cookie_params(0);
             
@@ -38,31 +38,31 @@ if( ! function_exists('_sess_start') )
         } 
         else 
         {
-            session_set_cookie_params($_ob->session->sess_expiration, $_ob->session->cookie_path, $_ob->session->cookie_domain);
+            session_set_cookie_params($sess->sess_expiration, $sess->cookie_path, $sess->cookie_domain);
             
             // Configure garbage collection
             ini_set('session.gc_divisor', 100);
-            ini_set('session.gc_maxlifetime', ($_ob->session->sess_expiration == 0) ? 7200 : $_ob->session->sess_expiration);
+            ini_set('session.gc_maxlifetime', ($sess->sess_expiration == 0) ? 7200 : $sess->sess_expiration);
         }
         
-        $_ob->session->now = _get_time();
+        $sess->now = _get_time();
 
-        session_name($_ob->session->cookie_prefix . $_ob->session->sess_cookie_name);
+        session_name($sess->cookie_prefix . $sess->sess_cookie_name);
         
         if( ! isset($_SESSION) ) // If another session_start() func is started before ?
         {
             session_start();
         }
 
-        if (is_numeric($_ob->session->sess_expiration))
+        if (is_numeric($sess->sess_expiration))
         {
-            if ($_ob->session->sess_expiration > 0)
+            if ($sess->sess_expiration > 0)
             {
-                $_ob->session->sess_id_ttl = $_ob->session->sess_expiration;
+                $sess->sess_id_ttl = $sess->sess_expiration;
             }
             else
             {
-                $_ob->session->sess_id_ttl = (60 * 60 * 24 * 365 * 2);
+                $sess->sess_id_ttl = (60 * 60 * 24 * 365 * 2);
             }
         }
 
@@ -132,13 +132,13 @@ if( ! function_exists('sess_destroy') )
 {
     function sess_destroy()
     {   
-        $_ob = lib('ob/Storage');
+        $sess = lib('ob/Session');
         
         unset($_SESSION);
         
         if ( isset( $_COOKIE[session_name()] ) )
         {
-            setcookie(session_name(), '', (_get_time() - 42000), $_ob->session->cookie_path, $_ob->session->cookie_domain);
+            setcookie(session_name(), '', (_get_time() - 42000), $sess->cookie_path, $sess->cookie_domain);
         }
         
         session_destroy();
@@ -263,7 +263,7 @@ if( ! function_exists('_session_id_expired') )
 { 
     function _session_id_expired()
     {
-        $_ob = lib('ob/Storage');
+        $sess = lib('ob/Session');
         
         if ( ! isset( $_SESSION['regenerated'] ) )
         {
@@ -271,7 +271,7 @@ if( ! function_exists('_session_id_expired') )
             return FALSE;
         }
 
-        $expiry_time = time() - $_ob->session->sess_id_ttl;
+        $expiry_time = time() - $sess->sess_id_ttl;
 
         if ( $_SESSION['regenerated'] <=  $expiry_time )
         {
@@ -295,7 +295,7 @@ if( ! function_exists('sess_set_flash') )
 { 
     function sess_set_flash($newdata = array(), $newval = '')  // ( obullo changes ... )
     {
-        $_ob = lib('ob/Storage');
+        $sess = lib('ob/Session');
         
         if (is_string($newdata))
         {
@@ -306,7 +306,7 @@ if( ! function_exists('sess_set_flash') )
         {
             foreach ($newdata as $key => $val)
             {
-                $flashdata_key = $_ob->session->flashdata_key.':new:'.$key;
+                $flashdata_key = $sess->flashdata_key.':new:'.$key;
                 sess_set($flashdata_key, $val);
             }
         }
@@ -325,16 +325,16 @@ if( ! function_exists('sess_keep_flash') )
 { 
     function sess_keep_flash($key) // ( obullo changes ...)
     {
-        $_ob = lib('ob/Storage');
+        $sess = lib('ob/Session');
         
         // 'old' flashdata gets removed.  Here we mark all 
         // flashdata as 'new' to preserve it from _flashdata_sweep()
         // Note the function will return FALSE if the $key 
         // provided cannot be found
-        $old_flashdata_key = $_ob->session->flashdata_key.':old:'.$key;
+        $old_flashdata_key = $sess->flashdata_key.':old:'.$key;
         $value = sess_get($old_flashdata_key);
 
-        $new_flashdata_key = $_ob->session->flashdata_key.':new:'.$key;
+        $new_flashdata_key = $sess->flashdata_key.':new:'.$key;
         sess_set($new_flashdata_key, $value);
     }
 }
@@ -357,9 +357,9 @@ if( ! function_exists('sess_get_flash') )
 { 
     function sess_get_flash($key, $prefix = '', $suffix = '')  // obullo changes ...
     {
-        $_ob = lib('ob/Storage');
+        $sess = lib('ob/Session');
         
-        $flashdata_key = $_ob->session->flashdata_key.':old:'.$key;
+        $flashdata_key = $sess->flashdata_key.':old:'.$key;
         
         $value = sess_get($flashdata_key);
         
@@ -399,7 +399,7 @@ if( ! function_exists('_flashdata_mark') )
 { 
     function _flashdata_mark()
     {
-        $_ob = lib('ob/Storage');
+        $sess = lib('ob/Session');
         
         $userdata = sess_alldata();
         foreach ($userdata as $name => $value)
@@ -407,7 +407,7 @@ if( ! function_exists('_flashdata_mark') )
             $parts = explode(':new:', $name);
             if (is_array($parts) && count($parts) === 2)
             {
-                $new_name = $_ob->session->flashdata_key.':old:'.$parts[1];
+                $new_name = $sess->flashdata_key.':old:'.$parts[1];
                 sess_set($new_name, $value);
                 sess_unset($name);
             }
@@ -448,10 +448,10 @@ if( ! function_exists('_get_time') )
 {
     function _get_time()
     {   
-        $_ob = lib('ob/Storage');
+        $sess = lib('ob/Session');
         
         $time = time();
-        if (strtolower($_ob->session->time_reference) == 'gmt')
+        if (strtolower($sess->time_reference) == 'gmt')
         {
             $now  = time();
             $time = mktime( gmdate("H", $now), 

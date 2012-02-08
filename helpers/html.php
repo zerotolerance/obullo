@@ -32,7 +32,7 @@ defined('BASE') or exit('Access Denied!');
 * css(array('welcome.css', 'hello.css'));
 * css('#main {display: block; color: red;}', 'embed');
 *
-* @author   Ersin Guvenc
+* @author   Obullo
 * @param    mixed   $filename array or string
 * @param    string  $title_or_embed
 * @param    string  $media  'all' or 'print' etc..
@@ -46,8 +46,6 @@ if( ! function_exists('css') )
 {
     function css($href, $title_or_embed = '', $media = '', $rel = 'stylesheet', $index_page = FALSE)
     {
-        $ob = this();
-        
         if($title_or_embed == 'embed')
         {
             $css = '<style type="text/css" ';
@@ -62,13 +60,13 @@ if( ! function_exists('css') )
         $title = $title_or_embed;
         $link = '<link ';
 
-        $_ob = lib('ob/Storage');   // obullo changes ..
+        $view = lib('ob/View');   // obullo changes ..
 
         // When user use view_set_folder('css', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';
-        if( isset($_ob->view->css_folder{1}) )
+        if( isset($view->css_folder{1}) )
         {
-            $extra_path = $_ob->view->css_folder;
+            $extra_path = $view->css_folder;
         }
 
         if (is_array($href))
@@ -129,7 +127,7 @@ if( ! function_exists('css') )
             }
             elseif ($index_page === TRUE)
             {
-                $link .= ' href="'. $ob->config->site_url($href, false) .'" ';
+                $link .= ' href="'. lib('ob/Config')->site_url($href, false) .'" ';
             }
             else
             {
@@ -164,7 +162,7 @@ if( ! function_exists('css') )
 * js('../module/welcome.js');  from /modules dir
 * js(array('welcome.js', 'hello.js'));
 *
-* @author   Ersin Guvenc
+* @author   Obullo
 * @param    string $src  it can be via a path
 * @param    string $arguments
 * @param    string $type
@@ -177,17 +175,15 @@ if( ! function_exists('js') )
 {
     function js($src, $arguments = '', $type = 'text/javascript', $index_page = FALSE)
     {
-        $ob = this();
-
         $link = '<script type="'.$type.'" ';
 
-        $_ob = lib('ob/Storage');   // obullo changes ..
+        $view = lib('ob/View');   // obullo changes ..
 
         // When user use view_set_folder('js', 'iphone'); ..  /public/iphone/css/welcome.css
         $extra_path = '';
-        if( isset($_ob->view->js_folder{1}) )
+        if( isset($view->js_folder{1}) )
         {
-            $extra_path = $_ob->view->js_folder;
+            $extra_path = $view->js_folder;
         }
         
         if (is_array($src))
@@ -211,7 +207,6 @@ if( ! function_exists('js') )
 
                 $link .= "></script>\n";
             }
-
         }
         else
         {
@@ -223,7 +218,7 @@ if( ! function_exists('js') )
             }
             elseif ($index_page === TRUE)  // .js file as PHP
             {
-                $link .= ' src="'. $ob->config->site_url($src, false) .'" ';
+                $link .= ' src="'. lib('ob/Config')->site_url($src, false) .'" ';
             }
             else
             {
@@ -252,12 +247,21 @@ if ( ! function_exists('plugin'))
 {
     function plugin($plugin_name, $filename = 'plugins')
     {
-        loader::config($filename);  // Load Module or Application plugin from config file.
-                                    // Obullo first look at module/config folder if exists
-                                    // otherwise it load the file from application/config folder.
+        $config = lib('ob/Config');
         
-        $plugins = this()->config->item($plugin_name);
+        /*
+         * Load Module or Application plugin from config file.
+         * Obullo first look at module/config folder if exists
+         * otherwise it load the file from application/config folder.
+         */
+        ##########
         
+        $config->load($filename);
+        
+        ##########
+        
+        $plugins = $config->item($plugin_name);                         
+                                     
         if(count($plugins) == 0)
         {
             return;
@@ -344,8 +348,6 @@ if( ! function_exists('link_tag') )
 {
     function link_tag($href = '', $rel = 'stylesheet', $type = '', $title = '', $media = '', $index_page = FALSE)
     {
-        $ob = this();
-
         $link = '<link ';
 
         if ( strpos($href, '://') !== FALSE)
@@ -354,7 +356,7 @@ if( ! function_exists('link_tag') )
         }
         elseif ($index_page === TRUE)
         {
-            $link .= ' href="'. $ob->config->site_url($href, false) .'" ';
+            $link .= ' href="'. lib('ob/Config')->site_url($href, false) .'" ';
         }
         else
         {
@@ -362,7 +364,7 @@ if( ! function_exists('link_tag') )
 
             if($public_path == FALSE)
             {
-                $link .= ' href="'. $ob->config->site_url($href, false) .'" ';
+                $link .= ' href="'. lib('ob/Config')->site_url($href, false) .'" ';
             }
             else
             {
@@ -594,12 +596,12 @@ if( ! function_exists('img') )
             $src = array('src' => $src);
         }
 
-        $_ob = lib('ob/Storage');       // obullo changes ..
+        $view = lib('ob/View');     // obullo changes ..
                 
         $extra_path = '';
-        if( isset($_ob->view->img_folder{1}) )  // When user use view_set_folder('img');
+        if( isset($view->img_folder{1}) )  // When user use view_set_folder('img');
         {
-            $extra_path = '/' . $_ob->view->img_folder; 
+            $extra_path = '/' . $view->img_folder; 
         }
         
         $img = '<img';
@@ -610,11 +612,9 @@ if( ! function_exists('img') )
             
             if ($k == 'src' AND strpos($v, '://') === FALSE)
             {
-                $ob = this();
-
                 if ($index_page === TRUE)
                 {
-                    $img .= ' src="'.$ob->config->site_url($v, false).'" ';
+                    $img .= ' src="'.lib('ob/Config')->site_url($v, false).'" ';
                 }
                 else
                 {
@@ -669,11 +669,7 @@ if( ! function_exists('_get_public_path') )
 {
     function _get_public_path($file_url, $extra_path = '', $custom_extension = '')
     {                              
-        $OB = this();
-        
         $sub_module_path = $GLOBALS['sub_path'];
-        
-        // $file_url  = strtolower($file_url);
         
         if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
         {
@@ -685,7 +681,12 @@ if( ! function_exists('_get_public_path') )
             $modulename     = array_shift($paths);     // get module name
             
             $sub_module_path = $sub_modulename. DS .SUB_MODULES;
-
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
+            }
         }
         elseif(strpos($file_url, '../') === 0)   // if ../modulename/public folder request 
         {
@@ -694,6 +695,32 @@ if( ! function_exists('_get_public_path') )
             $paths      = explode('/', substr($file_url, 3));
             $filename   = array_pop($paths);          // get file name
             $modulename = array_shift($paths);        // get module name
+           
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
+            }
+            
+            //---------- Extension Support -----------//
+            
+            if(extension('enabled', $modulename) == 'yes') // If its a enabled extension
+            {
+                if(strpos(extension('path', $modulename), 'sub.') === 0) // If extension working path is a sub.module.
+                {  
+                    $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.$filename;
+                    
+                    if($sub_path != '')
+                    {
+                        $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.str_replace(DS, '/', $sub_path).'/'.$filename;
+                    }
+                    
+                    return _get_public_path($file_url, $extra_path, $custom_extension);
+                }
+            }
+            
+            //---------- Extension Support -----------//
+            
         }
         else    // if current modulename/public request
         {
@@ -705,20 +732,13 @@ if( ! function_exists('_get_public_path') )
                 $filename   = array_pop($paths);
             }
 
-            if(isset($GLOBALS['d']))
+            $modulename = lib('ob/Router')->fetch_directory();
+           
+            $sub_path   = '';
+            if( count($paths) > 0)
             {
-                $modulename = $GLOBALS['d'];
+                $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
             }
-            else
-            {
-                $modulename = lib('ob/Router')->fetch_directory();  
-            }
-        }
-
-        $sub_path   = '';
-        if( count($paths) > 0)
-        {
-            $sub_path = implode('/', $paths) . '/';      // .module/public/css/sub/welcome.css  sub dir support
         }
                              
         $ext = substr(strrchr($filename, '.'), 1);   // file extension
@@ -740,43 +760,32 @@ if( ! function_exists('_get_public_path') )
             $folder = '';
         }
 
-        $ROOT = str_replace(ROOT, '', rtrim(MODULES .$sub_module_path, DS));
+        $config     = lib('ob/Config');
+        $sub_module = (lib('ob/URI')->fetch_sub_module() != '') ? 'sub.'.lib('ob/URI')->fetch_sub_module() : '';
         
-        $public_url    = $OB->config->public_url('', true) .str_replace(DS, '/', $ROOT). '/';
-        $public_folder = trim($OB->config->item('public_folder'), '/');
-
-        // if config public_folder = 'public/admin' just grab the 'public' word
-        // so when managing multi applications user don't need to divide public folder files.
-
-        if( strpos($public_folder, '/') !== FALSE)
-        {
-            $public_folder = current(explode('/', $public_folder));
-        }                                                         
-
-        // example
-        // .backend/modules/welcome/public/css/welcome.css    (public/css/welcome.css) [backend] removed
-        // .fronted/modules/welcome/public/css/welcome.css
-
-        $pure_path      = $modulename .'/'. $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
-        $full_path      = $public_url . $pure_path;
-        $app_public_url = $public_folder .'/' . $extra_path . $folder . $sub_path . $filename;
+        $public_folder = trim($config->item('public_folder'), '/');  
+        $MODULE_ROOT   = str_replace(ROOT, '', rtrim(MODULES .$sub_module_path, DS));
+        $SUB_ROOT      = str_replace(ROOT, '', rtrim(MODULES .$sub_module, DS));
         
-        // if file not exists in current module folder fetch it from app /public folder. 
+        $pure_path     = $modulename .'/'. $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
+        $full_path     = $config->public_url('', true) .str_replace(DS, '/', $MODULE_ROOT). '/' . $pure_path;
+        $root_path     = $config->public_url('', true) .str_replace(DS, '/', $SUB_ROOT). '/' . $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
         
-        if( is_readable(MODULES . $sub_module_path. str_replace('/', DS, trim($pure_path, '/'))) ) 
+        // Check Module Public folder ( MODULE / module / public or  SUB_MODULE / module / public)
+        if( is_readable(MODULES .$sub_module_path. str_replace('/', DS, trim($pure_path, '/'))) ) 
         {         
             return $full_path;
         }
-        elseif(is_readable(ROOT . str_replace('/', DS, trim($app_public_url, '/'))))
+        // Check Root Public folder ( MODULE / public or SUB_MODULE / public )
+        elseif(is_readable(ROOT . str_replace('/', DS, trim($root_path, '/'))))
         {
-            return $OB->config->public_url('', true) . $app_public_url;
+            return $root_path;
         }
         else
         {
-            log_me('debug', 'File not exist or the path ' . $full_path .' is not readable or you need to check your chmod settings !');
+            log_me('debug', 'The public file '.$extra_path . $folder . $sub_path . $filename.' not found or not readable !');
         }
-        
-        return $full_path;
+
     }
 }
 
