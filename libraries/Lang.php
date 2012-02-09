@@ -150,11 +150,11 @@ Class OB_Lang {
     * 
     * @access private
     * @param  string $file_url
-    * @param  string $base
+    * @param  string $dir
     * @param  string $extra_path
     * @return mixed
     */
-    public function _load_file($file_url, $base = '', $extra_path = '')
+    public function _load_file($file_url, $dir = '', $extra_path = '')
     {
         $sub_module_path = $GLOBALS['sub_path'];  // sub.module path
         
@@ -164,6 +164,23 @@ Class OB_Lang {
         }
         
         $file_url = strtolower($file_url);
+                
+        //-------------- OBULLO LANG --------------//
+        
+        if($dir == 'base')  // if base lang
+        { 
+            $filename = $file_url;
+            
+            if(file_exists(APP .'lang'. DS. trim($extra_path, '/') . DS. $filename. EXT)) // check app path
+            {
+                return array('filename' => $filename, 'path' => APP .'lang'. DS. trim($extra_path, '/'));
+            }
+            
+            return array('filename' => $file_url, 'path' => BASE .'lang'. DS. trim($extra_path, '/'));
+        }
+        
+        //-------------- OBULLO LANG --------------//
+        
         
         if(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
         {
@@ -224,7 +241,7 @@ Class OB_Lang {
                         $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.str_replace(DS, '/', $sub_path).'/'.$filename;
                     }
      
-                    return $this->_load_file($file_url, $base, $extra_path);
+                    return $this->_load_file($file_url, $dir, $extra_path);
                 }
             }
             
@@ -272,20 +289,6 @@ Class OB_Lang {
                 throw new LangException('Unable locate the file '. $module_path. $filename. EXT);
             }
         }
-        
-        //-------------- OBULLO LANG --------------//
-        
-        if($base == 'base')  // if base lang
-        { 
-            if(file_exists(APP .'lang'. DS. trim($extra_path, '/') . DS. $filename. EXT)) // check app path
-            {
-                return array('filename' => $filename, 'path' => APP .'lang'. DS. trim($extra_path, '/'));
-            }
-            
-            return array('filename' => $file_url, 'path' => BASE .'lang'. DS. trim($extra_path, '/'));
-        }
-        
-        //-------------- OBULLO LANG --------------//
         
         $path = APP .'lang'. DS .$sub_path .$extra_path;
         

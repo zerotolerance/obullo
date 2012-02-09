@@ -18,7 +18,7 @@ defined('BASE') or exit('Access Denied!');
  * @package     Obullo
  * @subpackage  Helpers
  * @category    Html
- * @author      Ersin Guvenc
+ * @author      Obullo Team
  * @link
  */
 // --------------------------------------------------------------------
@@ -26,20 +26,18 @@ defined('BASE') or exit('Access Denied!');
 /**
 * Build css files in <head> tags
 *
-* css('welcome.css');
-* css('subfolder/welcome.css')
-* css('../module/welcome.css');  from /modules dir
-* css(array('welcome.css', 'hello.css'));
-* css('#main {display: block; color: red;}', 'embed');
+* css('welcome.css'); // current module
+* css('subfolder/welcome.css') // from a subfolder
+* css('../module/welcome.css');  // from /modules dir
+* css(array('welcome.css', 'hello.css')); // array type
+* css('#main {display: block; color: red;}', 'embed'); // inlise style
 *
 * @author   Obullo
-* @param    mixed   $filename array or string
-* @param    string  $title_or_embed
-* @param    string  $media  'all' or 'print' etc..
-* @version  0.1
-* @version  0.2 added $path variable
-* @version  0.2 added _ent->css_folder variable
-* @version  0.3 depreciated $path param
+* @param    string $href
+* @param    string $title_or_embed
+* @param    string $media
+* @param    string $rel
+* @param    boolean $index_page
 * @return   string
 */
 if( ! function_exists('css') )
@@ -61,8 +59,11 @@ if( ! function_exists('css') )
         $link = '<link ';
 
         $view = lib('ob/View');   // obullo changes ..
-
-        // When user use view_set_folder('css', 'iphone'); ..  /public/iphone/css/welcome.css
+        
+        //
+        // If view_set_folder('css', 'foldername'); .. OUTPUT =>  /public/foldername/css/welcome.css
+        //
+        
         $extra_path = '';
         if( isset($view->css_folder{1}) )
         {
@@ -770,6 +771,7 @@ if( ! function_exists('_get_public_path') )
         $pure_path     = $modulename .'/'. $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
         $full_path     = $config->public_url('', true) .str_replace(DS, '/', $MODULE_ROOT). '/' . $pure_path;
         $root_path     = $config->public_url('', true) .str_replace(DS, '/', $SUB_ROOT). '/' . $public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
+        $root_app_path = $config->public_url('', true) .$public_folder .'/'. $extra_path . $folder . $sub_path . $filename;
         
         // Check Module Public folder ( MODULE / module / public or  SUB_MODULE / module / public)
         if( is_readable(MODULES .$sub_module_path. str_replace('/', DS, trim($pure_path, '/'))) ) 
@@ -781,11 +783,9 @@ if( ! function_exists('_get_public_path') )
         {
             return $root_path;
         }
-        else
-        {
-            log_me('debug', 'The public file '.$extra_path . $folder . $sub_path . $filename.' not found or not readable !');
-        }
-
+        
+        return $root_app_path;
+     
     }
 }
 

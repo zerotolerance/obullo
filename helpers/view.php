@@ -260,6 +260,36 @@ if ( ! function_exists('view_layout'))
     }
 }
 
+// ------------------------------------------------------------------------
+
+/**
+* Alias of view_layout() function.
+* 
+*/
+if ( ! function_exists('view_inc'))
+{
+    function view_inc($file_url, $data = '', $string = FALSE)
+    {
+        $view = lib('ob/View');
+        
+        $return     = FALSE;
+        $extra_path = '';
+        
+        if(isset($view->layout_folder{1}))  // if view_layout folder changed don't show errors ..
+        { 
+            if($view->layout_folder_msg) $return = TRUE; 
+            
+            $extra_path = $view->layout_folder;   
+        }  
+        
+        $file_info = $view->_load_file($file_url, 'views', $extra_path);
+
+        profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
+
+        return $view->load($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
+    }
+}
+
 
 /* End of file view.php */
 /* Location: ./obullo/helpers/view.php */
