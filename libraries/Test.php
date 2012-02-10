@@ -8,7 +8,7 @@ defined('BASE') or exit('Access Denied!');
  * 
  * @package         obullo       
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2010.
+ * @copyright       Obullo Team
  * @filesource
  * @license
  */
@@ -110,7 +110,7 @@ Class OB_Test {
             $result = $this->result();
         }
         
-        lang_load('unit_test', '', 'base');
+        loader::lang('ob/test');
 
         $this->_parse_template();
 
@@ -190,7 +190,7 @@ Class OB_Test {
      */
     public function result($results = array())
     {    
-        lang_load('unit_test', '', 'base');
+        loader::lang('ob/test');
         
         if (count($results) == 0)
         {

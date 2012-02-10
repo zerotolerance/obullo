@@ -22,7 +22,7 @@ defined('BASE') or exit('Access Denied!');
  * @package     Obullo
  * @subpackage  Helpers
  * @category    Helpers
- * @author      Ersin Guvenc
+ * @author      Obullo Team
  * @link        
  */
 
@@ -40,7 +40,7 @@ if( ! function_exists('byte_format') )
 {
     function byte_format($num, $precision = 1)
     {
-        lang_load('number', '', 'base');
+        loader::lang('ob/number');
 
         if ($num >= 1000000000000) 
         {

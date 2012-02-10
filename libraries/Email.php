@@ -8,7 +8,7 @@ defined('BASE') or exit('Access Denied!');
  * 
  * @package         obullo       
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @filesource
  * @license
  */
@@ -1923,7 +1923,7 @@ class OB_Email {
      */
     private function _set_error_message($msg, $val = '')
     {
-        lang_load('email', '', 'base');
+        loader::lang('ob/email');
 
         if (FALSE === ($line = lang($msg)))
         {

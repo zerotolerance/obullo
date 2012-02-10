@@ -8,7 +8,7 @@ defined('BASE') or exit('Access Denied!');
  * 
  * @package         obullo       
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @filesource
  * @license
  */
@@ -23,7 +23,7 @@ Class ImageException extends CommonException {}
  * @package       Obullo
  * @subpackage    Libraries
  * @category      Image Lib
- * @author        Ersin Guvenc
+ * @author        Obullo Team
  * @link          
  */
 Class OB_Image {
@@ -1498,7 +1498,7 @@ Class OB_Image {
      */
     public function set_error($msg)
     {
-        lang_load('imglib', '', 'base');
+        loader::lang('ob/imglib');
 
         if (is_array($msg))
         {

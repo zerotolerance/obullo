@@ -2,13 +2,13 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
  * PHP5 HMVC Based Scalable Software.
  * 
  * @package         obullo       
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @filesource
  * @license
  */
@@ -862,7 +862,7 @@ Class OB_Upload {
      */    
     public function set_error($msg)
     {  
-        lang_load('upload', '', 'base');
+        loader::lang('ob/upload');
         
         if (is_array($msg))
         {

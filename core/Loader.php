@@ -49,6 +49,18 @@ Class OB_Loader {
     * @var array
     */
     public static $_app_helpers  = array();
+      
+    /**
+    * Track db names.
+    * @var array
+    */
+    public static $_databases    = array();
+    
+    /**
+    * Track model names.
+    * @var array
+    */
+    public static $_models       = array();
 
     /**
     * loader::lib();
@@ -93,7 +105,10 @@ Class OB_Loader {
             // If someone use HMVC we need to create new instance() foreach Library
             if(lib('ob/Router')->hmvc == FALSE)
             {
-                if (isset(this()->{$library}) AND is_object(this()->{$library})) { return; }
+                if (isset(this()->{$library}) AND is_object(this()->{$library}))
+                {
+                    return;
+                }
             }
 
             this()->{$library} = lib($class, $params_or_no_instance, $new_instance);
@@ -297,7 +312,8 @@ Class OB_Loader {
             throw new LoaderException('You have a small problem, model name isn\'t right in here: '.$model);
         }
 
-        // store loaded obullo models
+        loader::$_models[$model_var] = $model_var;
+        
         profiler_set('models', $model_var, $model_var);     // should be above the new model();
 
         $OB->$model_var = new $model($params_or_no_ins);    // register($class); we don't need it
@@ -352,6 +368,8 @@ Class OB_Loader {
 
         $OB->{$db_var} = OB_DBFactory::Connect($db_name, $db_var, $use_active_record);   // Connect to Database
 
+        loader::$_databases[$db_name] = $db_var;
+        
         profiler_set('databases', $db_name, $db_var);  // Store db variables
 
         self::_assign_db_objects($db_var);
@@ -699,14 +717,15 @@ Class OB_Loader {
         {
             return;
         }
-        
-        $models = profiler_get('models');
 
         $OB = this();
 
-        if (count($models) == 0) return;
+        if (count(loader::$_models) == 0)
+        {
+            return;
+        }
 
-        foreach ($models as $model_name)
+        foreach (loader::$_models as $model_name)
         {
             if( ! isset($OB->$model_name) ) return;
 

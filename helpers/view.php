@@ -26,13 +26,11 @@ defined('BASE') or exit('Access Denied!');
 * 
 * @param  string $key
 * @param  string $val
-* @param  boolean $use_layout
-* @param  array $layout_data
 * @return  string | NULL
 */
 if ( ! function_exists('view_var'))
 {
-    function view_var($key, $val = '', $use_layout = FALSE, $layout_data = array())
+    function view_var($key, $val = '')
     {
         $view = lib('ob/View');
 
@@ -52,15 +50,10 @@ if ( ! function_exists('view_var'))
 
         if($val == array())
         {
-            return view_array($key, $val, $use_layout, $layout_data);
+            return view_array($key, $val);
         }
         
         $view->view_var[$key][] = $val;
-
-        if($use_layout)  // include setted layout.
-        {
-            view_layout($view->layout_name, $layout_data);
-        }
 
         return;
     }
@@ -79,7 +72,7 @@ if ( ! function_exists('view_var'))
 */
 if ( ! function_exists('view_array'))
 {
-    function view_array($key, $val = array(), $use_layout = FALSE, $layout_data = array())
+    function view_array($key, $val = array())
     {
         $view = lib('ob/View');
         $val  = (array)$val;
@@ -102,12 +95,7 @@ if ( ! function_exists('view_array'))
         {
             $view->view_array[$key][] = $value;
         }
-
-        if($use_layout)  // include setted layout.
-        {
-            view_layout($view->layout_name, $layout_data);
-        }
-
+        
         return;
     }
 }
@@ -115,16 +103,39 @@ if ( ! function_exists('view_array'))
 // ------------------------------------------------------------------------
 
 /**
-* Set layout for all controller
-* functions.
+* Load local view file
 *
-* @param string $layout
+* @param string  $filename
+* @param array   $data
+* @param boolean $string default TRUE
+* @return void
 */
-if ( ! function_exists('view_set'))
+if ( ! function_exists('view'))
 {
-    function view_set($layout)
+    function view($file_url, $data = '', $string = TRUE)
     {
-        lib('ob/View')->layout_name = $layout;
+        if(strpos($file_url, 'layouts/') === 0) // include file and load view files form /layouts folder.
+        {
+            $string = FALSE;
+        }
+        
+        $view = lib('ob/View');
+        
+        $return     = FALSE;
+        $extra_path = '';
+        
+        if(isset($view->view_folder{1})) // if view folder changed don't show errors ..
+        { 
+            if($view->view_folder_msg) $return = TRUE;
+            
+            $extra_path = $view->view_folder;
+        }    
+
+        $file_info = $view->_load_file($file_url, 'views', $extra_path);
+        
+        profiler_set('views', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
+
+        return $view->load($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
     }
 }
 
@@ -155,14 +166,7 @@ if ( ! function_exists('view_set_folder'))
                 
                 log_me('debug', "View() Function Paths Changed");
              break;
-
-           case 'view_layout':
-                $view->layout_folder     = $folder;
-                $view->layout_folder_msg = $failure_msg;
-
-                log_me('debug', "View_layout() Function Paths Changed");
-             break;
-
+         
            case 'css':
                 $view->css_folder      = $folder;
                 $view->css_folder_msg  = $failure_msg;
@@ -188,108 +192,6 @@ if ( ! function_exists('view_set_folder'))
         return TRUE;
     }
 }
-
-// ------------------------------------------------------------------------
-
-/**
-* Load local view file
-*
-* @param string  $filename
-* @param array   $data
-* @param boolean $string default TRUE
-* @return void
-*/
-if ( ! function_exists('view'))
-{
-    function view($file_url, $data = '', $string = TRUE)
-    {
-        $view = lib('ob/View');
-        
-        $return     = FALSE;
-        $extra_path = '';
-        
-        if(isset($view->view_folder{1})) // if view folder changed don't show errors ..
-        { 
-            if($view->view_folder_msg) $return = TRUE;
-            
-            $extra_path = $view->view_folder;
-        }    
-
-        $file_info = $view->_load_file($file_url, 'views', $extra_path);
-        
-        profiler_set('views', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
-
-        return $view->load($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
-    }
-}
-
-// ------------------------------------------------------------------------
-
-/**
-* Load layouts file check if it exist
-* in modules/layouts otherwise load it from
-* application/layouts directory.
-*
-* @author CJ Lazell
-* @param  string  $filename
-* @param  array   $data
-* @param  boolean $string
-* @return void
-*/
-if ( ! function_exists('view_layout'))
-{
-    function view_layout($file_url, $data = '', $string = FALSE)
-    {
-        $view = lib('ob/View');
-        
-        $return     = FALSE;
-        $extra_path = '';
-        
-        if(isset($view->layout_folder{1}))  // if view_layout folder changed don't show errors ..
-        { 
-            if($view->layout_folder_msg) $return = TRUE; 
-            
-            $extra_path = $view->layout_folder;   
-        }  
-        
-        $file_info = $view->_load_file($file_url, 'views', $extra_path);
-
-        profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
-
-        return $view->load($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
-    }
-}
-
-// ------------------------------------------------------------------------
-
-/**
-* Alias of view_layout() function.
-* 
-*/
-if ( ! function_exists('view_inc'))
-{
-    function view_inc($file_url, $data = '', $string = FALSE)
-    {
-        $view = lib('ob/View');
-        
-        $return     = FALSE;
-        $extra_path = '';
-        
-        if(isset($view->layout_folder{1}))  // if view_layout folder changed don't show errors ..
-        { 
-            if($view->layout_folder_msg) $return = TRUE; 
-            
-            $extra_path = $view->layout_folder;   
-        }  
-        
-        $file_info = $view->_load_file($file_url, 'views', $extra_path);
-
-        profiler_set('layouts', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
-
-        return $view->load($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
-    }
-}
-
 
 /* End of file view.php */
 /* Location: ./obullo/helpers/view.php */

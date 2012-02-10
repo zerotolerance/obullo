@@ -8,7 +8,7 @@ defined('BASE') or exit('Access Denied!');
  * 
  * @package         obullo       
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @filesource
  * @license
  */
@@ -23,7 +23,7 @@ Class FtpException extends CommonException {}
  * @package       Obullo
  * @subpackage    Base
  * @category      Libraries
- * @author        Ersin Guvenc
+ * @author        Obullo Team
  * @link        
  */
 Class OB_Ftp {
@@ -597,7 +597,7 @@ Class OB_Ftp {
      */
     private function _error($line)
     {
-        lang_load('ftp', '', 'base');
+        loader::lang('ob/ftp');
         
         show_error(lang($line));
     }

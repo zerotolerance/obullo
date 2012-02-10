@@ -8,8 +8,8 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         Obullo
  * @author          Obullo.com  
- * @subpackage      Base.libraries        
- * @copyright       Copyright (c) 2009 Ersin Guvenc.
+ * @subpackage      Obullo.libraries        
+ * @copyright       Obullo Team
  * @license          
  * @since           Version 1.0
  * @filesource
@@ -50,7 +50,8 @@ Class VM extends Model {
         $db = $this->settings['database'];
                  
         loader::database($db);
-        $this->db = this()->$db;
+        
+        $this->db = this()->$db;  // Cannot assign by reference to overloaded object 
         
         parent::__construct();
         
@@ -160,12 +161,12 @@ Class VM extends Model {
     */
     public function validate_request($fields = array())
     {
+        loader::lang('ob/vm');  // Load the language file
+        
         $v_data = array();   // validation fields data
         $db     = $this->settings['database'];
         $table  = $this->settings['table'];
         $id     = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
-
-        loader::lang('ob/vm');  // Load the language file that contains error messages
 
         $db_fields = $this->settings['fields'];
         
@@ -387,13 +388,13 @@ Class VM extends Model {
     */
     public function save()
     {
+        loader::lang('ob/vm');  // Load the language file
+        
         $v_data = array();   // validation fields data
         $s_data = array();   // mysql insert / update fields data
         $db     = $this->settings['database'];
         $table  = $this->settings['table'];
         $id     = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
-    
-        loader::lang('ob/vm');  // Load the language file that contains error messages
 
         if(count($this->no_input) > 0)
         {
@@ -604,19 +605,29 @@ Class VM extends Model {
         }
         
         if($type == 'int' OR $type == 'integer')
-        return (int)$value;
+        {
+            return (int)$value;
+        }
         
         if($type == 'float')
-        return (float)$value;
+        {
+            return (float)$value;
+        }
     
         if($type == 'double')
-        return (double)$value;
+        {
+            return (double)$value;
+        }
         
         if($type == 'bool' OR $type == 'boolean')
-        return (boolean)$value;
+        {
+            return (boolean)$value;
+        }
         
         if($type == 'null')
-        return 'NULL';
+        {
+            return 'NULL';
+        }
         
         return $value;   // Unknown type.
     }
@@ -631,12 +642,12 @@ Class VM extends Model {
     */
     public function delete()
     {
+        loader::lang('ob/vm');  // Load the language file
+        
         $data  = array();
         $db    = $this->settings['database'];
         $table = $this->settings['table'];
         $id    = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
-        
-        loader::lang('ob/vm');  // Load the language file that contains error messages
         
         if(isset($this->property[$id]))
         {

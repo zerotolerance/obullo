@@ -22,7 +22,7 @@ defined('BASE') or exit('Access Denied!');
  * @package     Obullo
  * @subpackage  Helpers
  * @category    Helpers
- * @author      Ersin Guvenc
+ * @author      Obullo Team
  * @link        
  */
 
@@ -57,27 +57,26 @@ if( ! function_exists('set_cookie') )
             }
         }
 
-        // Set the config file options
-        $OB = this();
+        $config = lib('ob/Config');   // Set the config file options
 
-        if ($prefix == '' AND $OB->config->item('cookie_prefix') != '')
+        if ($prefix == '' AND $config->item('cookie_prefix') != '')
         {
-            $prefix = $OB->config->item('cookie_prefix');
+            $prefix = $config->item('cookie_prefix');
         }
         
-        if ($domain == '' AND $OB->config->item('cookie_domain') != '')
+        if ($domain == '' AND $config->item('cookie_domain') != '')
         {
-            $domain = $OB->config->item('cookie_domain');
+            $domain = $config->item('cookie_domain');
         }
         
-        if ($path   == '/' AND $OB->config->item('cookie_path') != '/')
+        if ($path   == '/' AND $config->item('cookie_path') != '/')
         {
-            $path   = $OB->config->item('cookie_path');
+            $path   = $config->item('cookie_path');
         }
         
-        if ($secure == FALSE AND $OB->config->item('cookie_secure') != FALSE)
+        if ($secure == FALSE AND $config->item('cookie_secure') != FALSE)
         {
-            $secure = $OB->config->item('cookie_secure');
+            $secure = $config->item('cookie_secure');
         }
         
         if ( ! is_numeric($expire))
@@ -114,13 +113,13 @@ if( ! function_exists('get_cookie') )
 {
     function get_cookie($index = '', $xss_clean = FALSE)
     {
-        $OB = this();
+        $config = lib('ob/Config');
         
         $prefix = '';
         
-        if ( ! isset($_COOKIE[$index]) && $OB->config->item('cookie_prefix') != '')
+        if ( ! isset($_COOKIE[$index]) && $config->item('cookie_prefix') != '')
         {
-            $prefix = $OB->config->item('cookie_prefix');
+            $prefix = $config->item('cookie_prefix');
         }
         
         return i_cookie($prefix.$index, $xss_clean);

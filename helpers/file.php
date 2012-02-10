@@ -22,7 +22,7 @@ defined('BASE') or exit('Access Denied!');
  * @package     Obullo
  * @subpackage  Helpers
  * @category    Helpers
- * @author      Ersin Guvenc
+ * @author      Obullo Team
  * @link        
  */
 
@@ -41,27 +41,27 @@ if( ! function_exists('read_file') )
 {
     function read_file($file)
     {
-	    if ( ! file_exists($file))
-	    return FALSE;
+        if ( ! file_exists($file))
+        return FALSE;
 
-	    if (function_exists('file_get_contents'))
-	    return file_get_contents($file);		
+        if (function_exists('file_get_contents'))
+        return file_get_contents($file);		
 
-	    if ( ! $fp = @fopen($file, FOPEN_READ))
-	    return FALSE;
-	    
-	    flock($fp, LOCK_SH);
+        if ( ! $fp = @fopen($file, FOPEN_READ))
+        return FALSE;
 
-	    $data = '';
-	    if (filesize($file) > 0)
-	    {
-		    $data =& fread($fp, filesize($file));
-	    }
+        flock($fp, LOCK_SH);
 
-	    flock($fp, LOCK_UN);
-	    fclose($fp);
+        $data = '';
+        if (filesize($file) > 0)
+        {
+                $data =& fread($fp, filesize($file));
+        }
 
-	    return $data;
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        return $data;
     }
 }
 
@@ -82,15 +82,15 @@ if( ! function_exists('write_file') )
 {
     function write_file($path, $data, $mode = FOPEN_WRITE_CREATE_DESTRUCTIVE)
     {
-	    if ( ! $fp = @fopen($path, $mode))
-	    return FALSE;
-	    
-	    flock($fp, LOCK_EX);
-	    fwrite($fp, $data);
-	    flock($fp, LOCK_UN);
-	    fclose($fp);	
+        if ( ! $fp = @fopen($path, $mode))
+        return FALSE;
 
-	    return TRUE;
+        flock($fp, LOCK_EX);
+        fwrite($fp, $data);
+        flock($fp, LOCK_UN);
+        fclose($fp);	
+
+        return TRUE;
     }
 }
 	
@@ -168,34 +168,35 @@ if( ! function_exists('get_filenames') )
 {
     function get_filenames($source_dir, $include_path = FALSE, $_recursion = FALSE)
     {
-	    static $_filedata = array();
-			    
-	    if ($fp = @opendir($source_dir))
-	    {
-		    // reset the array and make sure $source_dir has a trailing slash on the initial call
-		    if ($_recursion === FALSE)
-		    {
-			    $_filedata = array();
-			    $source_dir = rtrim(realpath($source_dir), DS). DS;
-		    }
-		    
-		    while (FALSE !== ($file = readdir($fp)))
-		    {
-			    if (@is_dir($source_dir.$file) && strncmp($file, '.', 1) !== 0)
-			    {
-				     get_filenames($source_dir.$file. DS, $include_path, TRUE);
-			    }
-			    elseif (strncmp($file, '.', 1) !== 0)
-			    {
-				    $_filedata[] = ($include_path == TRUE) ? $source_dir.$file : $file;
-			    }
-		    }
-		    return $_filedata;
-	    }
-	    else
-	    {
-		    return FALSE;
-	    }
+        static $_filedata = array();
+
+        if ($fp = @opendir($source_dir))
+        {
+            // reset the array and make sure $source_dir has a trailing slash on the initial call
+            if ($_recursion === FALSE)
+            {
+                    $_filedata = array();
+                    $source_dir = rtrim(realpath($source_dir), DS). DS;
+            }
+
+            while (FALSE !== ($file = readdir($fp)))
+            {
+                    if (@is_dir($source_dir.$file) && strncmp($file, '.', 1) !== 0)
+                    {
+                             get_filenames($source_dir.$file. DS, $include_path, TRUE);
+                    }
+                    elseif (strncmp($file, '.', 1) !== 0)
+                    {
+                            $_filedata[] = ($include_path == TRUE) ? $source_dir.$file : $file;
+                    }
+            }
+            
+            return $_filedata;
+        }
+        else
+        {
+            return FALSE;
+        }
     }
 }
 
@@ -272,7 +273,7 @@ if( ! function_exists('get_mime_by_extension') )
 {
     function get_mime_by_extension($file)
     {
-	    $extension = $extension = strtolower(substr(strrchr($file, '.'), 1));
+	$extension = $extension = strtolower(substr(strrchr($file, '.'), 1));
         $mimes     = get_config('mimes');    // Obulllo changes ..
 
 	    if ( ! is_array($mimes)) return FALSE;
@@ -374,55 +375,55 @@ if( ! function_exists('symbolic_permissions') )
 {
     function symbolic_permissions($perms)
     {	
-	    if (($perms & 0xC000) == 0xC000)
-	    {
-		    $symbolic = 's'; // Socket
-	    }
-	    elseif (($perms & 0xA000) == 0xA000)
-	    {
-		    $symbolic = 'l'; // Symbolic Link
-	    }
-	    elseif (($perms & 0x8000) == 0x8000)
-	    {
-		    $symbolic = '-'; // Regular
-	    }
-	    elseif (($perms & 0x6000) == 0x6000)
-	    {
-		    $symbolic = 'b'; // Block special
-	    }
-	    elseif (($perms & 0x4000) == 0x4000)
-	    {
-		    $symbolic = 'd'; // Directory
-	    }
-	    elseif (($perms & 0x2000) == 0x2000)
-	    {
-		    $symbolic = 'c'; // Character special
-	    }
-	    elseif (($perms & 0x1000) == 0x1000)
-	    {
-		    $symbolic = 'p'; // FIFO pipe
-	    }
-	    else
-	    {
-		    $symbolic = 'u'; // Unknown
-	    }
+        if (($perms & 0xC000) == 0xC000)
+        {
+                $symbolic = 's'; // Socket
+        }
+        elseif (($perms & 0xA000) == 0xA000)
+        {
+                $symbolic = 'l'; // Symbolic Link
+        }
+        elseif (($perms & 0x8000) == 0x8000)
+        {
+                $symbolic = '-'; // Regular
+        }
+        elseif (($perms & 0x6000) == 0x6000)
+        {
+                $symbolic = 'b'; // Block special
+        }
+        elseif (($perms & 0x4000) == 0x4000)
+        {
+                $symbolic = 'd'; // Directory
+        }
+        elseif (($perms & 0x2000) == 0x2000)
+        {
+                $symbolic = 'c'; // Character special
+        }
+        elseif (($perms & 0x1000) == 0x1000)
+        {
+                $symbolic = 'p'; // FIFO pipe
+        }
+        else
+        {
+                $symbolic = 'u'; // Unknown
+        }
 
-	    // Owner
-	    $symbolic .= (($perms & 0x0100) ? 'r' : '-');
-	    $symbolic .= (($perms & 0x0080) ? 'w' : '-');
-	    $symbolic .= (($perms & 0x0040) ? (($perms & 0x0800) ? 's' : 'x' ) : (($perms & 0x0800) ? 'S' : '-'));
+        // Owner
+        $symbolic .= (($perms & 0x0100) ? 'r' : '-');
+        $symbolic .= (($perms & 0x0080) ? 'w' : '-');
+        $symbolic .= (($perms & 0x0040) ? (($perms & 0x0800) ? 's' : 'x' ) : (($perms & 0x0800) ? 'S' : '-'));
 
-	    // Group
-	    $symbolic .= (($perms & 0x0020) ? 'r' : '-');
-	    $symbolic .= (($perms & 0x0010) ? 'w' : '-');
-	    $symbolic .= (($perms & 0x0008) ? (($perms & 0x0400) ? 's' : 'x' ) : (($perms & 0x0400) ? 'S' : '-'));
+        // Group
+        $symbolic .= (($perms & 0x0020) ? 'r' : '-');
+        $symbolic .= (($perms & 0x0010) ? 'w' : '-');
+        $symbolic .= (($perms & 0x0008) ? (($perms & 0x0400) ? 's' : 'x' ) : (($perms & 0x0400) ? 'S' : '-'));
 
-	    // World
-	    $symbolic .= (($perms & 0x0004) ? 'r' : '-');
-	    $symbolic .= (($perms & 0x0002) ? 'w' : '-');
-	    $symbolic .= (($perms & 0x0001) ? (($perms & 0x0200) ? 't' : 'x' ) : (($perms & 0x0200) ? 'T' : '-'));
+        // World
+        $symbolic .= (($perms & 0x0004) ? 'r' : '-');
+        $symbolic .= (($perms & 0x0002) ? 'w' : '-');
+        $symbolic .= (($perms & 0x0001) ? (($perms & 0x0200) ? 't' : 'x' ) : (($perms & 0x0200) ? 'T' : '-'));
 
-	    return $symbolic;		
+        return $symbolic;		
     }
 }
 // --------------------------------------------------------------------
@@ -441,7 +442,7 @@ if( ! function_exists('octal_permissions') )
 {	
     function octal_permissions($perms)
     {
-	    return substr(sprintf('%o', $perms), -3);
+        return substr(sprintf('%o', $perms), -3);
     }
 }
 

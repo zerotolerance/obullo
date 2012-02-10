@@ -22,7 +22,7 @@ defined('BASE') or exit('Access Denied!');
  * @package     Obullo
  * @subpackage  Helpers
  * @category    Helpers
- * @author      Ersin Guvenc
+ * @author      Obullo Team
  * @link
  */
 
@@ -31,8 +31,6 @@ defined('BASE') or exit('Access Denied!');
 /**
 * Call HMVC Request using HMVC Class.
 *
-* @author   Ersin Guvenc
-* @author   CJ Lazell
 * @access   public
 * @param    string method
 * @param    string  $request

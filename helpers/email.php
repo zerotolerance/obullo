@@ -22,7 +22,7 @@ defined('BASE') or exit('Access Denied!');
  * @package     Obullo
  * @subpackage  Helpers
  * @category    Helpers
- * @author      Ersin Guvenc
+ * @author      Obullo Team
  * @link        
  */
 
@@ -36,9 +36,24 @@ defined('BASE') or exit('Access Denied!');
 */
 if( ! function_exists('valid_email') ) 
 {
-    function valid_email($address)
+    function valid_email($address, $check_dns = FALSE)
     {
-	    return ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $address)) ? FALSE : TRUE;
+        if($check_dns)
+        {
+            if(preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $address))
+            {
+                list($username, $domain) = explode('@', $address);
+            
+                if( ! checkdnsrr($domain,'MX'))
+                {
+                    return FALSE;
+                }
+
+                return TRUE;
+            }
+        }
+        
+        return ( ! preg_match("/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/ix", $address)) ? FALSE : TRUE;
     }
 }
 
@@ -54,7 +69,7 @@ if( ! function_exists('send_email') )
 {	
     function send_email($recipient, $subject = 'Test email', $message = 'Hello World')
     {
-	    return mail($recipient, $subject, $message);
+        return mail($recipient, $subject, $message);
     }
 }
 

@@ -759,11 +759,11 @@ function profiler_set($type, $key, $val)
 */
 function profiler_get($type)
 {
-    $_ob = lib('ob/Storage');
+    $storage = lib('ob/Storage');
     
-    if( isset($_ob->profiler_var[$type]))
+    if( isset($storage->profiler_var[$type]))
     {
-        return $_ob->profiler_var[$type];
+        return $storage->profiler_var[$type];
     }
 
     return array();

@@ -31,11 +31,11 @@ defined('BASE') or exit('Access Denied!');
 // ------------------------------------------------------------------------
 
 /**
- * Get the extension_path which is
+ * Get the extension attributes which is
  * defined in module.xml configuration file.
  * 
- * @param string $name extension name
  * @param string $attribute attribute key
+ * @param string $name extension name
  * @return object
  */
 if ( ! function_exists('extension'))
@@ -53,17 +53,20 @@ if ( ! function_exists('extension'))
     }
 }
 
+Class ModuleException extends CommonException {}
+
 // ------------------------------------------------------------------------
 
 
 Class OB_Module {
 
+    public $module     = '';
+    public $sub_module = '';
     public $xml        = NULL; // xml object
     public $extensions = array();
 
     /**
      * Constructor
-     *
      * Sets the "module.xml" file to object.
      *
      * @version   0.1
@@ -78,7 +81,7 @@ Class OB_Module {
         // the Module Class at Bootstrap loading level. When you try load any library
         // you will get a Fatal Error.
         
-        $module_xml = $this->_get_module_xml();
+        $module_xml = $this->_get_module_xml(); // Init Extension
 
         if($module_xml != FALSE)
         {
@@ -91,6 +94,249 @@ Class OB_Module {
     // --------------------------------------------------------------------
 
     /**
+    * Start the Initialization
+    * 
+    * @return void
+    */
+    public function init()
+    {
+        $this->_init_sub_module();  // Init Submodule
+        $this->_init_module();      // Init Module
+        $this->_init_autoloaders(); // Init Obullo Autoloader files
+        $this->_init_autoruns();    // Init Obullo Autorun files
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Initalize to possible sub.module
+    * 
+    * @access private
+    * @return void
+    */
+    public function _init_sub_module()
+    {
+        // Sub Module
+        // ----------------------------------------------------
+        
+        $this->sub_module = lib('ob/URI')->fetch_sub_module();
+        
+        // ----------------------------------------------------
+        
+        if( $this->sub_module != '' AND is_dir(MODULES .'sub.'.$this->sub_module. DS .'config'))
+        { 
+            // Config Files
+            // ------------------------------------------------
+            if(file_exists(MODULES .'sub.'.$this->sub_module. DS .'config'. DS .'config'. EXT))
+            {
+                loader::config('../sub.'.$this->sub_module.'/config');
+            }
+            
+            // Constants
+            // ------------------------------------------------
+            if(file_exists(MODULES .'sub.'.$this->sub_module. DS.'config'. DS .'constants'. EXT))
+            {
+                get_static('constants', '', MODULES .'sub.'.$this->sub_module. DS.'config');
+            }
+        }
+    }
+    
+    // --------------------------------------------------------------------
+   
+    /**
+    * Initalize to module
+    * 
+    * @access private
+    * @return void
+    */
+    public function _init_module()
+    {
+        // Module
+        // ----------------------------------------------------
+        
+        $this->module = lib('ob/Router')->fetch_directory();
+        
+        // ----------------------------------------------------
+        
+        // Config Files
+        // ----------------------------------------------------
+        
+        if(file_exists(MODULES .$GLOBALS['sub_path'].$this->module. DS .'config'. DS .'config'. EXT))
+        {
+            loader::config('config');
+        }
+        
+        // Constants
+        // ----------------------------------------------------
+        
+        if(file_exists(MODULES .$GLOBALS['sub_path'].$this->module. DS .'config'. DS .'constants'. EXT))
+        {
+            get_static('constants', '', MODULES .$GLOBALS['sub_path'].$this->module. DS .'config');
+        }  
+    }
+
+    // --------------------------------------------------------------------
+    
+    /**
+    * Initalize to Obullo autoloaders and
+    * merge autoload, autorun file variables to application module.
+    * 
+    * @access private
+    * @return void
+    */
+    public function _init_autoloaders()
+    {
+        $autoload = $this->_merge_autoloaders('autoload', '', 'Autoloaders');
+
+        if(is_array($autoload))
+        {
+            loader::helper('ob/array');
+            
+            foreach(array_keys($autoload) as $key)
+            {
+                if(count($autoload[$key]) > 0)
+                {
+                    if( ! is_assoc_array($autoload[$key]))
+                    {
+                        show_error('Please redefine your '.$key.' autoload variables, they must be associative array !');
+                    }
+                    
+                    foreach($autoload[$key] as $filename => $args)
+                    {
+                        if( ! is_string($filename))
+                        {
+                            throw new ModuleException("Autoload function error, autoload array must be associative. 
+                                An example configuration <b>\$autoload['helper'] = array('ob/session' => '', 'ob/form' => '')</b>");
+                        }
+
+                        if(is_array($args)) // if arguments exists
+                        { 
+                            switch($key)
+                            {
+                                case ($key == 'config' || $key == 'lang' || $key == 'lib' || $key == 'model'):
+                                    
+                                    $third_param = isset($args[1]) ? $args[1] : FALSE;
+                                    
+                                    loader::$key($filename, $args[0], $third_param);
+                                    break;
+
+                                case 'helper':
+                                    
+                                    loader::$key($filename, $args[0]);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            loader::$key($filename);
+                        }
+                    }
+                }
+            }
+            
+            profiler_set('autoloads', 'autoloads', $autoload);
+        }
+    }
+    
+    // -------------------------------------------------------------------- 
+
+    /**
+    * Initalize to Obullo autoloaders and
+    * merge autoload, autorun file variables to application module.
+    * 
+    * @access private
+    * @return void
+    */
+    public function _init_autoruns()
+    {
+        $autorun = $this->_merge_autoloaders('autorun', '', 'Autorun');
+        
+        if(isset($autorun['function']))
+        {
+            if(count($autorun['function']) > 0)
+            {
+                foreach(array_reverse($autorun['function']) as $function => $arguments)
+                {   
+                    if( ! function_exists($function))
+                    {
+                        throw new ModuleException('The autorun function '. $function . ' not found, please define it in 
+                            APP/config/autoload.php or MODULES/sub.module/config/ or MODULES/'.$this->module.'/config/');
+                    }
+
+                    call_user_func_array($function, $arguments);   // Run autorun function.
+
+                    profiler_set('autorun', $function, $arguments);
+                }
+            }
+        }  
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Merge Modules autoload, autorun ..
+    * file variables to application module.
+    * 
+    * @access private
+    * @param string $file
+    * @param string $var
+    * @param string $type
+    * @return array
+    */
+    public function _merge_autoloaders($file = 'autoload', $var = '', $type = 'Autoloaders')
+    {   
+        $app_vars = get_static($file, $var, APP .'config');
+
+        if($this->sub_module != '') // Sub Module
+        { 
+            if( file_exists(MODULES .'sub.'.$this->sub_module. DS .'config'. DS .$file. EXT))
+            {
+                $sub_module_vars = get_static($file, $var, MODULES .'sub.'.$this->sub_module. DS .'config');
+
+                foreach($app_vars as $key => $array)
+                {
+                    $values[$key] = array_merge($sub_module_vars[$key], $array); 
+                }
+
+                log_me('debug', '[ '.ucfirst($this->sub_module).' ]: Sub-Module and Application '.$type.' Merged', false, true);
+            }
+
+            if( ! file_exists(MODULES .$GLOBALS['sub_path'].$this->module. DS .'config'. DS .$file. EXT))
+            {
+                return $values;
+            }
+        }
+
+        if( file_exists(MODULES .$GLOBALS['sub_path'].$this->module. DS .'config'. DS .$file. EXT))
+        {           
+            $module_vars = get_static($file, $var, MODULES .$GLOBALS['sub_path'].$this->module. DS .'config');
+
+            if(isset($sub_module_vars))  // Merge Sub-Module and Application Variables
+            {
+                unset($app_vars);
+                $app_vars = $values;
+            }
+
+            foreach($app_vars as $key => $array)
+            {   
+                $values[$key] = array_merge($module_vars[$key], $array);
+            }
+
+            log_me('debug', '[ '.ucfirst($this->module).' ]: Module and Application '.$type.' Merged', false, true);
+        } 
+        else 
+        {  
+            $values = get_static($file, $var, APP .'config');
+
+            log_me('debug', 'Application '.$type.' Initialized');
+        }
+
+        return $values;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
     * Find "module.xml" file.
     * 
     * Get module XML Configuration file which is
@@ -101,13 +347,13 @@ Class OB_Module {
     */
     public function _get_module_xml()
     {   
-        $sub_module = lib('ob/URI')->fetch_sub_module();
+        $this->sub_module = lib('ob/URI')->fetch_sub_module();
         
-        if($sub_module != '')
+        if($this->sub_module != '')
         {
-            if(file_exists(MODULES .'sub.'.$sub_module. DS .SUB_MODULES .'module.xml'))  // If not found Check SUB MODULES root
+            if(file_exists(MODULES .'sub.'.$this->sub_module. DS .SUB_MODULES .'module.xml'))  // If not found Check SUB MODULES root
             {
-                return array('file' => MODULES .'sub.'.$sub_module. DS .SUB_MODULES .'module.xml');
+                return array('file' => MODULES .'sub.'.$this->sub_module. DS .SUB_MODULES .'module.xml');
             }
         }
         

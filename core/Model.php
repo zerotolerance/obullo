@@ -8,8 +8,8 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         Obullo
  * @author          Obullo.com  
- * @subpackage      Base.libraries        
- * @copyright       Copyright (c) 2009 Ersin Guvenc.
+ * @subpackage      Obullo.libraries        
+ * @copyright       Obullo Team
  * @license          
  * @since           Version 1.0
  * @filesource
@@ -48,7 +48,7 @@ Class Model {
     {
         $OB = this();
 
-        foreach(profiler_get('databases') as $db_name => $db_var)
+        foreach(loader::$_databases as $db_name => $db_var)
         {
             if(method_exists($this, '__get') OR method_exists($this, '__set'))
             {

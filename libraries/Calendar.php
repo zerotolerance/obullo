@@ -8,7 +8,7 @@ defined('BASE') or exit('Access Denied!');
  * 
  * @package         obullo       
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @filesource
  * @license
  */
@@ -23,7 +23,7 @@ defined('BASE') or exit('Access Denied!');
  * @package       Obullo
  * @subpackage    Libraries
  * @category      Libraries
- * @author        Ersin Guvenc
+ * @author        Obullo Team
  * @link          
  */
 Class OB_Calendar {
@@ -48,11 +48,11 @@ Class OB_Calendar {
     */
     public function __construct($config = array())
     {        
-        $_ob = lib('ob/Storage');
+        $lang = lib('ob/Lang');
         
-        if ( ! in_array('calendar_lang', $_ob->lang->is_loaded, TRUE))
+        if ( ! in_array('calendar_lang', $lang->is_loaded, TRUE))
         {
-            lang_load('calendar', '', 'base');
+            loader::lang('ob/calendar');
         }
 
         $this->local_time = time();

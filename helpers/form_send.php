@@ -22,13 +22,13 @@ defined('BASE') or exit('Access Denied!');
  * @package     Obullo
  * @subpackage  Helpers
  * @category    Helpers
- * @author      Ersin Guvenc
+ * @author      Obullo Team
  * @link        
  */
 
 
 /**
-* Json Send Error for Jquery Obullo
+* Json Send Error for Obullo Jquery 
 * Form Plugin
 *
 * @access public

@@ -30,8 +30,7 @@ Class OB_Profiler {
     
      public function __construct()
      {
-         lang_load('profiler', '', 'base');
-         
+         loader::lang('ob/profiler');
          loader::helper('ob/view');
      }
      
@@ -52,15 +51,15 @@ Class OB_Profiler {
      {
          $profile = array();
          
-         $_ob = lib('ob/Storage');
+         $bench = lib('ob/Benchmark');
           
-         foreach ($_ob->benchmark->marker as $key => $val)
+         foreach ($bench->marker as $key => $val)
          {
              // We match the "end" marker so that the list ends
              // up in the order that it was defined
              if (preg_match("/(.+?)_end/i", $key, $match))
              {             
-                 if (isset($_ob->benchmark->marker[$match[1].'_end']) AND isset($_ob->benchmark->marker[$match[1].'_start']))
+                 if (isset($bench->marker[$match[1].'_end']) AND isset($bench->marker[$match[1].'_start']))
                  {
                      $profile[$match[1]] = benchmark_elapsed_time($match[1].'_start', $key);
                  }
@@ -523,9 +522,6 @@ Class OB_Profiler {
         
         $views  = '';
         foreach(profiler_get('views') as $view) { $views .= error_secure_path($view) .'<br /> '; }
-    
-        $layouts  = '';
-        foreach(profiler_get('layouts') as $layout) { $layouts .= error_secure_path($layout) .'<br /> '; }
         
         $controllers = '';
         foreach(profiler_get('parents') as $gc) { $controllers .= error_secure_path($gc) .'<br /> '; }
@@ -542,7 +538,6 @@ Class OB_Profiler {
         $databases      = (isset($databases{2}))      ? $databases : '-';
         $files          = (isset($files{2}))          ? $files : '-';
         $views          = (isset($views{2}))          ? $views : '-';
-        $layouts        = (isset($layouts{2}))        ? $layouts : '-';
         $config_files   = (isset($config_files{2}))   ? $config_files : '-';
         
         $autoloads = print_r(profiler_get('autoloads'),true);
@@ -560,8 +555,7 @@ Class OB_Profiler {
         $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";  
         $output .= "<tr><td class=\"td\">Models&nbsp;&nbsp;</td><td class=\"td_val\">".$models."</td></tr>";    
         $output .= "<tr><td class=\"td\">Databases&nbsp;&nbsp;</td><td class=\"td_val\">".$databases."</td></tr>";      
-        $output .= "<tr><td class=\"td\">Views&nbsp;&nbsp;</td><td class=\"td_val\">".$views."</td></tr>";    
-        $output .= "<tr><td class=\"td\">Layouts&nbsp;&nbsp;</td><td class=\"td_val\">".$layouts."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Views&nbsp;&nbsp;</td><td class=\"td_val\">".$views."</td></tr>";       
         $output .= "<tr><td class=\"td\">External Files&nbsp;&nbsp;</td><td class=\"td_val\">".$files."</td></tr>";    
         $output .= "<tr><td class=\"td\">Controllers&nbsp;&nbsp;</td><td class=\"td_val\">".$controllers."</td></tr>";    
         
