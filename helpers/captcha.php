@@ -84,6 +84,7 @@ if( ! function_exists('captcha_create') )
         'img_width' => '150',
         'img_height'=> '30',
         'font_path' => '',
+        'font_size' => '16',
         'expiration'=> 7200,
          // colors 
         'background' => '#FFFFFF',
@@ -93,6 +94,9 @@ if( ! function_exists('captcha_create') )
         'shadow'     => '#330099',
         // pool
         'pool'       => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'points'     => '32',
+        'circles'    => '20',
+        'radius'     => '16'
         );        
         
         foreach ($defaults as $key => $val)
@@ -217,11 +221,11 @@ if( ! function_exists('captcha_create') )
         //  Create the spiral pattern
         // -----------------------------------
         
-        $theta        = 1;
-        $thetac        = 7;
-        $radius        = 16;
-        $circles    = 20;
-        $points        = 32;
+        $theta      = 1;
+        $thetac     = 7;
+        $radius     = $radius;
+        $circles    = $circles;
+        $points     = $points;
 
         for ($i = 0; $i < ($circles * $points) - 1; $i++)
         {
@@ -245,13 +249,13 @@ if( ! function_exists('captcha_create') )
             
         if ($use_font == FALSE)
         {
-            $font_size = 5;
+            // $font_size = 5;
             $x = rand(0, $img_width/($length/3));
             $y = 0;
         }
         else
         {
-            $font_size    = 16;
+            // $font_size    = 16;
             $x = rand(0, $img_width/($length/1.5));
             $y = $font_size+2;
         }

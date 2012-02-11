@@ -70,7 +70,7 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
         if($params_or_no_ins === FALSE)
         {
-            profiler_set('libraries', 'php_'.$Class.'_no_instantiate', $Class);
+            profiler_set('ob_libraries', 'php_'.$Class.'_no_instantiate', $Class);
             
             return TRUE;
         }
@@ -87,7 +87,7 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
             
             $classname = $prefix. $Class;
 
-            profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+            profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
         } 
         
         // __construct params support.
@@ -204,7 +204,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
         if($params_or_no_ins === FALSE)
         {
-            profiler_set('libraries', 'php_'.$Class.'_no_instantiate', $Class);
+            profiler_set('ob_libraries', 'php_'.$Class.'_no_instantiate', $Class);
             return TRUE;
         }
 
@@ -214,6 +214,9 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         $module      = lib('ob/Router')->fetch_directory();
         $sub_module  = lib('ob/URI')->fetch_sub_module();
         $module_path = $GLOBALS['sub_path'].$module;
+        
+        // Extension Support
+        // --------------------------------------------------------------------
         
         if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
         {
@@ -248,7 +251,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
                                                 $classname = $prefix. $Class;
 
-                                                profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+                                                profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
 
                                                 $overriden_objects[$library] = $library;
                                             }
@@ -262,6 +265,9 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
             }
         }
         
+        // Extension Support End
+        // --------------------------------------------------------------------
+        
         if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
         {
             if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  
@@ -273,7 +279,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
                 $classname = $prefix. $Class;
 
-                profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+                profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
 
                 $overriden_objects[$Class] = $Class;
 
@@ -287,7 +293,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
                 $classname = $prefix. $Class;
 
-                profiler_set('libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+                profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
 
                 $overriden_objects[$Class] = $Class;
             }     

@@ -30,7 +30,8 @@ Class OB_Profiler {
     
      public function __construct()
      {
-         loader::lang('ob/profiler');
+         lib('ob/Lang')->load('ob/profiler');
+         
          loader::helper('ob/view');
      }
      
@@ -468,7 +469,7 @@ Class OB_Profiler {
     
         $output  = '<div id="loaded_files">';       
         $output .= "<table class=\"tableborder\">";
-        $output .= "<tr><th>".lang('profiler_loaded_files')."</th></tr>";
+        $output .= "<tr><th width='25%'>".lang('profiler_loaded_files')."</th></tr>";
         
         $config_files = '';
         foreach(profiler_get('config_files') as $config_file) { $config_files .= error_secure_path($config_file) .'<br />'; }
@@ -516,9 +517,6 @@ Class OB_Profiler {
               
         $databases  = '';
         foreach(profiler_get('databases') as $db_name => $db_var) { $databases .= $db_var.'<br />'; }
-
-        $files  = '';              
-        foreach(profiler_get('files') as $file) { $files .= error_secure_path($file) .'<br />'; }
         
         $views  = '';
         foreach(profiler_get('views') as $view) { $views .= error_secure_path($view) .'<br /> '; }
@@ -536,27 +534,28 @@ Class OB_Profiler {
         $libraries      = (isset($libraries{2}))      ? $libraries : '-';
         $models         = (isset($models{2}))         ? $models : '-';
         $databases      = (isset($databases{2}))      ? $databases : '-';
-        $files          = (isset($files{2}))          ? $files : '-';
         $views          = (isset($views{2}))          ? $views : '-';
         $config_files   = (isset($config_files{2}))   ? $config_files : '-';
         
-        $autoloads = print_r(profiler_get('autoloads'),true);
-        $autoloads = preg_replace('/\[(.*?)\]/', '[<b>$1</b>]', $autoloads); // Highlight keys.
+        $autoloads = profiler_get('autoloads');
+        $autoloads = $autoloads['autoloads'];
+        $autoloads = print_r($autoloads, true);
         $autoloads = $this->clean_string($autoloads);
+        $autoloads = preg_replace('/\[(.*?)\]/', '<br />[<b>$1</b>]', $autoloads); // Highlight keys.
+
 
         $output .= "<tr><td class=\"td\">Config Files&nbsp;&nbsp;</td><td class=\"td_val\">".$config_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Lang Files&nbsp;&nbsp;</td><td class=\"td_val\">".$lang_files."</td></tr>";  
-        $output .= "<tr><td class=\"td\">Obullo Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$base_helpers."</td></tr>";  
+        $output .= "<tr><td class=\"td\">Obullo Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".trim(trim($base_helpers), ',')."</td></tr>";  
         $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>";
         $output .= "<tr><td class=\"td\">Autoload Data&nbsp;&nbsp;</td><td class=\"td_val\">" .$autoloads."</td></tr>";
         $output .= "<tr><td class=\"td\">Autorun Functions&nbsp;&nbsp;</td><td class=\"td_val\">".$autorun."</td></tr>";
-        $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$helpers."</td></tr>";
+        $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".trim(trim($helpers), ',')."</td></tr>";
         $output .= "<tr><td class=\"td\">Obullo Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$ob_libraries."</td></tr>";
         $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";  
         $output .= "<tr><td class=\"td\">Models&nbsp;&nbsp;</td><td class=\"td_val\">".$models."</td></tr>";    
         $output .= "<tr><td class=\"td\">Databases&nbsp;&nbsp;</td><td class=\"td_val\">".$databases."</td></tr>";      
-        $output .= "<tr><td class=\"td\">Views&nbsp;&nbsp;</td><td class=\"td_val\">".$views."</td></tr>";       
-        $output .= "<tr><td class=\"td\">External Files&nbsp;&nbsp;</td><td class=\"td_val\">".$files."</td></tr>";    
+        $output .= "<tr><td class=\"td\">Views&nbsp;&nbsp;</td><td class=\"td_val\">".$views."</td></tr>";          
         $output .= "<tr><td class=\"td\">Controllers&nbsp;&nbsp;</td><td class=\"td_val\">".$controllers."</td></tr>";    
         
         $output .= "</table>";

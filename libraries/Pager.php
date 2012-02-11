@@ -50,8 +50,6 @@ Class OB_Pager
                                          
         loader::helper('core/driver');
                                             
-        // @todo lib('driver/folder/classname', $options);
-                                            
         return lib_driver($folder = 'pager', $classname, $options);
     }
 
