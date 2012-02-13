@@ -8,7 +8,7 @@ defined('BASE') or exit('Access Denied!');
  *
  * @package         obullo
  * @author          obullo.com
- * @copyright       Ersin Guvenc (c) 2009.
+ * @copyright       Obullo Team
  * @filesource
  * @license
  */
@@ -25,7 +25,7 @@ Class AgentException extends CommonException {}
  * @package       Obullo
  * @subpackage    Libraries
  * @category      Libraries
- * @author        Ersin Guvenc
+ * @author        Obullo Team
  * @link
  */
 Class OB_Agent {

@@ -18,7 +18,7 @@ defined('BASE') or exit('Access Denied!');
 // ------------------------------------------------------------------------
 
 /**
- * SQLITE Database Adapter Class
+ * OCI (Oracle) Database Adapter Class
  *
  * @package       Obullo
  * @subpackage    Drivers
@@ -27,24 +27,23 @@ defined('BASE') or exit('Access Denied!');
  * @link                              
  */
 
-Class Obullo_DB_Driver_Sqlite extends OB_DBAdapter
+Class OB_Database_oci extends OB_Database_adapter
 {
     /**
     * The character used for escaping
     * 
     * @var string
     */
-    public $_escape_char = ''; // sqlite not use ` backticks ..
+    public $_escape_char = '"';
     
     // clause and character used for LIKE escape sequences
-    public $_like_escape_str = "";  // some errors using ESCAPE with sqlite2
-    public $_like_escape_chr = "\\";     
-     
-    public function __construct($param, $db_var = 'db')
-    {   
-        parent::__construct($param, $db_var);
-    }
+    public $_like_escape_str = " escape '%s' ";
+    public $_like_escape_chr = '!';
     
+    public function __construct($param)
+    {   
+        parent::__construct($param);
+    }
     
     /**
     * Connect to PDO
@@ -61,58 +60,114 @@ Class Obullo_DB_Driver_Sqlite extends OB_DBAdapter
         // If connection is ok .. not need to again connect..
         if ($this->_conn) { return; }
         
-        $type = '';
-         switch ($this->dbdriver)
-         {
-            case 'sqlite':
-                $type = 'sqlite';
-                break;
-             
-            case 'sqlite2':
-                $type = 'sqlite2';
-                break;
-                
-            case 'sqlite3':
-                $type = 'sqlite3';
-                break;
-        }
-        
-        $dsn  = empty($this->dsn) ? $type.':'.$this->database : $this->dsn;        
-
-        $this->_pdo = $this->pdo_connect($dsn, NULL, NULL, $this->options);
+        $port    = empty($this->dbh_port) ? '' : ':'.$this->dbh_port;
+        $charset = empty($this->char_set) ? '' : ';charset='.$this->char_set; 
+        $dsn     = empty($this->dsn) ? 'oci:dbname='.$this->hostname.$port.'/'.$this->database.$charset : $this->dsn;
+        $this->_pdo  = $this->pdo_connect($dsn, $this->username, $this->password, $this->options);
         
         // We set exception attribute for always showing the pdo exceptions errors. (ersin)
         $this->_conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-        
-        $retval = $this->_conn->exec('PRAGMA full_column_names=0');
-        
-        if ($retval === false) {
-            
-            $error = $this->_conn->errorInfo();
-
-            throw new DBException($error[2]);
-        }
-
-        $retval = $this->_conn->exec('PRAGMA short_column_names=1');
-        if ($retval === false) {
-            
-            $error = $this->_conn->errorInfo();
-
-            throw new DBException($error[2]);
-        }
-        
     } 
-
+                
     // --------------------------------------------------------------------
+    
+    /**
+     * Escape String
+     *
+     * @access  public
+     * @param   string
+     * @param   bool    whether or not the string will be used in a LIKE condition
+     * @return  string
+     */
+    public function escape_str($str, $like = FALSE, $side = 'both')
+    {
+        if (is_array($str))
+        {
+            foreach($str as $key => $val)
+            {
+                $str[$key] = $this->escape_str($val, $like);
+            }
+           
+            return $str;
+        }
+
+        loader::helper('ob/security');
+        
+        $str = _remove_invisible_characters($str);
+        
+        // escape LIKE condition wildcards
+        if ($like === TRUE)
+        {
+            $str = str_replace( array('%', '_', $this->_like_escape_chr),
+                                array($this->_like_escape_chr.'%', $this->_like_escape_chr.'_', 
+                                $this->_like_escape_chr.$this->_like_escape_chr), $str);
+            
+            switch ($side)
+            {
+               case 'before':
+                 $str = "%{$str}";
+                 break;
+                 
+               case 'after':
+                 $str = "{$str}%";
+                 break;
+                 
+               default:
+                 $str = "%{$str}%";
+            }
+            
+            // not need to quote for who use prepare and :like bind.
+            if($this->prepare == TRUE AND $this->is_like_bind)   
+            return $str;
+        } 
+        
+        // make sure is it bind value, if not ...
+        if($this->prepare === TRUE)
+        {
+            if(strpos($str, ':') === FALSE)
+            {
+                $str = $this->quote($str, PDO::PARAM_STR);
+            }
+        }
+        else
+        {
+           $str = $this->quote($str, PDO::PARAM_STR);
+        }
+
+        return $str;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Quote a string.
+    * Most PDO drivers have an implementation for the quote() method,
+    * but the Oracle OCI driver not. From Zend.
+    *
+    * @param   string $value    Raw string
+    * @return  string           Quoted string
+    */
+    protected function quote($value, $type = NULL)
+    {
+        if (is_int($value) || is_float($value))
+        {
+            return $value;
+        }
+        
+        $value = str_replace("'", "''", $value);
+        return "'" . addcslashes($value, "\000\n\r\\\032") . "'";
+    }
+    
+    // -------------------------------------------------------------------- 
     
     /**
      * Escape the SQL Identifiers
      *
      * This function escapes column and table names
      *
-     * @access   private
+     * @access    private
      * @param    string
-     * @return   string
+     * @return    string
      */
     public function _escape_identifiers($item)
     {
@@ -144,88 +199,6 @@ Class Obullo_DB_Driver_Sqlite extends OB_DBAdapter
         // remove duplicates if the user already included the escape
         return preg_replace('/['.$this->_escape_char.']+/', $this->_escape_char, $str);
     }
-            
-    // --------------------------------------------------------------------
-    
-    /**
-    * Escape String
-    *
-    * @access   public
-    * @param    string
-    * @param    bool    whether or not the string will be used in a LIKE condition
-    * @return   string
-    */
-    public function escape_str($str, $like = FALSE, $side = 'both')    
-    {    
-        if (is_array($str))
-        {
-            foreach($str as $key => $val)
-            {
-                $str[$key] = $this->escape_str($val, $like);
-            }
-
-            return $str;
-        }
-                
-        // escape LIKE condition wildcards
-        if ($like === TRUE)
-        {
-            $str = str_replace( array('%', '_', $this->_like_escape_chr),
-                                array($this->_like_escape_chr.'%', $this->_like_escape_chr.'_', 
-                                $this->_like_escape_chr.$this->_like_escape_chr), $str);
-            
-            switch ($side)
-            {
-               case 'before':
-                 $str = "%{$str}";
-                 break;
-                 
-               case 'after':
-                 $str = "{$str}%";
-                 break;
-                 
-               default:
-                 $str = "%{$str}%";
-            }
-            
-            // not need to quote for who use prepare and :like bind.
-            if($this->prepare == TRUE AND $this->is_like_bind)   
-            return $str;        
-        }
-        
-        // make sure is it bind value, if not ...
-        if($this->prepare === TRUE)
-        {
-            if(strpos($str, ':') === FALSE)
-            {
-                $str = $this->quote($str, PDO::PARAM_STR);
-            }
-        }
-        else
-        {
-           $str = $this->quote($str, PDO::PARAM_STR);
-        }
-        
-        return $str;
-    }
-    
-    // -------------------------------------------------------------------- 
-    
-    /**
-    * Platform specific pdo quote
-    * function.
-    *                 
-    * @author  Ersin Guvenc.
-    * @param   string $str
-    * @param   int    $type
-    * @return
-    */
-    public function quote($str, $type = NULL)
-    {
-         return $this->_conn->quote($str, $type);  
-    }
-    
-    // --------------------------------------------------------------------
     
     /**
      * From Tables
@@ -244,7 +217,7 @@ Class Obullo_DB_Driver_Sqlite extends OB_DBAdapter
             $tables = array($tables);
         }
         
-        return '('.implode(', ', $tables).')';
+        return implode(', ', $tables);
     }
 
     // --------------------------------------------------------------------
@@ -254,14 +227,14 @@ Class Obullo_DB_Driver_Sqlite extends OB_DBAdapter
      *
      * Generates a platform-specific insert string from the supplied data
      *
-     * @access   public
-     * @param    string   the table name
-     * @param    array    the insert keys
-     * @param    array    the insert values
-     * @return   string
+     * @access  public
+     * @param   string  the table name
+     * @param   array   the insert keys
+     * @param   array   the insert values
+     * @return  string
      */
     public function _insert($table, $keys, $values)
-    {    
+    {
         return "INSERT INTO ".$table." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
     }
     
@@ -273,7 +246,7 @@ Class Obullo_DB_Driver_Sqlite extends OB_DBAdapter
      * Generates a platform-specific update string from the supplied data
      *
      * @access   public
-     * @param    string   the table name
+     * @param    string    the table name
      * @param    array    the update data
      * @param    array    the where clause
      * @param    array    the orderby clause
@@ -299,6 +272,7 @@ Class Obullo_DB_Driver_Sqlite extends OB_DBAdapter
         
         return $sql;
     }
+    
     // --------------------------------------------------------------------
 
     /**
@@ -307,9 +281,9 @@ Class Obullo_DB_Driver_Sqlite extends OB_DBAdapter
      * Generates a platform-specific delete string from the supplied data
      *
      * @access   public
-     * @param    string   the table name
+     * @param    string    the table name
      * @param    array    the where clause
-     * @param    string   the limit clause
+     * @param    string    the limit clause
      * @return   string
      */    
     public function _delete($table, $where = array(), $like = array(), $limit = FALSE)
@@ -340,29 +314,31 @@ Class Obullo_DB_Driver_Sqlite extends OB_DBAdapter
      *
      * Generates a platform-specific LIMIT clause
      *
-     * @access   public
-     * @param    string    the sql query string
-     * @param    integer   the number of rows to limit the query to
-     * @param    integer   the offset value
-     * @return   string
+     * @access  public
+     * @param   string  the sql query string
+     * @param   integer the number of rows to limit the query to
+     * @param   integer the offset value
+     * @return  string
      */
     public function _limit($sql, $limit, $offset)
-    {    
-        if ($offset == 0)
+    {
+        $limit = $offset + $limit;
+        $newsql = "SELECT * FROM (select inner_query.*, rownum rnum FROM ($sql) inner_query WHERE rownum < $limit)";
+
+        if ($offset != 0)
         {
-            $offset = '';
+            $newsql .= " WHERE rnum >= $offset";
         }
-        else
-        {
-            $offset .= ", ";
-        }
-        
-        return $sql."LIMIT ".$offset.$limit;
+
+        // remember that we used limits
+        // $this->limit_used = TRUE;
+
+        return $newsql;
     }
 
 
 } // end class.
 
 
-/* End of file sqlite_driver.php */
-/* Location: ./obullo/database/drivers/sqlite_driver.php */
+/* End of file Database_oci.php */
+/* Location: ./obullo/libraries/drivers/database/Database_oci.php */

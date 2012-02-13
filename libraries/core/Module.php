@@ -129,7 +129,7 @@ Class OB_Module {
             // ------------------------------------------------
             if(file_exists(MODULES .'sub.'.$this->sub_module. DS .'config'. DS .'config'. EXT))
             {
-                loader::config('../sub.'.$this->sub_module.'/config');
+                lib('ob/Config')->load('../sub.'.$this->sub_module.'/config');
             }
             
             // Constants
@@ -163,7 +163,7 @@ Class OB_Module {
         
         if(file_exists(MODULES .$GLOBALS['sub_path'].$this->module. DS .'config'. DS .'config'. EXT))
         {
-            loader::config('config');
+            lib('ob/Config')->load('config');
         }
         
         // Constants

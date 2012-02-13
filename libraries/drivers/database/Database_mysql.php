@@ -2,7 +2,7 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
  * PHP5 HMVC Based Scalable Software.
  *
@@ -10,7 +10,7 @@ defined('BASE') or exit('Access Denied!');
  * @package         Obullo
  * @author          Obullo.com
  * @subpackage      Obullo.database
- * @copyright       Copyright (c) 2009 Ersin Guvenc.
+ * @copyright       Obullo Team
  * @license         public
  * @since           Version 1.0
  * @filesource
@@ -23,11 +23,11 @@ defined('BASE') or exit('Access Denied!');
  * @package       Obullo
  * @subpackage    Drivers
  * @category      Database
- * @author        Ersin Guvenc
+ * @author        Obullo Team
  * @link
  */
 
-Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
+Class OB_Database_mysql extends OB_Database_adapter
 {
     /**
     * The character used for escaping
@@ -41,9 +41,9 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
     public $_like_escape_str = '';
     public $_like_escape_chr = '';
 
-    public function __construct($param, $db_var = 'db')
+    public function __construct($param)
     {
-        parent::__construct($param, $db_var);
+        parent::__construct($param);
     }
 
     /**
@@ -130,7 +130,6 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
     /**
     * Escape String
     *
-    * @author   Ersin Guvenc
     * @access   public
     * @param    string
     * @param    bool    whether or not the string will be used in a LIKE condition
@@ -362,5 +361,5 @@ Class Obullo_DB_Driver_Mysql extends OB_DBAdapter
 } // end class.
 
 
-/* End of file mysql_driver.php */
-/* Location: ./obullo/database/drivers/mysql_driver.php */
+/* End of file Database_mysql.php */
+/* Location: ./obullo/libraries/drivers/database/Database_mysql.php */

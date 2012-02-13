@@ -26,7 +26,7 @@ defined('BASE') or exit('Access Denied!');
  * @version         0.1
  * @version         0.2 added extend to ob
  * @version         0.3 depreciated get_object_vars, added _assing_db_objects
- * @version         0.4 added profiler_get('databases'); func.
+ * @version         0.4 added loader::$_databases; func.
  */                    
 
 Class Model {

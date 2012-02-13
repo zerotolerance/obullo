@@ -2,7 +2,7 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
  * PHP5 HMVC Based Scalable Software.
  *
@@ -27,7 +27,7 @@ defined('BASE') or exit('Access Denied!');
  * @link
  */
 
-Class Obullo_DB_Driver_Cubrid extends OB_DBAdapter
+Class OB_Database_cubrid extends OB_Database_adapter
 {
     /**
     * The character used for escaping
@@ -41,9 +41,9 @@ Class Obullo_DB_Driver_Cubrid extends OB_DBAdapter
     public $_like_escape_str = '';
     public $_like_escape_chr = '';
 
-    public function __construct($param, $db_var = 'db')
+    public function __construct($param)
     {
-        parent::__construct($param, $db_var);
+        parent::__construct($param);
     }
 
     /**
@@ -359,5 +359,5 @@ Class Obullo_DB_Driver_Cubrid extends OB_DBAdapter
 } // end class.
 
 
-/* End of file cubrid_driver.php */
-/* Location: ./obullo/database/drivers/cubrid_driver.php */
+/* End of file Database_cubrid.php */
+/* Location: ./obullo/libraries/drivers/database/Database_cubrid.php */

@@ -147,7 +147,7 @@ Class OB_Profiler {
     public function _compile_queries()
     {
         $ob = this();
-        $total_dbs = profiler_get('databases');
+        $total_dbs = loader::$_databases;
         
         // Let's determine which databases are currently connected to         
         if (count($total_dbs) == 0)
@@ -513,10 +513,10 @@ Class OB_Profiler {
         foreach(profiler_get('libraries') as $libs) { $libraries .= error_secure_path($libs) .'<br />'; }
         
         $models  = '';
-        foreach(profiler_get('models') as $mod) { $models .= error_secure_path($mod) .'<br />'; }
+        foreach(loader::$_models as $mod) { $models .= error_secure_path($mod) .'<br />'; }
               
         $databases  = '';
-        foreach(profiler_get('databases') as $db_name => $db_var) { $databases .= $db_var.'<br />'; }
+        foreach(loader::$_databases as $db_name => $db_var) { $databases .= $db_var.'<br />'; }
         
         $views  = '';
         foreach(profiler_get('views') as $view) { $views .= error_secure_path($view) .'<br /> '; }

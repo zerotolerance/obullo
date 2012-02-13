@@ -213,7 +213,7 @@ if( ! function_exists('ob_system_close'))
     {
         $OB = this();
         
-        foreach(profiler_get('databases') as $db_name => $db_var)  // Close all PDO connections..  
+        foreach(loader::$_databases as $db_name => $db_var)  // Close all PDO connections..  
         {
             $OB->{$db_var} = NULL;
         }

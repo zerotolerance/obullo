@@ -312,14 +312,13 @@ Class OB_Loader {
             throw new LoaderException('You have a small problem, model name isn\'t right in here: '.$model);
         }
 
-        loader::$_models[$model_var] = $model_var;
-        
-        profiler_set('models', $model_var, $model_var);     // should be above the new model();
+        loader::$_models[$model_var] = $model_var; // should be above instantiate od the model();
 
         $OB->$model_var = new $model($params_or_no_ins);    // register($class); we don't need it
 
         // assign all loaded db objects inside to current model
         // loader::database() support for Model_x { function __construct() { loader::database() }}
+        
         $OB->$model_var->_assign_db_objects();
     }
 
@@ -335,42 +334,48 @@ Class OB_Loader {
     * @author   Ersin Guvenc
     * @param    mixed $db_name for manual connection
     * @param    boolean $return_object return to db object switch
-    * @param    boolean $use_active_record active record switch
+    * @param    boolean $use_active_record @deprecated
     * @return   void
     */
-    public static function database($db_name = 'db', $return_object = TRUE, $use_active_record = TRUE)
+    public static function database($db_name_or_params = 'db', $no_return_object = TRUE)
     {
         $OB = this();
-
-        $db_var = (empty($db_name)) ? 'db' : $db_name;
-
-        if(is_array($db_name) AND isset($db_name['variable']))
+        
+        if(is_array($db_name_or_params) AND isset($db_name_or_params['variable']))
         {
-            $db_var = $db_name['variable'];
+            $db_var = $db_name_or_params['variable'];
+        }
+        else
+        {
+            $db_var = (empty($db_name_or_params)) ? 'db' : $db_name_or_params;
         }
 
-        if (isset($OB->{$db_var}) AND is_object($OB->{$db_var}))
+        if (isset($OB->{$db_var}) AND is_object($OB->{$db_var}))  // Lazy Loading ..
         {
-            if($return_object)
+            if($no_return_object === FALSE) // return to db object like libraries.
             {
                 return $OB->{$db_var};
             }
 
             return;
         }
+                        
+        ################
+        
+        $database = lib('ob/Database', '', TRUE); // Database Object Must Be New Object.
 
-        if($return_object === FALSE)
+        ################
+        
+        if($no_return_object === FALSE)
         {
-            profiler_set('databases', $db_name, $db_var);  // Store db variables ..
-
-            return OB_DBFactory::Connect($db_name, $db_var, $use_active_record); // Return to database object ..
+            return $database->connect($db_name_or_params, $db_var);
         }
 
-        $OB->{$db_var} = OB_DBFactory::Connect($db_name, $db_var, $use_active_record);   // Connect to Database
-
-        loader::$_databases[$db_name] = $db_var;
+        $OB->{$db_var} = '';
         
-        profiler_set('databases', $db_name, $db_var);  // Store db variables
+        $OB->{$db_var} = $database->connect($db_name_or_params, $db_var);  // Connect to Database
+
+        loader::$_databases[$db_var] = $db_var;
 
         self::_assign_db_objects($db_var);
         

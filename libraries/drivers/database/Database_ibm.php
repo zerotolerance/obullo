@@ -18,16 +18,17 @@ defined('BASE') or exit('Access Denied!');
 // ------------------------------------------------------------------------
 
 /**
- * MSSQL Database Adapter Class
+ * IBM DB2 Database Adapter Class
  *
  * @package       Obullo
  * @subpackage    Drivers
  * @category      Database
- * @author        Ersin Guvenc 
+ * @author        Ersin Guvenc
+ * @author        Drew Harvey
  * @link                              
  */
 
-Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
+Class OB_Database_ibm extends OB_Database_adapter
 {
     /**
     * The character used for escaping
@@ -35,14 +36,17 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
     * @var string
     */
     public $_escape_char = '';
-        
-    // clause and character used for LIKE escape sequences
-    var $_like_escape_str = " ESCAPE '%s' ";
-    var $_like_escape_chr = '!';    
+    
+    
+    // clause and character used for LIKE escape sequences - not used in MySQL
+    // http://publib.boulder.ibm.com/infocenter/dzichelp/v2r2/index.jsp?topic=/com.ibm.db29.doc.odbc/db2z_likesc.htm
+    // same as ODBC
+    public $_like_escape_str = " {escape '%s'} ";
+    public $_like_escape_chr = '!';     
      
-    public function __construct($param, $db_var = 'db')
+    public function __construct($param)
     {   
-        parent::__construct($param, $db_var);
+        parent::__construct($param);
     }
     
     
@@ -62,74 +66,82 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
         // If connection is ok .. not need to again connect..
         if ($this->_conn) { return; }
         
-        $type = '';
+        $port = empty($this->dbh_port) ? '' : 'PORT='.$this->dbh_port.';';
+        $dsn  = empty($this->dsn) ? 'ibm:DRIVER={IBM DB2 ODBC DRIVER};DATABASE='.$this->database.';HOSTNAME='.$this->hostname.';'.$port.'PROTOCOL=TCPIP;' : $this->dsn; 
         
-         switch ($this->dbdriver)
-         {
-            case 'freetds':
-                $type = 'freetds';
-                break;
-                
-            case 'sybase':
-                $type = 'sybase';
-                break;
-         
-            case 'dblib':
-                $type = 'dblib';
-                break;
-            
-            default:
-                $type = 'mssql';
-                break;
-        }
-        
-        if ( ! empty($this->dbh_port))
-        {
-            $port_seperator = ':';
-            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-            {
-                $port_seperator = ',';
-            }
-        }
-        
-        $port    = empty($this->dbh_port) ? '' : $port_seperator .$this->dbh_port;
-        $charset = empty($this->char_set) ? '' : ';charset='.$this->char_set;
-        $dsn     = empty($this->dsn) ? $type.':host='.$this->hostname.$port.';dbname='.$this->database.$charset : $this->dsn;
-             
         $this->_pdo = $this->pdo_connect($dsn, $this->username, $this->password, $this->options);
         
         // We set exception attribute for always showing the pdo exceptions errors. (ersin)
         $this->_conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
     } 
-    
+
     // --------------------------------------------------------------------
     
     /**
-    * Escape String
-    *
-    * @access   public
-    * @param    string
-    * @param    bool    whether or not the string will be used in a LIKE condition
-    * @return   string
-    */
-    public function escape_str($str, $like = FALSE, $side = 'both')    
-    {    
+     * Escape the SQL Identifiers
+     *
+     * This function escapes column and table names
+     *
+     * @access    private
+     * @param    string
+     * @return    string
+     */
+    public function _escape_identifiers($item)
+    {
+        if ($this->_escape_char == '')
+        {
+            return $item;
+        }
+
+        foreach ($this->_reserved_identifiers as $id)
+        {
+            if (strpos($item, '.'.$id) !== FALSE)
+            {
+                $str = $this->_escape_char. str_replace('.', $this->_escape_char.'.', $item);  
+                
+                // remove duplicates if the user already included the escape
+                return preg_replace('/['.$this->_escape_char.']+/', $this->_escape_char, $str);
+            }        
+        }
+        
+        if (strpos($item, '.') !== FALSE)
+        {
+            $str = $this->_escape_char.str_replace('.', $this->_escape_char.'.'.$this->_escape_char, $item).$this->_escape_char;            
+        }
+        else
+        {
+            $str = $this->_escape_char.$item.$this->_escape_char;
+        }
+    
+        // remove duplicates if the user already included the escape
+        return preg_replace('/['.$this->_escape_char.']+/', $this->_escape_char, $str);
+    }
+            
+    // --------------------------------------------------------------------
+    
+    /**
+     * Escape String
+     *
+     * @access    public
+     * @param    string
+     * @param    bool    whether or not the string will be used in a LIKE condition
+     * @return    string
+     */
+    public function escape_str($str, $like = FALSE, $side = 'both')
+    {
         if (is_array($str))
         {
             foreach($str as $key => $val)
             {
                 $str[$key] = $this->escape_str($val, $like);
             }
-
-            return $str;
+           
+           return $str;
         }
-        
+
         loader::helper('ob/security');
         
         $str = _remove_invisible_characters($str);
-        
-        // If pdo::quote() not work Escape single quotes
-        // $str = str_replace("'", "''", _remove_invisible_characters($str));
         
         // escape LIKE condition wildcards
         if ($like === TRUE)
@@ -150,7 +162,7 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
                default:
                  $str = "%{$str}%";
             }
-        
+            
             // not need to quote for who use prepare and :like bind.
             if($this->prepare == TRUE AND $this->is_like_bind)   
             return $str;
@@ -168,12 +180,10 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
         {
            $str = $this->quote($str, PDO::PARAM_STR);
         }
-                  
-        return $str; 
-    }
         
-    // --------------------------------------------------------------------    
-    
+        return $str;
+    }
+
     /**
     * Platform specific pdo quote
     * function.
@@ -187,47 +197,27 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
     {
          return $this->_conn->quote($str, $type);  
     }
-        
+    
     // --------------------------------------------------------------------
     
     /**
-     * Escape the SQL Identifiers
+     * Escape Table Name
      *
-     * This function escapes column and table names
+     * This function adds backticks if the table name has a period
+     * in it. Some DBs will get cranky unless periods are escaped
      *
      * @access   private
-     * @param    string
+     * @param    string    the table name
      * @return   string
      */
-    public function _escape_identifiers($item)
+    public function _escape_table($table)
     {
-        if ($this->_escape_char == '')
+        if (stristr($table, '.'))
         {
-            return $item;
+            $table = preg_replace("/\./", "`.`", $table);
         }
 
-        foreach ($this->_reserved_identifiers as $id)
-        {
-            if (strpos($item, '.'.$id) !== FALSE)
-            {
-                $str = $this->_escape_char. str_replace('.', $this->_escape_char.'.', $item);  
-                
-                // remove duplicates if the user already included the escape
-                return preg_replace('/['.$this->_escape_char.']+/', $this->_escape_char, $str);
-            }        
-        }
-
-        if (strpos($item, '.') !== FALSE)
-        {
-            $str = $this->_escape_char.str_replace('.', $this->_escape_char.'.'.$this->_escape_char, $item).$this->_escape_char;            
-        }
-        else
-        {
-            $str = $this->_escape_char.$item.$this->_escape_char;
-        }
-        
-        // remove duplicates if the user already included the escape
-        return preg_replace('/['.$this->_escape_char.']+/', $this->_escape_char, $str);
+        return $table;
     }
     
     /**
@@ -236,9 +226,9 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
      * This function implicitly groups FROM tables so there is no confusion
      * about operator precedence in harmony with SQL standards
      *
-     * @access    public
+     * @access   public
      * @param    type
-     * @return    type
+     * @return   type
      */
     public function _from_tables($tables)
     {
@@ -246,8 +236,8 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
         {
             $tables = array($tables);
         }
-        
-        return implode(', ', $tables);
+
+        return ' '.implode(', ', $tables).' ';
     }
 
     // --------------------------------------------------------------------
@@ -264,12 +254,30 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
      * @return    string
      */
     public function _insert($table, $keys, $values)
-    {    
-        return "INSERT INTO ".$table." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
+    {
+        return "INSERT INTO " . $this->_escape_table($table) . " (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
     }
     
     // --------------------------------------------------------------------
-
+    
+    
+    /**
+     * Delete statement
+     *
+     * Generates a platform-specific delete string from the supplied data
+     *
+     * @access   public
+     * @param    string    the table name
+     * @param    array    the where clause
+     * @return   string
+     */
+    public function _delete($table, $where = array(), $like = array(), $limit = FALSE)
+    {
+        return "DELETE FROM ".$this->_escape_table($table)." WHERE ".implode(" ", $where);
+    }
+    
+    // --------------------------------------------------------------------
+    
     /**
      * Update statement
      *
@@ -279,8 +287,6 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
      * @param    string    the table name
      * @param    array    the update data
      * @param    array    the where clause
-     * @param    array    the orderby clause
-     * @param    array    the limit clause
      * @return   string
      */
     public function _update($table, $values, $where, $orderby = array(), $limit = FALSE)
@@ -289,73 +295,35 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
         {
             $valstr[] = $key." = ".$val;
         }
-        
-        $limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
-        
-        $orderby = (count($orderby) >= 1)?' ORDER BY '.implode(", ", $orderby):'';
-    
-        $sql = "UPDATE ".$table." SET ".implode(', ', $valstr);
 
-        $sql .= ($where != '' AND count($where) >=1) ? " WHERE ".implode(" ", $where) : '';
-
-        $sql .= $orderby.$limit;
-        
-        return $sql;
+        return "UPDATE ".$this->_escape_table($table)." SET ".implode(', ', $valstr)." WHERE ".implode(" ", $where);
     }
-    
+
     // --------------------------------------------------------------------
 
     /**
-     * Delete statement
+     * Limit string
      *
-     * Generates a platform-specific delete string from the supplied data
+     * Generates a platform-specific LIMIT clause
      *
      * @access   public
-     * @param    string    the table name
-     * @param    array    the where clause
-     * @param    string    the limit clause
+     * @param    string    the sql query string
+     * @param    integer   the number of rows to limit the query to
+     * @param    integer   the offset value
      * @return   string
-     */    
-    public function _delete($table, $where = array(), $like = array(), $limit = FALSE)
+     */
+    public function _limit($sql, $limit, $offset = 0)
     {
-        $conditions = '';
-
-        if (count($where) > 0 OR count($like) > 0)
+        if ($offset == 0)
         {
-            $conditions = "\nWHERE ";
-            $conditions .= implode("\n", $this->ar_where);
-
-            if (count($where) > 0 && count($like) > 0)
-            {
-                $conditions .= " AND ";
-            }
-            $conditions .= implode("\n", $like);
+            $offset = '';
+        }
+        else
+        {
+            $offset .= ", ";
         }
 
-        $limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
-    
-        return "DELETE FROM ".$table.$conditions.$limit;
-    }
-
-
-    // --------------------------------------------------------------------
-
-    /**
-    * Limit string
-    *
-    * Generates a platform-specific LIMIT clause
-    *
-    * @access   public
-    * @param    string    the sql query string
-    * @param    integer   the number of rows to limit the query to
-    * @param    integer   the offset value
-    * @return   string
-    */
-    public function _limit($sql, $limit, $offset)
-    {
-        $i = $limit + $offset;
-    
-        return preg_replace('/(^\SELECT (DISTINCT)?)/i','\\1 TOP '.$i.' ', $sql);        
+        return $sql."RETURN FIRST  " . $limit . " ROWS ONLY";
     }
     
     /**
@@ -369,27 +337,33 @@ Class Obullo_DB_Driver_Mssql extends OB_DBAdapter
     {
         try 
         {
-            $stmt = $this->_conn->query("SELECT SERVERPROPERTY('productversion')");
+            $stmt = $this->_conn->query('SELECT service_level, fixpack_num FROM TABLE (sysproc.env_get_inst_info()) as INSTANCEINFO');
             
             $result = $stmt->fetchAll(PDO::FETCH_NUM);
             
             if (count($result))
             {
-                return $result[0][0];
+                $matches = NULL;
+                if (preg_match('/((?:[0-9]{1,2}\.){1,3}[0-9]{1,2})/', $result[0][0], $matches))
+                {
+                    return $matches[1];
+                } 
+                else 
+                {
+                    return NULL;
+                }
             }
+            return null;
             
-            return NULL;
-        
-        } catch (PDOException $e)
+        } catch (PDOException $e) 
         {
             return NULL;
         }
     }
 
 
-
 } // end class.
 
 
-/* End of file mssql_driver.php */
-/* Location: ./obullo/database/drivers/mssql_driver.php */
+/* End of file Database_ibm.php */
+/* Location: ./obullo/libraries/drivers/database/Database_ibm.php */

@@ -18,18 +18,16 @@ defined('BASE') or exit('Access Denied!');
 // ------------------------------------------------------------------------
 
 /**
- * 4D Database Adapter Class
+ * Firebird Database Adapter Class
  *
  * @package       Obullo
  * @subpackage    Drivers
  * @category      Database
  * @author        Ersin Guvenc 
- * @link          ftp://ftp.4d.com/ACI_PRODUCT_REFERENCE_LIBRARY/
- *                4D_PRODUCT_DOCUMENTATION/PDF_Docs_by_4D_Product_A-Z/
- *                4D/4D_v11_SQL/4D_v11_SQL_Reference_r4.pdf                           
+ * @link                              
  */
 
-Class Obullo_DB_Driver_4d extends OB_DBAdapter
+Class OB_Database_firebird extends OB_Database_adapter
 {
     /**
     * The character used for escaping
@@ -39,13 +37,13 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
     public $_escape_char = '';
     
     
-    // clause and character used for LIKE escape sequences - not used in 4D
+    // clause and character used for LIKE escape sequences - not used in MySQL
     public $_like_escape_str = '';
     public $_like_escape_chr = '';     
      
-    public function __construct($param, $db_var = 'db')
+    public function __construct($param)
     {   
-        parent::__construct($param, $db_var);
+        parent::__construct($param);
     }
     
     /**
@@ -63,12 +61,10 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
         // If connection is ok .. not need to again connect..
         if ($this->_conn) { return; }
         
-        $port    = empty($this->dbh_port) ? '' : ':'.$this->dbh_port.';';
-        $charset = empty($this->char_set) ? '' : ';charset='.$this->char_set;
-        $dsn     = empty($this->dsn) ? '4D:host='.$this->hostname.$port.$charset : $this->dsn;
+        $dsn = empty($this->dsn) ? 'firebird:dbname='.$this->database : $this->dsn;
              
-        $this->_pdo  = $this->pdo_connect($dsn, $this->username, $this->password, $this->options);
-
+        $this->_pdo = $this->pdo_connect($dsn, $this->username, $this->password, $this->options);
+        
         // We set exception attribute for always showing the pdo exceptions errors. (ersin)
         $this->_conn->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
     } 
@@ -177,7 +173,7 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
         return $str;
     }
     
-    // --------------------------------------------------------------------
+    // -------------------------------------------------------------------- 
     
     /**
     * Platform specific pdo quote
@@ -190,7 +186,7 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
     */
     public function quote($str, $type = NULL)
     {
-         return $this->_conn->quote($str, $type);  
+         return $this->_conn->quote($str, $type);
     }
     
     // -------------------------------------------------------------------- 
@@ -212,9 +208,31 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
             $tables = array($tables);
         }
         
-        return ''.implode(', ', $tables).'';
+        return '('.implode(', ', $tables).')';
     }
 
+    // --------------------------------------------------------------------
+    
+    /**
+     * Escape Table Name
+     *
+     * This function adds backticks if the table name has a period
+     * in it. Some DBs will get cranky unless periods are escaped
+     *
+     * @access  private
+     * @param   string  the table name
+     * @return  string
+     */
+    public function _escape_table($table)
+    {
+        if (stristr($table, '.'))
+        {
+            $table = preg_replace("/\./", "`.`", $table);
+        }
+
+        return $table;
+    }
+    
     // --------------------------------------------------------------------
     
     /**
@@ -222,15 +240,15 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
      *
      * Generates a platform-specific insert string from the supplied data
      *
-     * @access    public
-     * @param    string    the table name
-     * @param    array    the insert keys
-     * @param    array    the insert values
-     * @return    string
+     * @access  public
+     * @param   string  the table name
+     * @param   array   the insert keys
+     * @param   array   the insert values
+     * @return  string
      */
     public function _insert($table, $keys, $values)
-    {    
-        return "INSERT INTO ".$table." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
+    {
+        return "INSERT INTO ".$this->_escape_table($table)." (".implode(', ', $keys).") VALUES (".implode(', ', $values).")";
     }
     
     // --------------------------------------------------------------------
@@ -240,32 +258,20 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
      *
      * Generates a platform-specific update string from the supplied data
      *
-     * @access   public
-     * @param    string   the table name
-     * @param    array    the update data
-     * @param    array    the where clause
-     * @param    array    the orderby clause
-     * @param    array    the limit clause
-     * @return   string
+     * @access  public
+     * @param   string  the table name
+     * @param   array   the update data
+     * @param   array   the where clause
+     * @return  string
      */
-    public function _update($table, $values, $where, $orderby = array(), $limit = FALSE)
+    public function _update($table, $where = array(), $like = array(), $limit = FALSE)
     {
         foreach($values as $key => $val)
         {
             $valstr[] = $key." = ".$val;
         }
-        
-        $limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
-        
-        $orderby = (count($orderby) >= 1)?' ORDER BY '.implode(", ", $orderby):'';
-    
-        $sql = "UPDATE ".$table." SET ".implode(', ', $valstr);
 
-        $sql .= ($where != '' AND count($where) >=1) ? " WHERE ".implode(" ", $where) : '';
-
-        $sql .= $orderby.$limit;
-        
-        return $sql;
+        return "UPDATE ".$this->_escape_table($table)." SET ".implode(', ', $valstr)." WHERE ".implode(" ", $where);
     }
     
     // --------------------------------------------------------------------
@@ -275,31 +281,14 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
      *
      * Generates a platform-specific delete string from the supplied data
      *
-     * @access    public
+     * @access   public
      * @param    string    the table name
      * @param    array    the where clause
-     * @param    string    the limit clause
-     * @return    string
-     */    
+     * @return   string
+     */
     public function _delete($table, $where = array(), $like = array(), $limit = FALSE)
     {
-        $conditions = '';
-
-        if (count($where) > 0 OR count($like) > 0)
-        {
-            $conditions = "\nWHERE ";
-            $conditions .= implode("\n", $this->ar_where);
-
-            if (count($where) > 0 && count($like) > 0)
-            {
-                $conditions .= " AND ";
-            }
-            $conditions .= implode("\n", $like);
-        }
-
-        $limit = ( ! $limit) ? '' : ' LIMIT '.$limit;
-    
-        return "DELETE FROM ".$table.$conditions.$limit;
+        return "DELETE FROM ".$this->_escape_table($table)." WHERE ".implode(" ", $where);
     }
 
     // --------------------------------------------------------------------
@@ -309,25 +298,28 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
      *
      * Generates a platform-specific LIMIT clause
      *
-     * @access   public
-     * @param    string    the sql query string
-     * @param    integer   the number of rows to limit the query to
-     * @param    integer   the offset value
-     * @return   string
+     * @access  public
+     * @param   string  the sql query string
+     * @param   integer the number of rows to limit the query to
+     * @param   integer the offset value
+     * @return  string
      */
-    public function limit($sql, $limit, $offset)
-    {   
-        $newsql = '';
-        
-        if($offset != NULL)
+    public function _limit($sql, $limit, $offset)
+    {
+        $partial_sql = ltrim($sql, 'SELECTselect');
+
+        if ($offset != 0)
         {
-            $newsql = $sql.'LIMIT '.$limit.' OFFSET '.$offset;
+            $newsql = 'SELECT FIRST ' . $limit . ' SKIP ' . $offset . ' ' . $partial_sql;
         }
-        else 
+        else
         {
-            $newsql = $sql.'LIMIT '.$limit;
+            $newsql = 'SELECT FIRST ' . $limit . ' ' . $partial_sql;
         }
-        
+
+        // remember that we used limits
+        // $this->limit_used = TRUE;
+
         return $newsql;
     }
 
@@ -335,5 +327,5 @@ Class Obullo_DB_Driver_4d extends OB_DBAdapter
 } // end class.
 
 
-/* End of file 4d_driver.php */
-/* Location: ./obullo/database/drivers/4d_driver.php */
+/* End of file Database_firebird.php */
+/* Location: ./obullo/libraries/drivers/database/Database_firebird.php */

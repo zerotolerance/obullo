@@ -2,14 +2,14 @@
 defined('BASE') or exit('Access Denied!');
 
 /**
- * Obullo Framework (c) 2009.
+ * Obullo Framework (c) 2009 - 2012.
  *
  * PHP5 HMVC Based Scalable Software.
  *
  * @package         obullo    
  * @subpackage      Obullo.core    
  * @author          obullo.com
- * @copyright       The Team Obullo (c) 2009 - 2012.
+ * @copyright       Obullo Team
  * @since           Version 1.0.1
  * @filesource
  * @license
