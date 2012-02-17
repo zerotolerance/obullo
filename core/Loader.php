@@ -134,7 +134,6 @@ Class OB_Loader {
     /**
     * Obullo Library Loader.
     *
-    * @author   Ersin Guvenc
     * @param    string $class class name
     * @param    array | boolean $params_or_no_ins __construct() params  | or | No Instantiate
     * @param    boolean $new_instance create new instance
@@ -221,7 +220,6 @@ Class OB_Loader {
     * loader::model('../module/model_name')  model load from outside directory
     * loader::model('modelname', FALSE); no instantite just include class.
     * 
-    * @author    Ersin Guvenc
     * @param     string $model
     * @param     string $object_name_OR_NO_INS
     * @param     array | boolean $params (construct params) | or | Not Instantiate just include file
@@ -242,6 +240,8 @@ Class OB_Loader {
             $data = self::_load_file(substr($model, 4), $folder = 'models', $app_folder = TRUE);
 
             self::_model($data['file'], $data['file_name'], $object_name_or_no_ins, $params_or_no_ins, $new_instance);
+            
+            return;
         }
         
         $case_sensitive = ($object_name_or_no_ins === FALSE || $params_or_no_ins === FALSE) ? $case_sensitive = TRUE : FALSE;
@@ -263,9 +263,7 @@ Class OB_Loader {
     * @param     array | boolean  $params_or_no_ins
     * @param     boolean $new_instance  create new instance
     * @version   0.1
-    * @version   0.2 added params_or_no_ins instantiate switch ,added Ssc::instance()->_profiler_mods
-    * @version   0.3 added profiler_set function
-    * @version   0.4 HMVC bug fixed.
+    * @return    void
     */
     protected static function _model($file, $model_name, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
     {
@@ -331,13 +329,12 @@ Class OB_Loader {
     * This function loads the database for controllers
     * and model files.
     *
-    * @author   Ersin Guvenc
     * @param    mixed $db_name for manual connection
     * @param    boolean $return_object return to db object switch
     * @param    boolean $use_active_record @deprecated
     * @return   void
     */
-    public static function database($db_name_or_params = 'db', $no_return_object = TRUE)
+    public static function database($db_name_or_params = 'db', $return_object = FALSE)
     {
         $OB = this();
         
@@ -352,29 +349,40 @@ Class OB_Loader {
 
         if (isset($OB->{$db_var}) AND is_object($OB->{$db_var}))  // Lazy Loading ..
         {
-            if($no_return_object === FALSE) // return to db object like libraries.
+            if($return_object) // return to db object like libraries.
             {
                 return $OB->{$db_var};
             }
 
             return;
         }
-                        
+         
+        if( ! class_exists('OB_Database'))
+        {
+            if(is_bool($db_name_or_params) AND $db_name_or_params === FALSE)  // No instantite
+            {
+                $database = lib('ob/Database', FALSE); // Just Include Database File No Instantiate.
+
+                return;
+            }
+        }
+        
         ################
         
         $database = lib('ob/Database', '', TRUE); // Database Object Must Be New Object.
 
         ################
         
-        if($no_return_object === FALSE)
+        if($return_object)
         {
-            return $database->connect($db_name_or_params, $db_var);
+            return $database->connect($db_var, $db_name_or_params);
         }
 
         $OB->{$db_var} = '';
         
-        $OB->{$db_var} = $database->connect($db_name_or_params, $db_var);  // Connect to Database
+        $OB->{$db_var} = $database->connect($db_var, $db_name_or_params);  // Connect to Database
 
+        
         loader::$_databases[$db_var] = $db_var;
 
         self::_assign_db_objects($db_var);
@@ -394,7 +402,6 @@ Class OB_Loader {
     *   o App/helpers   : app/ helpers
     *   o Local/helpers : module helpers
     *
-    * @author   Ersin Guvenc
     * @param    string $helper
     * @return   void
     */
@@ -469,7 +476,6 @@ Class OB_Loader {
     /**
     * Private helper loader.
     *
-    * @author   Ersin Guvenc
     * @param    string $helper
     * @return   void
     */
@@ -602,8 +608,6 @@ Class OB_Loader {
     /**
     * Common file loader for models and
     * helpers functions.
-    *
-    * @author  Ersin Guvenc
     *
     * @param string $filename
     * @param string $folder

@@ -28,7 +28,6 @@ Class DBException extends CommonException {}
  * @subpackage      Obullo.database     
  * @category        Database
  * @version         0.1
- * @version         0.2 added query builder
  * 
  */
 
@@ -54,7 +53,7 @@ Class OB_Database {
     * @param    string  $db_var database variable
     * @return   object of PDO Instance.
     */
-    public static function connect($param = '', $db_var = 'db')
+    public static function connect($db_var = 'db', $param = '')
     {                                      
         $dbdriver = is_array($param) ? $param['dbdriver'] : db_item('dbdriver', $db_var); 
         $driver_name = '';
@@ -138,7 +137,7 @@ Class OB_Database {
         
         $DB = lib_driver($folder = 'database', 'Database_'.$driver_name, $options);
         $DB->__wakeup();
-
+        
         return $DB->get_connection();
     }
     

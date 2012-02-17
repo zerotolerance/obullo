@@ -64,7 +64,7 @@ Class OB_Database_mysql extends OB_Database_adapter
         $port = empty($this->dbh_port) ? '' : ';port='.$this->dbh_port;
         $dsn  = empty($this->dsn) ? 'mysql:host='.$this->hostname.$port.';dbname='.$this->database : $this->dsn;
         
-        if(defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY'))
+        if(defined('PDO::MYSQL_ATTR_USE_BUFFERED_QUERY')) // Automatically use buffered queries.
         {
             $this->options[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = TRUE;
         }

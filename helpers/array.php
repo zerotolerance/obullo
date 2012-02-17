@@ -53,7 +53,7 @@ if( ! function_exists('array_to_object') )
 
                 if ( ! empty($key))
                 {
-                    $object->{$name} = array_to_object($value);
+                    $object->{$key} = array_to_object($value);
                 }
             }
         }

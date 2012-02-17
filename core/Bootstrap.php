@@ -50,7 +50,10 @@ if( ! function_exists('ob_set_headers'))
 {
     function ob_set_headers()
     {   
-        if ( ! is_php('5.3')) { @set_magic_quotes_runtime(0); }   // Kill magic quotes 
+        if ( ! is_php('5.3')) // Kill magic quotes 
+        {
+            @set_magic_quotes_runtime(0); 
+        }   
         
         ###  load core libraries ####
         
@@ -218,7 +221,10 @@ if( ! function_exists('ob_system_close'))
             $OB->{$db_var} = NULL;
         }
         
-        while (ob_get_level() > 0) { ob_end_flush(); }     // close all buffers.     
+        while (ob_get_level() > 0) // close all buffers.  
+        { 
+            ob_end_flush();    
+        }        
     }
 }
 

@@ -186,11 +186,22 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         return $new_object;
     }
 
-    $getObject = $registry->get_object('load', $Class);
-                                                   
-    if ($getObject !== NULL)
+    if($params_or_no_ins !== FALSE)  // No instantiate support.
     {
-        return $getObject;
+        $getObject = $registry->get_object('load', $Class);
+
+        if ($getObject !== NULL)
+        {
+            return $getObject;
+        }
+    }
+    
+    // No Instantiate Support.
+    // --------------------------------------------------------------------
+    if($params_or_no_ins === FALSE)
+    {
+        profiler_set('ob_libraries', 'php_'.$Class.'_no_instantiate', $Class);
+        return TRUE;
     }
                                                   
     if(file_exists(BASE .'libraries'. $sub_path . DS . $Class. EXT))
@@ -201,12 +212,6 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         }
         
         $classname = $Class;    // prepare classname
-
-        if($params_or_no_ins === FALSE)
-        {
-            profiler_set('ob_libraries', 'php_'.$Class.'_no_instantiate', $Class);
-            return TRUE;
-        }
 
         $classname   = 'OB_'.$Class;
         $prefix      = config_item('subclass_prefix');  // MY_
@@ -285,7 +290,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
             }  
             elseif(file_exists(APP .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  // Application extend support
-            {
+            {                
                 if( ! isset($new_objects[$Class]) )  // check new object instance
                 {
                     require(APP .'libraries'. $sub_path . DS .$prefix. $Class. EXT);
@@ -368,13 +373,13 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 * @return NULL | Exception
 */
 function ob_autoload($real_name)
-{
+{    
     if(class_exists($real_name))
     {
         return;
     }
     
-    $module = lib('ob/Router')->fetch_directory();
+    $modulename = lib('ob/Router')->fetch_directory();
 
     // Parent Controllers
     // --------------------------------------------------------------------
@@ -390,58 +395,98 @@ function ob_autoload($real_name)
         }
 
         // If Module Parent Controller file exist ..
-        if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'parents'. DS .$real_name. EXT))
+        if(file_exists(MODULES .$GLOBALS['sub_path'].$modulename. DS .'parents'. DS .$real_name. EXT))
         {            
-            require(MODULES .$GLOBALS['sub_path'].$module. DS .'parents'. DS .$real_name. EXT);
+            require(MODULES .$GLOBALS['sub_path'].$modulename. DS .'parents'. DS .$real_name. EXT);
 
-            profiler_set('parents', $real_name, MODULES .$GLOBALS['sub_path'].$module. DS .'parents'. DS .$real_name. EXT);
+            profiler_set('parents', $real_name, MODULES .$GLOBALS['sub_path'].$modulename. DS .'parents'. DS .$real_name. EXT);
 
             return;
         }
     }
 
-    // Database files.
-    // --------------------------------------------------------------------
-    if(strpos($real_name, 'OB_DB') === 0)
-    {
-        require(BASE .'database'. DS .substr($real_name, 3). EXT);
-        return;
-    }
-
-    if(strpos($real_name, 'Obullo_DB_Driver_') === 0)
-    {
-        $exp   = explode('_', $real_name);
-        $class = strtolower(array_pop($exp));
-
-        require(BASE .'database'. DS .'drivers'. DS .$class.'_driver'. EXT);
-        return;
-    }
+    $Class = $real_name;    
     
-    if($real_name == 'Model' OR $real_name == 'VM')
+    // Database files.
+    if($real_name == 'Model' OR $real_name == 'Vmodel')
     {
         require(BASE .'core'. DS .$real_name. EXT);
         
         return;
     }
+    
+    static $overriden_objects = array();
+    $prefix = config_item('subclass_prefix');  // MY_
+    
+    // Extension files.
+    if($real_name == $prefix.'Model' OR $real_name == $prefix.'Vmodel')
+    {
+        $Class = substr($real_name, strlen($prefix));
 
-    $class = $real_name;
+        //---------- Extension Support for Models -----------//
+
+        $module_xml = lib('ob/Module'); // parse module.xml 
+
+        if($module_xml->xml() != FALSE)
+        {
+            $extensions = $module_xml->get_extensions();
+
+            if(count($extensions) > 0)   // Parse Extensions
+            {
+                foreach($extensions as $ext_name => $extension)
+                { 
+                    $attr = $extension['attributes'];
+
+                    if($attr['enabled'] == 'yes')
+                    {
+                        if(isset($extension['override']['libraries']))
+                        {
+                            foreach($extension['override']['libraries'] as $library)
+                            {
+                                if( ! isset($overriden_objects[$library]))    // Check before we override it ..
+                                {
+                                    if($Class == $library) // Do file_exist for defined library.
+                                    {   
+                                        if(file_exists($attr['root'] .$ext_name. DS .'libraries'. DS .$prefix. $Class. EXT))  
+                                        {    
+                                            require($attr['root'] .$ext_name. DS .'libraries'. DS .$prefix. $Class. EXT);
+
+                                            $classname = $prefix. $Class;
+
+                                            $overriden_objects[$library] = $library;
+                                            
+                                            profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //---------- Extension Support for Models -----------//
+        
+        return;
+    }
 
     // __autoload libraries load support.
     // --------------------------------------------------------------------
-    if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. DS .$class. EXT))
+    if(file_exists(MODULES .$GLOBALS['sub_path'].$modulename. DS .'libraries'. DS .$Class. EXT))
     {
-        require(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. DS .$class. EXT);
+        require(MODULES .$GLOBALS['sub_path'].$modulename. DS .'libraries'. DS .$Class. EXT);
 
-        profiler_set('libraries', 'module_'.$class.'_autoloaded', $class);
+        profiler_set('libraries', 'module_'.$Class.'_autoloaded', $Class);
         
         return;
     }
     
-    if(file_exists(APP .'libraries'. DS .$class. EXT))
+    if(file_exists(APP .'libraries'. DS .$Class. EXT))
     {    
-        require(APP .'libraries'. DS .$class. EXT);
+        require(APP .'libraries'. DS .$Class. EXT);
 
-        profiler_set('libraries', $class.'_autoloaded', $class);
+        profiler_set('libraries', $Class.'_autoloaded', $Class);
         
         return;
     }
