@@ -145,6 +145,11 @@ Class OB_Config
         
         $file_url  = strtolower(trim($file_url, '/'));
         
+        if(strpos($file_url, 'app/') === 0)  // Application config file.
+        {
+            $file_url = substr($file_url, 4);
+        }
+        
         if(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
         {
             $paths          = explode('/', substr($file_url, 3)); 
@@ -241,12 +246,7 @@ Class OB_Config
             else
             {
                 $module_path = MODULES .$sub_module_path.$modulename. DS .'config'. DS .$sub_path. $extra_path;
-            }
-            
-            if( ! file_exists($module_path. $filename. EXT))  // first check module path
-            {
-                throw new ConfigException('Unable locate the file '. $module_path. $filename. EXT);
-            }
+            }   
         }
         
         $path = APP .'config'. DS .$sub_path .$extra_path;        
@@ -256,6 +256,11 @@ Class OB_Config
             $path = $module_path;
         }
 
+        if( ! file_exists($path))
+        {
+            throw new ConfigException('Unable locate the file '. $path. $filename. EXT);
+        }
+        
         return array('filename' => $filename, 'path' => $path);
     }
     
