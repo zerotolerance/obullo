@@ -20,6 +20,7 @@ $lang['matches']			= "The %s field does not match the %s field.";
 $lang['is_natural']			= "The %s field must contain only positive numbers.";
 $lang['is_natural_no_zero']             = "The %s field must contain a number greater than zero.";
 $lang['no_space']                       = "The %s field can not contain space characters.";
+$lang['valid_date']                     = "The %s field must contain a valid date.";
 
 
 /* End of file validator.php */
