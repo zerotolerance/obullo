@@ -420,7 +420,7 @@ Class OB_Uri
      */
     public function segment($n, $no_result = FALSE)
     {
-        if($n == 'sub') // Sub module segment.
+        if(is_string($n) AND $n == 'sub') // Sub module segment.
         {
             return ($this->fetch_sub_module() == '') ? $no_result : $this->fetch_sub_module();
         }
