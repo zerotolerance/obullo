@@ -37,9 +37,9 @@ Class OB_Pager_html_widgets
     *
     * @param object &$pager Pager instance
     */
-    function __construct(&$pager)
+    function __construct($options)
     {
-        $this->pager =& $pager;
+        $this->pager =& $options['pager'];
     }
     
     /**
