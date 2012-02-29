@@ -405,6 +405,7 @@ Class Vmodel extends Model {
         }
 
         $has_rules = FALSE;
+        
         foreach($this->settings['fields'] as $k => $v)
         {
             if(isset($this->settings['fields'][$k]['rules']))  // validation used or not
@@ -476,13 +477,13 @@ Class Vmodel extends Model {
 
         if($validator)  // if validation success !
         {
-            if($this->$id != '')     // if isset ID do update ..
+            if($this->{$id} != '' OR count($this->db->ar_where) > 0 OR count($this->db->ar_wherein) > 0)  // if isset ID do update ..
             {
                 unset($s_data[$id]);
-                
-                if(count($this->db->ar_where) == 0 AND count($this->db->ar_wherein) == 0)
+               
+                if($this->$id != '')
                 {
-                    $this->db->where($id, $this->$id);
+                    $this->db->where($id, $this->{$id});
                 }
 
                 try {
@@ -517,8 +518,8 @@ Class Vmodel extends Model {
                 } 
                 elseif($this->errors[$table]['affected_rows'] == 0)
                 {
-                    $this->errors[$table]['success'] = 0;
-                    $this->errors[$table]['msg']     = lang('vm_update_fail');
+                    $this->errors[$table]['success']    = 0;
+                    $this->errors[$table]['system_msg'] = lang('vm_update_fail');
 
                     lib('Validator')->clear();  // reset validator data
 
@@ -560,8 +561,8 @@ Class Vmodel extends Model {
                 }
                 else
                 {
-                    $this->errors[$table]['success'] = 0;
-                    $this->errors[$table]['msg']     = lang('vm_insert_fail');
+                    $this->errors[$table]['success']    = 0;
+                    $this->errors[$table]['system_msg'] = lang('vm_insert_fail');
 
                     lib('Validator')->clear();  // reset validator data
 
@@ -658,15 +659,15 @@ Class Vmodel extends Model {
         
         if($validator)
         {
-            if($this->$id != '')    // do delete ..
+            if($this->{$id} != '' OR count($this->db->ar_where) > 0 OR count($this->db->ar_wherein) > 0)    // do delete ..
             {
                 try {
 
                     $this->db->transaction(); // begin the transaction
                     
-                    if(count($this->db->ar_where) == 0 AND count($this->db->ar_wherein) == 0)
+                    if($this->{$id} != '')
                     {
-                        $this->db->where($id, $this->$id);
+                        $this->db->where($id, $this->{$id});
                     }
 
                     $this->errors[$table]['affected_rows'] = $this->db->delete($table);
@@ -697,8 +698,8 @@ Class Vmodel extends Model {
                 } 
                 elseif($this->errors[$table]['affected_rows'] == 0)
                 {
-                    $this->errors[$table]['success'] = 0;
-                    $this->errors[$table]['msg']     = lang('vm_delete_fail');
+                    $this->errors[$table]['success']     = 0;
+                    $this->errors[$table]['system_msg']  = lang('vm_delete_fail');
                     
                     lib('Validator')->clear();  // reset validator data
                     
