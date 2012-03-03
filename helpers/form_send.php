@@ -37,7 +37,7 @@ defined('BASE') or exit('Access Denied!');
 */
 if ( ! function_exists('form_send_error'))
 {
-    function form_send_error($model)
+    function form_send_error($model = '')
     {
         if(is_object($model))
         {
@@ -75,7 +75,7 @@ if ( ! function_exists('form_send_error'))
 */
 if ( ! function_exists('form_send_success'))
 {
-    function form_send_success($message, $js_alert = FALSE)
+    function form_send_success($message = '', $js_alert = FALSE)
     {
         if($js_alert)
         {
@@ -131,7 +131,7 @@ if ( ! function_exists('form_send_forward'))
 */
 if ( ! function_exists('form_send_alert'))
 {
-    function form_send_alert($msg)
+    function form_send_alert($msg = '')
     {
         return json_encode(array('success' => false, 'alert' => $msg));
     }

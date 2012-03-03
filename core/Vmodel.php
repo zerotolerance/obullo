@@ -377,7 +377,44 @@ Class Vmodel extends Model {
     {
         return $this->no_save($key);
     }
-
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * We build auto where statements before the
+    * delete and save operations.
+    * 
+    * @param type $key
+    * @param type $val 
+    */
+    public function auto_where($key = '', $val = '')
+    {
+        if(is_array($key))  // array  where
+        {
+            foreach($key as $k => $v)
+            {
+                $this->{$k} = $v;  // set data for validation
+                
+                $this->db->where($k, $v);
+            }
+        }
+        elseif(is_array($val) AND is_string($key))  // where in
+        {
+            foreach($val as $k => $v)
+            {
+                $this->{$k} = $v; 
+            }
+            
+            $this->db->where_in($key, $val);
+        }
+        elseif($key != '' AND $val != '')
+        {
+            $this->{$key} = $val; 
+            
+            $this->db->where($key, $val);  
+        }
+    }
+    
     // --------------------------------------------------------------------
 
     /**
@@ -413,7 +450,7 @@ Class Vmodel extends Model {
                 $has_rules = TRUE;
             }
 
-            if($this->$k != '')
+            if($this->{$k} != '')
             {
                 $v_data[$k] = $this->set_value($k, $this->property[$k]);
 
@@ -479,10 +516,10 @@ Class Vmodel extends Model {
         {
             if($this->{$id} != '' OR count($this->db->ar_where) > 0 OR count($this->db->ar_wherein) > 0)  // if isset ID do update ..
             {
-                unset($s_data[$id]);
-               
-                if($this->$id != '')
+                if($this->{$id} != '')
                 {
+                    unset($s_data[$id]);
+                    
                     $this->db->where($id, $this->{$id});
                 }
 
@@ -557,7 +594,7 @@ Class Vmodel extends Model {
 
                     lib('Validator')->clear();  // reset validator data
 
-                    return $this->values[$table][$id];
+                    return TRUE;
                 }
                 else
                 {
@@ -579,6 +616,20 @@ Class Vmodel extends Model {
         }
                 
         return FALSE;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+     * Override to $settings['field'] variable
+     * 
+     * @param string $field
+     * @param string $type
+     * @param string $val 
+     */
+    public function set_field($field, $type = 'rules', $val = '')
+    {
+        $this->settings['fields'][$field][$type] = $val;
     }
     
     // --------------------------------------------------------------------
