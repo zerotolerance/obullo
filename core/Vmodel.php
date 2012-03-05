@@ -599,12 +599,12 @@ Class Vmodel extends Model {
         {
             $validator = TRUE;  // don't do validation
         }
-
+        
         if($validator)  // if validation success !
-        {
-            if(isset($this->{$id}) OR count($this->where) > 0 OR count($this->where_in) > 0)  // if isset ID do update ..
+        {   
+            if($this->{$id} != '' OR count($this->where) > 0 OR count($this->where_in) > 0)  // if isset ID do update ..
             {
-                if(isset($this->{$id}) AND ! isset($this->where[$id]) AND ! isset($this->where_in[$id]))
+                if(! isset($this->where[$id]) AND ! isset($this->where_in[$id]))
                 {
                     unset($s_data[$id]);
                     
