@@ -324,7 +324,7 @@ Class OB_Validator {
             }
             
             // Is there a validation rule for the particular URI being accessed?
-            $uri = ($group == '') ? trim(this()->uri->ruri_string(), '/') : $group;
+            $uri = ($group == '') ? trim(lib('ob/URI')->ruri_string(), '/') : $group;
             
             if ($uri != '' AND isset($this->_config_rules[$uri]))
             {
@@ -344,7 +344,7 @@ Class OB_Validator {
         }
     
         // Load the language file containing error messages
-        loader::lang('ob/validator');
+        loader::lang('ob/Validator');
 
         // Cycle through the rules for each field, match the 
         // corresponding $this->_globals item and test for errors
