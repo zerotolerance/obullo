@@ -50,7 +50,7 @@ Class OB_Validator {
         // Set the character encoding in MB.
         if (function_exists('mb_internal_encoding'))
         {
-            mb_internal_encoding(this()->config->item('charset'));
+            mb_internal_encoding(lib('ob/Config')->item('charset'));
         }
     
         log_me('debug', "Validator Class Initialized");
@@ -348,6 +348,9 @@ Class OB_Validator {
 
         // Cycle through the rules for each field, match the 
         // corresponding $this->_globals item and test for errors
+
+       
+        
         foreach ($this->_field_data as $field => $row)
         {        
             // Fetch the data from the corresponding $this->_globals array and cache it in the _field_data array.
@@ -367,7 +370,7 @@ Class OB_Validator {
         
             $this->_execute($row, explode('|', $row['rules']), $this->_field_data[$field]['postdata']);        
         }
-
+        
         // Did we end up with any errors?
         $total_errors = count($this->_error_array);
 
@@ -665,6 +668,8 @@ Class OB_Validator {
                     continue;
                 }
                 
+                // print_r(this()->db->ar_where);
+                
                 // Run the function and grab the result
                 $result = $this->_this->$rule($postdata, $param);
 
@@ -754,6 +759,7 @@ Class OB_Validator {
                 
                 return;
             }
+
         }
     }
 

@@ -33,6 +33,7 @@ Class Vmodel extends Model {
     public $values     = array();  // Filtered safe values.
     public $no_input   = array();  // No input fields, so save function will not save them to database.
     public $validation = FALSE;    // If form validation success we set it to true.
+    public $debug      = FALSE;    // Turn On / Off Debugging
     
     public $where           = array();
     public $or_where        = array();
@@ -99,7 +100,10 @@ Class Vmodel extends Model {
                 $val['rules'] = $this->{$key}['rules'];
                 $new_value    = (isset($this->{$key}['value'])) ? $this->{$key}['value'] : FALSE;
                 
-                if($new_value !== FALSE) { $this->{$key} = $new_value; }
+                if($new_value !== FALSE) 
+                {
+                    $this->{$key} = $new_value;
+                }
             }
 
             if(is_array($val))
@@ -315,11 +319,21 @@ Class Vmodel extends Model {
             $index = explode('[', $item);
             $index_item = str_replace(']', '', $index[1]);
             
-            return $this->settings[$index[0]][$index_item];
+            if(isset($this->settings[$index[0]][$index_item]))
+            {
+                return $this->settings[$index[0]][$index_item];
+            }
+            
+            return FALSE;
         }
         else
         {
-            return $this->settings[$item];
+            if(isset($this->settings[$item]))
+            {
+                return $this->settings[$item];
+            }
+            
+            return FALSE;
         }
     }
     
@@ -392,13 +406,11 @@ Class Vmodel extends Model {
      * @param string $key
      * @param string $val 
      */
-    public function where($key = '', $val = '')
+    public function where($key, $val)
     {
         $this->{$key} = $val;  // set data for validation
-        
+
         $this->where[$key] = $val;
-        
-        $this->db->where($key, $val);
     }
     
     // --------------------------------------------------------------------
@@ -415,8 +427,6 @@ Class Vmodel extends Model {
         $this->{$key} = $val;  // set data for validation
         
         $this->or_where[$key] = $val;
-        
-        $this->db->or_where($key, $val);
     }
     
     // --------------------------------------------------------------------
@@ -434,8 +444,6 @@ Class Vmodel extends Model {
         {
             $this->{$key} = $v;  
         }
-        
-        $this->db->where_in($key, $val);
         
         $this->where_in[$key] = $val;
     }
@@ -455,9 +463,7 @@ Class Vmodel extends Model {
         {
             $this->{$key} = $v;  
         }
-        
-        $this->db->or_where_in($key, $val);
-        
+
         $this->or_where_in[$key] = $val;
     }
     
@@ -478,8 +484,6 @@ Class Vmodel extends Model {
         }
         
         $this->where_not_in[$key] = $val;
-        
-        $this->db->where_not_in($key, $val);
     }
     
     // --------------------------------------------------------------------
@@ -499,8 +503,6 @@ Class Vmodel extends Model {
         }
         
         $this->or_where_not_in[$key] = $val;
-        
-        $this->db->or_where_not_in($key, $val);
     }
     
     // --------------------------------------------------------------------
@@ -514,13 +516,13 @@ Class Vmodel extends Model {
     public function save()
     {
         lib('ob/Lang')->load('ob/vm');
-        
+                   
         $v_data = array();   // validation fields data
         $s_data = array();   // mysql insert / update fields data
-        $db     = $this->settings['database'];
-        $table  = $this->settings['table'];
-        $id     = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
-
+        $db     = $this->item('database');
+        $table  = $this->item('table');
+        $id     = ($this->item('primary_key') !== FALSE) ? $this->item('primary_key') : 'id';
+        
         if(count($this->no_input) > 0)
         {
             foreach($this->no_input as $k)
@@ -601,29 +603,32 @@ Class Vmodel extends Model {
         }
         
         if($validator)  // if validation success !
-        {   
+        {
             if($this->{$id} != '' OR count($this->where) > 0 OR count($this->where_in) > 0)  // if isset ID do update ..
-            {
-                if(! isset($this->where[$id]) AND ! isset($this->where_in[$id]))
+            {   
+                unset($s_data[$id]);
+                
+                if($this->{$id} != '' AND ! isset($this->where[$id]) AND ! isset($this->where_in[$id]))
                 {
-                    unset($s_data[$id]);
-                    
                     $this->where[$id] = $this->{$id};  // store where statetements.
-                    
-                    $this->db->where($id, $this->{$id});
                 }
                 
-                if(isset($this->where_in[$id]))
-                {
-                    unset($s_data[$id]);
-                }
-
+                //------ Compile Crud Statements -------//
+                
+                $this->_compile_select();
+                
+                //------ Compile Crud Statements -------//
+                
                 try {
 
                     $this->db->transaction(); // begin the transaction
 
+                    $this->_before_save();
+                    
                     $this->errors[$table]['affected_rows'] = $this->db->update($table, $s_data);
 
+                    $this->_after_save();
+                    
                     $this->db->commit();    // commit the transaction
 
                 } catch(Exception $e)
@@ -634,17 +639,21 @@ Class Vmodel extends Model {
                     $this->errors[$table]['msg']     = lang('vm_update_fail');
                     $this->errors[$table]['transaction_error'] = $e->getMessage();
 
-                    lib('ob/Validator')->clear();    // reset validator data  // reset validator data
+                    $this->_debug();
+                    
+                    $this->clear();    // reset validator data  // reset validator data
 
                     return FALSE;
                 }
                 
-                if($this->errors[$table]['affected_rows'] == 1)
+                if($this->errors[$table]['affected_rows'] >= 1)
                 {
                     $this->errors[$table]['success'] = 1;
                     $this->errors[$table]['msg']     = lang('vm_update_success');
 
-                    lib('ob/Validator')->clear();    // reset validator data  // reset validator data
+                    $this->_debug();
+                    
+                    $this->clear();    // reset validator data  // reset validator data
 
                     return TRUE;
                 } 
@@ -653,20 +662,26 @@ Class Vmodel extends Model {
                     $this->errors[$table]['success']    = 0;
                     $this->errors[$table]['system_msg'] = lang('vm_update_fail');
 
-                    lib('ob/Validator')->clear();    // reset validator data  // reset validator data
+                    $this->_debug();
+                    
+                    $this->clear();    // reset validator data  // reset validator data
 
                     return FALSE;  
                 }
             }
             else   // ELSE do insert ..
-            {
+            {   
                 try {
 
                     $this->db->transaction(); // begin the transaction
-
+                    
+                    $this->_before_save();
+                    
                     $this->errors[$table]['affected_rows'] = $this->db->insert($table, $s_data);
                     $this->values[$table][$id] = $this->db->insert_id();  // add last inserted id.
 
+                    $this->_after_save();
+                    
                     $this->db->commit();    // commit the transaction
 
                 } catch(Exception $e)
@@ -677,17 +692,21 @@ Class Vmodel extends Model {
                     $this->errors[$table]['msg']     = lang('vm_insert_fail');
                     $this->errors[$table]['transaction_error'] = $e->getMessage();
 
-                    lib('ob/Validator')->clear();    // reset validator data  // reset validator data
+                    $this->_debug();
+                    
+                    $this->clear();    // reset validator data  // reset validator data
 
                     return FALSE;
                 }
                 
-                if($this->errors[$table]['affected_rows'] == 1)
+                if($this->errors[$table]['affected_rows'] >= 1)
                 {
                     $this->errors[$table]['success'] = 1;
                     $this->errors[$table]['msg']     = lang('vm_insert_success');
 
-                    lib('ob/Validator')->clear();    // reset validator data  // reset validator data
+                    $this->_debug();
+                    
+                    $this->clear();    // reset validator data  // reset validator data
 
                     return TRUE;
                 }
@@ -696,7 +715,9 @@ Class Vmodel extends Model {
                     $this->errors[$table]['success']    = 0;
                     $this->errors[$table]['system_msg'] = lang('vm_insert_fail');
 
-                    lib('ob/Validator')->clear();    // reset validator data  // reset validator data
+                    $this->_debug();
+                    
+                    $this->clear();    // reset validator data  // reset validator data
 
                     return FALSE;  
                 } 
@@ -711,6 +732,64 @@ Class Vmodel extends Model {
         }
                 
         return FALSE;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Build where statements
+    * 
+    * @return void
+    */
+    public function _compile_select()
+    {
+        if(count($this->where) > 0)
+        {
+            foreach($this->where as $key => $val)
+            {
+                $this->db->where($key, $val);
+            }
+        }
+        
+        if(count($this->or_where) > 0)
+        {
+            foreach($this->or_where as $key => $val)
+            {
+                $this->db->or_where($key, $val);
+            }
+        }
+        
+        if(count($this->where_in) > 0)
+        {
+            foreach($this->where_in as $key => $val)
+            {
+                $this->db->where_in($key, $val);
+            }
+        }
+        
+        if(count($this->or_where_in) > 0)
+        {
+            foreach($this->or_where_in as $key => $val)
+            {
+                $this->db->or_where_in($key, $val);
+            }
+        }
+        
+        if(count($this->where_not_in) > 0)
+        {
+            foreach($this->where_not_in as $key => $val)
+            {
+                $this->db->where_not_in($key, $val);
+            }
+        }
+        
+        if(count($this->or_where_not_in) > 0)
+        {
+            foreach($this->or_where_not_in as $key => $val)
+            {
+                $this->db->or_where_not_in($key, $val);
+            }
+        }
     }
     
     // --------------------------------------------------------------------
@@ -807,9 +886,10 @@ Class Vmodel extends Model {
         lib('ob/Lang')->load('ob/vm');  // Load the language file
         
         $v_data = array();
-        $db     = $this->settings['database'];
-        $table  = $this->settings['table'];
-        $id     = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
+
+        $db     = $this->item('database');
+        $table  = $this->item('table');
+        $id     = ($this->item('primary_key') !== FALSE) ? $this->item('primary_key') : 'id';
         
         foreach($this->settings['fields'] as $k => $v)
         {
@@ -828,8 +908,6 @@ Class Vmodel extends Model {
         if( ! isset($this->{$id}) AND count($this->where) == 0 AND count($this->where_in) == 0)
         {
             $this->where[$id] = $this->{$id};
-            
-            $this->db->where($id, $v_data[$id]);
         }
         
         if(count($this->where) == 0 AND count($this->where_in) == 0)
@@ -845,6 +923,12 @@ Class Vmodel extends Model {
         {
             $validator = TRUE;  // don't do validation
         }
+        
+        //------ Compile Crud Statements -------//
+
+        $this->_compile_select();
+
+        //------ Compile Crud Statements -------//
 
         if($validator)
         {
@@ -852,9 +936,15 @@ Class Vmodel extends Model {
 
                 $this->db->transaction(); // begin the transaction
 
+                $this->_before_delete();
+                
                 $this->errors[$table]['affected_rows'] = $this->db->delete($table);
 
+                $this->_after_delete();
+                
                 $this->db->commit();    // commit the transaction
+                
+                $this->clear();    // reset validator data 
 
             } catch(Exception $e)
             {
@@ -863,18 +953,22 @@ Class Vmodel extends Model {
                 $this->errors[$table]['success'] = 0;
                 $this->errors[$table]['msg']     = lang('vm_delete_fail');
                 $this->errors[$table]['transaction_error'] = $e->getMessage();
+                
+                $this->_debug();
 
-                lib('ob/Validator')->clear();    // reset validator data  // reset validator data
+                $this->clear();    // reset validator data 
 
                 return FALSE;
             }
 
-            if($this->errors[$table]['affected_rows'] == 1)
+            if($this->errors[$table]['affected_rows'] >= 1)
             {
                 $this->errors[$table]['success'] = 1;
                 $this->errors[$table]['msg']     = lang('vm_delete_success');
 
-                lib('ob/Validator')->clear();    // reset validator data  // reset validator data
+                $this->_debug();
+                
+                $this->clear();    // reset validator data
 
                 return TRUE;
             } 
@@ -883,7 +977,9 @@ Class Vmodel extends Model {
                 $this->errors[$table]['success']     = 0;
                 $this->errors[$table]['system_msg']  = lang('vm_delete_fail');
 
-                lib('ob/Validator')->clear();    // reset validator data  // reset validator data
+                $this->_debug();
+                
+                $this->clear();    // reset validator data
 
                 return FALSE;  
             }
@@ -897,20 +993,6 @@ Class Vmodel extends Model {
             
         return FALSE;
     }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Access active record last_query()
-    * function.
-    * 
-    * @param  bool $prepare
-    * @return string
-    */
-    public function last_query($prepare = FALSE)
-    {
-        return $this->db->last_query($prepare);
-    }
 
     // --------------------------------------------------------------------
 
@@ -919,7 +1001,7 @@ Class Vmodel extends Model {
     *
     * @param  string
     */
-    private function _md5($str)
+    public function _md5($str)
     {
         return md5($str);
     }
@@ -927,18 +1009,118 @@ Class Vmodel extends Model {
     // ---------------------------------------------------------------------
     
     /**
-     * Clear All Variables.
-     * 
-     */
-    function clear()
+    * Put lastest sql query to
+    * json array.
+    * 
+    * @access private
+    * @return void
+    */
+    public function _debug()
+    {
+        if($this->debug)
+        {
+            $this->errors[$this->item('table')]['debug'] = $this->db->last_query($this->db->prepare);
+        }
+    }
+    
+    // ---------------------------------------------------------------------
+    
+    /**
+    * Turn On / Off Debugging
+    * 
+    * @param type $bool 
+    */
+    public function debug($bool = TRUE)
+    {
+        $this->debug = $bool;
+    }
+    
+    // ---------------------------------------------------------------------
+    
+    /**
+    * Clear All Variables.
+    * 
+    */
+    public function clear()
     {   
-        $this->property   = array();  // User public variables, we set them in controller.
-        $this->errors     = array();  // Validation errors.
-        $this->values     = array();  // Filtered safe values.
-        $this->no_input   = array();  // No input fields, so save function will not save them to database.
-        $this->where      = array();
-        $this->where_in   = array();
-        $this->validation = FALSE;    // If form validation success we set it to true.
+        lib('ob/Validator')->clear(); // Clear validation settings.
+        
+        $this->where           = array();   // Reset Select
+        $this->or_where        = array();
+        $this->where_in        = array();
+        $this->or_where_in     = array();
+        $this->where_not_in    = array();
+        $this->or_where_not_in = array();
+        
+        $this->property   = array();
+        $this->no_input   = array(); 
+        $this->validation = FALSE;
+       
+        // DON'T reset below the variables
+        /*
+            $this->errors     = array();  // Validation errors.
+            $this->values     = array();  // Filtered safe values.
+        */
+    }
+    
+    // ---------------------------------------------------------------------
+    
+    /**
+    * Before save
+    * 
+    * @return void
+    */
+    public function _before_save()
+    {
+        if(method_exists($this, 'before_save'))
+        {
+            $this->before_save();
+        }
+    }
+    
+    // ---------------------------------------------------------------------
+    
+    /**
+    * After save
+    * 
+    * @return void
+    */
+    public function _after_save()
+    {
+        if(method_exists($this, 'after_save'))
+        {
+            $this->after_save();
+        }
+    }
+    
+    // ---------------------------------------------------------------------
+    
+    /**
+    * Before delete
+    * 
+    * @return void
+    */
+    public function _before_delete()
+    {
+        if(method_exists($this, 'before_delete'))
+        {
+            $this->before_delete();
+        }
+    }
+    
+    // ---------------------------------------------------------------------
+    
+    /**
+    * After delete
+    * 
+    * @return void
+    */
+    public function _after_delete()
+    {
+        if(method_exists($this, 'after_delete'))
+        {
+            $this->after_delete();
+        }
     }
     
 }

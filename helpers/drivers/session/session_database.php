@@ -151,7 +151,7 @@ if( ! function_exists('sess_read') )
         }
 
         // Does the IP Match?
-        if ($sess->sess_match_ip == TRUE AND $session['ip_address'] != input_ip_address())
+        if ($sess->sess_match_ip == TRUE AND $session['ip_address'] != i_ip_address())
         {
             sess_destroy();
             return FALSE;
