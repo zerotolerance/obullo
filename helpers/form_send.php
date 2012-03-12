@@ -39,12 +39,14 @@ if ( ! function_exists('form_send_error'))
 {
     function form_send_error($model = '')
     {
+        set_json_header();
+        
         if(is_object($model))
         {
             if(isset($model->errors[$model->item('table')]['transaction_error']))
             {
                 log_me('debug', 'Transaction (system) Error: '. $model->errors[$model->item('table')]['transaction_error']);
-
+                
                 return json_encode(array('success' => false, 'errors' => array('system_msg' => lang('vm_system_msg').$model->errors[$model->item('table')]['transaction_error'])));
             }
 
@@ -75,14 +77,20 @@ if ( ! function_exists('form_send_error'))
 */
 if ( ! function_exists('form_send_success'))
 {
-    function form_send_success($message = '', $js_alert = FALSE)
-    {
-        if($js_alert)
+    function form_send_success($model = '')
+    {      
+        set_json_header();
+       
+        if(is_object($model))
         {
-            return json_encode(array('success' => true, 'alert' => $message)); 
+            $array = array('success' => true, 'success_msg' => $model->errors('msg'), 'errors' => $model->errors());
+        }
+        else
+        {
+            $array = array('success' => true, 'success_msg' => $model);
         }
         
-        return json_encode(array('success' => true, 'success_msg' => $message));   
+        echo json_encode($array);
     }
 }
 
@@ -99,6 +107,8 @@ if ( ! function_exists('form_send_redirect'))
 {
     function form_send_redirect($redirect_url)
     {
+        set_json_header();
+        
         return json_encode(array('success' => true, 'success_msg' => '', 'redirect' => $redirect_url));
     }
 }
@@ -116,6 +126,8 @@ if ( ! function_exists('form_send_forward'))
 {
     function form_send_forward($forward_url)
     {
+        set_json_header();
+        
         echo json_encode(array('success' => true, 'forward_url' => $forward_url));
     }
 }
@@ -133,10 +145,11 @@ if ( ! function_exists('form_send_alert'))
 {
     function form_send_alert($msg = '')
     {
+        set_json_header();
+        
         return json_encode(array('success' => false, 'alert' => $msg));
     }
 }
 
-
-/* End of file form_json.php */
-/* Location: ./obullo/helpers/form_json.php */
+/* End of file form_send.php */
+/* Location: ./obullo/helpers/form_send.php */

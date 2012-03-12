@@ -119,7 +119,7 @@ Class Vmodel extends Model {
         {            
             foreach($fields as $key => $val)  // Set filtered values
             {
-                $this->values[$table][$key] = $this->set_value($key, $this->{$key});
+                $this->values[$table][$key] = $this->_set_value($key, $this->{$key});
             }
             
             $this->validation = TRUE;
@@ -141,23 +141,13 @@ Class Vmodel extends Model {
                }
                
                // Set filtered values
-               $this->values[$table][$key] = $this->set_value($key, $this->{$key});
+               $this->values[$table][$key] = $this->_set_value($key, $this->{$key});
             }
             
             $this->validation = FALSE;
 
             return FALSE;
         }
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Alias of validate_request();
-    */
-    public function validate($fields = array())
-    {
-        return $this->validate_request($fields);
     }
     
     // --------------------------------------------------------------------
@@ -168,7 +158,7 @@ Class Vmodel extends Model {
     *
     * @return bool
     */
-    public function validate_request($fields = array())
+    public function validate($fields = array())
     {
         lib('ob/Lang')->load('ob/vm');  // Load the language file
         
@@ -193,11 +183,11 @@ Class Vmodel extends Model {
         {
             if($this->{$k} != '')
             {
-                $v_data[$k] = $this->{$k};
+                $v_data[$k] = $this->_set_value($k, $this->{$k});
             }
             else
             {
-                $v_data[$k] = i_get_post($k);
+                $v_data[$k] = $this->_set_value($k, i_get_post($k));
             }
         }
         
@@ -223,13 +213,13 @@ Class Vmodel extends Model {
      * 
     * @return array
     */
-    public function errors($field = '')
+    public function errors($key = '')
     {
         if(isset($this->errors[$this->item('table')]))
         {
-            if(isset($this->errors[$this->item('table')][$field]))
+            if(isset($this->errors[$this->item('table')][$key]))
             {
-                return $this->errors[$this->item('table')][$field];
+                return $this->errors[$this->item('table')][$key];
             }
             
             return $this->errors[$this->item('table')];
@@ -245,11 +235,11 @@ Class Vmodel extends Model {
     *
     * @param string $field
     */
-    public function error($field)
+    public function error($key)
     {
-        if(isset($this->errors[$this->item('table')][$field]))
+        if(isset($this->errors[$this->item('table')][$key]))
         {
-            return $this->errors[$this->item('table')][$field];
+            return $this->errors[$this->item('table')][$key];
         }
     }
     
@@ -297,13 +287,25 @@ Class Vmodel extends Model {
     /**
     * Set Custom VM error for field.
     *
-    * @param string $field
+    * @param string $key or $field
     */
-    public function set_error($field, $error)
+    public function set_error($key, $error)
     {
-        $this->errors[$this->item('table')][$field] = $error;
+        $this->errors[$this->item('table')][$key] = $error;
     }
 
+    // --------------------------------------------------------------------
+
+    /**
+    * Set Custom VM error for field.
+    *
+    * @param string $key or $field
+    */
+    public function set_value($key, $value)
+    {
+        $this->values[$this->item('table')][$key] = $value;
+    }
+    
     // --------------------------------------------------------------------
     
     /**
@@ -542,7 +544,7 @@ Class Vmodel extends Model {
 
             if($this->{$k} != '')
             {
-                $v_data[$k] = $this->set_value($k, $this->property[$k]);
+                $v_data[$k] = $this->_set_value($k, $this->property[$k]);
 
                 if(isset($this->settings['fields'][$k]['func']))
                 {
@@ -588,7 +590,7 @@ Class Vmodel extends Model {
                     $s_data[$k] = '';
                 }
                 
-                $v_data[$k] = $this->set_value($k, i_get_post($k));
+                $v_data[$k] = $this->_set_value($k, i_get_post($k));
             }
             
         }
@@ -639,9 +641,9 @@ Class Vmodel extends Model {
                     $this->errors[$table]['msg']     = lang('vm_update_fail');
                     $this->errors[$table]['transaction_error'] = $e->getMessage();
 
-                    $this->_debug();
+                    $this->set_debug();
                     
-                    $this->clear();    // reset validator data  // reset validator data
+                    $this->clear();    // reset validator data
 
                     return FALSE;
                 }
@@ -651,9 +653,9 @@ Class Vmodel extends Model {
                     $this->errors[$table]['success'] = 1;
                     $this->errors[$table]['msg']     = lang('vm_update_success');
 
-                    $this->_debug();
+                    $this->set_debug();
                     
-                    $this->clear();    // reset validator data  // reset validator data
+                    $this->clear();    // reset validator data
 
                     return TRUE;
                 } 
@@ -662,9 +664,9 @@ Class Vmodel extends Model {
                     $this->errors[$table]['success']    = 0;
                     $this->errors[$table]['system_msg'] = lang('vm_update_fail');
 
-                    $this->_debug();
+                    $this->set_debug();
                     
-                    $this->clear();    // reset validator data  // reset validator data
+                    $this->clear();    // reset validator data
 
                     return FALSE;  
                 }
@@ -692,7 +694,7 @@ Class Vmodel extends Model {
                     $this->errors[$table]['msg']     = lang('vm_insert_fail');
                     $this->errors[$table]['transaction_error'] = $e->getMessage();
 
-                    $this->_debug();
+                    $this->set_debug();
                     
                     $this->clear();    // reset validator data  // reset validator data
 
@@ -704,7 +706,7 @@ Class Vmodel extends Model {
                     $this->errors[$table]['success'] = 1;
                     $this->errors[$table]['msg']     = lang('vm_insert_success');
 
-                    $this->_debug();
+                    $this->set_debug();
                     
                     $this->clear();    // reset validator data  // reset validator data
 
@@ -715,7 +717,7 @@ Class Vmodel extends Model {
                     $this->errors[$table]['success']    = 0;
                     $this->errors[$table]['system_msg'] = lang('vm_insert_fail');
 
-                    $this->_debug();
+                    $this->set_debug();
                     
                     $this->clear();    // reset validator data  // reset validator data
 
@@ -815,7 +817,7 @@ Class Vmodel extends Model {
     * @param mixed $default
     * @return string
     */
-    public function set_value($field, $default = '')
+    public function _set_value($field, $default = '')
     {
         if( ! isset($this->settings['fields'][$field]['type']))
         {
@@ -823,7 +825,12 @@ Class Vmodel extends Model {
         }
         
         $type  = strtolower($this->settings['fields'][$field]['type']);
+
+        ###########
+        
         $value = lib('Validator')->set_value($field, $default);
+        
+        ###########
             
         if($type == 'string')
         {
@@ -917,7 +924,7 @@ Class Vmodel extends Model {
         
         if($has_rules)  // if we have validation rules ..
         {
-            $validator = $this->validate_request($v_data);  // do validation
+            $validator = $this->validate($v_data);  // do validation
         }
         else
         {
@@ -954,7 +961,7 @@ Class Vmodel extends Model {
                 $this->errors[$table]['msg']     = lang('vm_delete_fail');
                 $this->errors[$table]['transaction_error'] = $e->getMessage();
                 
-                $this->_debug();
+                $this->set_debug();
 
                 $this->clear();    // reset validator data 
 
@@ -966,7 +973,7 @@ Class Vmodel extends Model {
                 $this->errors[$table]['success'] = 1;
                 $this->errors[$table]['msg']     = lang('vm_delete_success');
 
-                $this->_debug();
+                $this->set_debug();
                 
                 $this->clear();    // reset validator data
 
@@ -977,7 +984,7 @@ Class Vmodel extends Model {
                 $this->errors[$table]['success']     = 0;
                 $this->errors[$table]['system_msg']  = lang('vm_delete_fail');
 
-                $this->_debug();
+                $this->set_debug();
                 
                 $this->clear();    // reset validator data
 
@@ -1015,11 +1022,18 @@ Class Vmodel extends Model {
     * @access private
     * @return void
     */
-    public function _debug()
+    public function set_debug()
     {
         if($this->debug)
         {
-            $this->errors[$this->item('table')]['debug'] = $this->db->last_query($this->db->prepare);
+            if($this->errors('success') == 1)
+            {
+                $this->errors[$this->item('table')]['debug'] = $this->db->last_query($this->db->prepare);
+            }
+            else 
+            {
+                $this->errors[$this->item('table')]['debug'] = $this->db->last_query($this->db->prepare);
+            }  
         }
     }
     

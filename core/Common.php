@@ -907,6 +907,35 @@ function set_status_header($code = 200, $text = '')
 
 //----------------------------------------------------------------------- 
  
+if ( ! function_exists('set_json_header'))
+{
+    /**
+     * Set Json Header
+     * 
+     * @param type $cache 
+     */
+    function set_json_header( $cache = FALSE )
+    {
+        if(uri_extension() == 'json') // Check uri extension 
+        {
+             /*
+             * The first two headers prevent the browser from caching the 
+             * response (a problem with IE and GET requests) and the third sets 
+             * the correct MIME type for JSON.
+             */
+            if($cache == FALSE)
+            {
+                header('Cache-Control: no-cache, must-revalidate');
+                header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+            }
+
+            header('Content-type: application/json');
+        }
+    }
+}
+
+//----------------------------------------------------------------------- 
+
 /**
 * 404 Page Not Found Handler
 *

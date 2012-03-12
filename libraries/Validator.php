@@ -1136,7 +1136,12 @@ Class OB_Validator {
      */
     public function valid_date($date, $format = 'mm-dd-yyyy')
     {        
-        $format = strtoupper($format);
+        $format = strtoupper(trim($format));
+        
+        if(strpos($date, ' ') > 0 OR strlen($date) > 10 OR strlen($date) < 10) // well format and no time
+        {
+            return FALSE;
+        }
         
         // get the date symbols.
         $date_array   = preg_split('/[\w]+/', $date, -1, PREG_SPLIT_NO_EMPTY);
