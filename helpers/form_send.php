@@ -90,7 +90,7 @@ if ( ! function_exists('form_send_success'))
             $array = array('success' => true, 'success_msg' => $model);
         }
         
-        echo json_encode($array);
+        return json_encode($array);
     }
 }
 
@@ -128,7 +128,7 @@ if ( ! function_exists('form_send_forward'))
     {
         set_json_header();
         
-        echo json_encode(array('success' => true, 'forward_url' => $forward_url));
+        return json_encode(array('success' => true, 'forward_url' => $forward_url));
     }
 }
 

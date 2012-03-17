@@ -1046,7 +1046,10 @@ Class Vmodel extends Model {
     */
     public function debug($bool = TRUE)
     {
-        $this->debug = $bool;
+        if(ENV != 'LIVE') // Secure debug, don't show sql query in LIVE mode.
+        {
+            $this->debug = $bool;
+        }
     }
     
     // ---------------------------------------------------------------------

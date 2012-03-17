@@ -271,12 +271,14 @@ if ( ! function_exists('plugin'))
         $output = '';
         foreach($plugins as $file_path)
         {
-            if(strpos(ltrim($file_path), 'js/') === 0)
+            $ext = substr(strrchr($file_path, '.'), 1);
+            
+            if($ext == 'js')
             {
                 $output.= js(substr($file_path, 3));
             }
             
-            if(strpos(ltrim($file_path), 'css/') === 0)
+            if($ext == 'css')
             {
                 $output.= css(substr($file_path, 3));
             }

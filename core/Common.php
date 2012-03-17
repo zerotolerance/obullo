@@ -912,18 +912,18 @@ if ( ! function_exists('set_json_header'))
     /**
      * Set Json Header
      * 
-     * @param type $cache 
+     * @param type $no_cache 
      */
-    function set_json_header( $cache = FALSE )
+    function set_json_header( $no_cache = TRUE )
     {
-        if(uri_extension() == 'json') // Check uri extension 
+        if(uri_extension() == 'json' AND ! headers_sent() ) // Check uri extension 
         {
              /*
              * The first two headers prevent the browser from caching the 
              * response (a problem with IE and GET requests) and the third sets 
              * the correct MIME type for JSON.
              */
-            if($cache == FALSE)
+            if($no_cache)
             {
                 header('Cache-Control: no-cache, must-revalidate');
                 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
