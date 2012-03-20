@@ -274,13 +274,23 @@ if ( ! function_exists('plugin'))
             $ext = substr(strrchr($file_path, '.'), 1);
             
             if($ext == 'js')
-            {
-                $output.= js(substr($file_path, 3));
+            {   
+                if(strpos(ltrim($file_path, '/'), 'js') === 0)  // remove js word
+                {
+                    $file_path = substr(ltrim($file_path, '/'), 3);
+                }
+                
+                $output.= js($file_path);
             }
             
             if($ext == 'css')
             {
-                $output.= css(substr($file_path, 3));
+                if(strpos(ltrim($file_path, '/'), 'css') === 0) // remove css word
+                {
+                   $file_path = substr(ltrim($file_path, '/'), 4);
+                }
+                
+                $output.= css($file_path);
             }
         }
         
