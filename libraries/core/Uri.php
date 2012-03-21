@@ -33,8 +33,9 @@ Class OB_Uri
     public $segments    = array();
     public $rsegments   = array();
 
-    public $cache_time  = '';  // HMVC library just use this variable.
-    public $extension   = '';
+    public $cache_time   = '';  // HMVC library just use this variable.
+    public $extension    = '';
+    public $uri_protocol = 'REQUEST_URI';
 
     /**
     * Constructor
@@ -104,9 +105,14 @@ Class OB_Uri
      */
     public function _fetch_uri_string()
     {
-        if($this->uri_string != '') return;
+        if($this->uri_string != '') 
+        {
+            return;
+        }
 
-        if (strtoupper(config_item('uri_protocol')) == 'AUTO')
+        $protocol = strtoupper(config_item('uri_protocol'));
+        
+        if ($protocol == 'AUTO')
         {
             // If the URL has a question mark then it's simplest to just
             // build the URI string from the zero index of the $_GET array.
@@ -123,7 +129,8 @@ Class OB_Uri
             $path = (isset($_SERVER['PATH_INFO'])) ? $_SERVER['PATH_INFO'] : @getenv('PATH_INFO');
             if (trim($path, '/') != '' && $path != "/".SELF)
             {
-                $this->uri_string = $path;
+                $this->uri_protocol = 'PATH_INFO';
+                $this->uri_string   = $path;
                 return;
             }
 
@@ -131,7 +138,8 @@ Class OB_Uri
             $path =  (isset($_SERVER['QUERY_STRING'])) ? $_SERVER['QUERY_STRING'] : @getenv('QUERY_STRING');
             if (trim($path, '/') != '')
             {
-                $this->uri_string = $path;
+                $this->uri_protocol = 'QUERY_STRING';
+                $this->uri_string   = $path;
                 return;
             }
 
@@ -140,7 +148,8 @@ Class OB_Uri
             if (trim($path, '/') != '' && $path != "/".SELF)
             {
                 // remove path and script information so we have good URI data
-                $this->uri_string = str_replace($_SERVER['SCRIPT_NAME'], '', $path);
+                $this->uri_protocol = 'ORIG_PATH_INFO';
+                $this->uri_string   = str_replace($_SERVER['SCRIPT_NAME'], '', $path);
                 return;
             }
 
@@ -148,16 +157,15 @@ Class OB_Uri
             $this->uri_string = '';
         }
         else
-        {
-            $uri = strtoupper(config_item('uri_protocol'));
-
-            if ($uri == 'REQUEST_URI')
+        {           
+            if ($protocol == 'REQUEST_URI')
             {
-                $this->uri_string = $this->_parse_request_uri();
+                $this->uri_protocol = $protocol;
+                $this->uri_string   = $this->_parse_request_uri();
                 return;
             }
 
-            $this->uri_string = (isset($_SERVER[$uri])) ? $_SERVER[$uri] : @getenv($uri);
+            $this->uri_string = (isset($_SERVER[$protocol])) ? $_SERVER[$protocol] : @getenv($protocol);
         }
 
         // If the URI contains only a slash we'll kill it
@@ -759,6 +767,40 @@ Class OB_Uri
         return '/'.implode('/', $this->rsegment_array()).'/';
     }
 
+    // --------------------------------------------------------------------
+    
+    /**
+     * Get the current server uri
+     * protocol.
+     * 
+     * @access public
+     * @return string
+     */
+    public function protocol()
+    {
+        return $this->uri_protocol;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+     * Get the complete like native php
+     * $_SERVER['REQUEST_URI'].
+     * 
+     * @access public
+     * @param  boolean $urlencode
+     * @return string
+     */
+    public function request_uri($urlencode = FALSE)
+    {
+       if(isset($_SERVER[$this->protocol()]))
+       {
+           return ($urlencode) ? urlencode($_SERVER[$this->protocol()]) : $_SERVER[$this->protocol()];
+       }
+       
+       return FALSE;
+    }
+    
 
 }
 // END URI Class

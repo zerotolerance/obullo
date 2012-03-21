@@ -906,15 +906,15 @@ function set_status_header($code = 200, $text = '')
 }
 
 //----------------------------------------------------------------------- 
- 
-if ( ! function_exists('set_json_header'))
+
+/**
+ * Set Response Header ( Default Json Format )
+ * 
+ * @param type $no_cache 
+ */
+if ( ! function_exists('set_response_header'))
 {
-    /**
-     * Set Json Header
-     * 
-     * @param type $no_cache 
-     */
-    function set_json_header( $no_cache = TRUE )
+    function set_response_header( $no_cache = TRUE )
     {
         if(uri_extension() == 'json' AND ! headers_sent() ) // Check uri extension 
         {

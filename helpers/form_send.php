@@ -39,10 +39,15 @@ if ( ! function_exists('form_send_error'))
 {
     function form_send_error($model = '')
     {
-        set_json_header();
+        set_response_header();
         
         if(is_object($model))
         {
+            if($model->get_func())
+            {
+                return json_encode(array('success' => false, $model->get_func('name') => $model->get_func('val'), 'errors' => array()));
+            }
+           
             if(isset($model->errors[$model->item('table')]['transaction_error']))
             {
                 log_me('debug', 'Transaction (system) Error: '. $model->errors[$model->item('table')]['transaction_error']);
@@ -78,8 +83,8 @@ if ( ! function_exists('form_send_error'))
 if ( ! function_exists('form_send_success'))
 {
     function form_send_success($model = '')
-    {      
-        set_json_header();
+    {
+        set_response_header();
        
         if(is_object($model))
         {
@@ -105,11 +110,18 @@ if ( ! function_exists('form_send_success'))
 */
 if ( ! function_exists('form_send_redirect'))
 {
-    function form_send_redirect($redirect_url)
+    function form_send_redirect($redirect_url, $top_redirect = FALSE)
     {
-        set_json_header();
+        set_response_header();
         
-        return json_encode(array('success' => true, 'success_msg' => '', 'redirect' => $redirect_url));
+        $type = 'redirect'; // window.location.replace(); command
+        
+        if($top_redirect)   // this functionality execute the javascript window.top.location.replace(); command
+        {
+            $type = 'top_redirect';
+        }
+        
+        return json_encode(array('success' => true, 'success_msg' => '', $type => $redirect_url));
     }
 }
 
@@ -126,7 +138,7 @@ if ( ! function_exists('form_send_forward'))
 {
     function form_send_forward($forward_url)
     {
-        set_json_header();
+        set_response_header();
         
         return json_encode(array('success' => true, 'forward_url' => $forward_url));
     }
@@ -145,7 +157,7 @@ if ( ! function_exists('form_send_alert'))
 {
     function form_send_alert($msg = '')
     {
-        set_json_header();
+        set_response_header();
         
         return json_encode(array('success' => false, 'alert' => $msg));
     }
