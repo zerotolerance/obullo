@@ -181,8 +181,27 @@ Class OB_Lang {
         
         //-------------- OBULLO LANG --------------//
         
-        
-        if(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
+        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
+        {
+            $paths          = explode('/', $file_url); 
+            $filename       = array_pop($paths);       // get file name
+            $sub_modulename = array_shift($paths);     // get sub module name
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;      // /filename/sub/file.php  sub dir support
+            }
+            
+            $module_path = MODULES .$sub_modulename. DS .'lang'. DS .$sub_path. $extra_path;
+            
+            if( ! file_exists($module_path. $filename. EXT))
+            {
+                throw new LangException('Unable locate the file '. $module_path. $filename. EXT);
+            }
+
+        }
+        elseif(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
         {
             $sub_module_path = ''; // clear sub module path
             
@@ -247,7 +266,7 @@ Class OB_Lang {
             
             //---------- Extension Support -----------//
             
-            $module_path = MODULES .$sub_module_path.$modulename. DS .'lang'. DS .$sub_path. $extra_path;
+            $module_path = MODULES .$modulename. DS .'lang'. DS .$sub_path. $extra_path;
             
             if( ! file_exists($module_path. $filename. EXT))  // first check module path
             {
@@ -308,7 +327,6 @@ Class OB_Lang {
     }
     
 }
-
 
 /* End of file lang.php */
 /* Location: ./obullo/helpers/core/lang.php */

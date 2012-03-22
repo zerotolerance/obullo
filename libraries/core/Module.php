@@ -120,7 +120,7 @@ Class OB_Module {
         // ----------------------------------------------------
         
         $this->sub_module = lib('ob/URI')->fetch_sub_module();
-        
+
         // ----------------------------------------------------
         
         if( $this->sub_module != '' AND is_dir(MODULES .'sub.'.$this->sub_module. DS .'config'))
@@ -287,35 +287,21 @@ Class OB_Module {
     {   
         $app_vars = get_static($file, $var, APP .'config');
 
-        if($this->sub_module != '') // Sub Module
+        if($this->sub_module != '')  // Don't Merge Sub-Module and Application Variables
         { 
             if( file_exists(MODULES .'sub.'.$this->sub_module. DS .'config'. DS .$file. EXT))
             {
-                $sub_module_vars = get_static($file, $var, MODULES .'sub.'.$this->sub_module. DS .'config');
+                $sub_module_values = get_static($file, $var, MODULES .'sub.'.$this->sub_module. DS .'config');
 
-                foreach($app_vars as $key => $array)
-                {
-                    $values[$key] = array_merge($sub_module_vars[$key], $array); 
-                }
+                log_me('debug', '[ '.ucfirst($this->sub_module).' ]: Sub-Module '.$type.' Initialized', false, true);
 
-                log_me('debug', '[ '.ucfirst($this->sub_module).' ]: Sub-Module and Application '.$type.' Merged', false, true);
-            }
-
-            if( ! file_exists(MODULES .$GLOBALS['sub_path'].$this->module. DS .'config'. DS .$file. EXT))
-            {
-                return $values;
+                return $sub_module_values;
             }
         }
 
-        if( file_exists(MODULES .$GLOBALS['sub_path'].$this->module. DS .'config'. DS .$file. EXT))
-        {           
-            $module_vars = get_static($file, $var, MODULES .$GLOBALS['sub_path'].$this->module. DS .'config');
-
-            if(isset($sub_module_vars))  // Merge Sub-Module and Application Variables
-            {
-                unset($app_vars);
-                $app_vars = $values;
-            }
+        if(file_exists(MODULES .$this->module. DS .'config'. DS .$file. EXT))
+        {       
+            $module_vars = get_static($file, $var, MODULES .$this->module. DS .'config');
 
             foreach($app_vars as $key => $array)
             {   
@@ -330,7 +316,7 @@ Class OB_Module {
 
             log_me('debug', 'Application '.$type.' Initialized');
         }
-
+        
         return $values;
     }
     

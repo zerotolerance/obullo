@@ -62,7 +62,7 @@ Class OB_Config
     public function load($file_url = '', $use_sections = FALSE, $fail_gracefully = FALSE)
     { 
         $file_info = $this->_load_file($file_url);
-        
+
         $file      = ($file_info['filename'] == '') ? 'config' : str_replace(EXT, '', $file_info['filename']);
         $file_path = $file_info['path']; // Unique config files.
     
@@ -150,8 +150,25 @@ Class OB_Config
             $file_url = substr($file_url, 4);
         }
         
-        if(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
+        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
         {
+            $paths          = explode('/', $file_url); 
+            $filename       = array_pop($paths);       // get file name
+            $sub_modulename = array_shift($paths);     // get sub module name
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;      // /filename/sub/file.php  sub dir support
+            }
+            
+            $module_path = MODULES .$sub_modulename. DS .'config'. DS .$sub_path. $extra_path;
+
+        }
+        elseif(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
+        {
+            $sub_module_path = '';  // clear sub module path
+            
             $paths          = explode('/', substr($file_url, 3)); 
             $filename       = array_pop($paths);       // get file name
             $sub_modulename = array_shift($paths);     // get sub module name
@@ -165,7 +182,7 @@ Class OB_Config
             
             if($modulename == '')
             {
-                $module_path = MODULES .$sub_modulename. DS .'config'. DS .$extra_path;
+                $module_path = MODULES .$sub_modulename. DS .'config'. DS .$sub_path. $extra_path;
             }
             else
             {
@@ -211,7 +228,7 @@ Class OB_Config
             
             //---------- Extension Support -----------//
             
-            $module_path = MODULES .$sub_module_path.$modulename. DS .'config'. DS .$sub_path. $extra_path;
+            $module_path = MODULES .$modulename. DS .'config'. DS .$sub_path. $extra_path;
             
             if( ! file_exists($module_path. $filename. EXT))  // first check module path
             {

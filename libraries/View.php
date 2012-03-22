@@ -100,7 +100,7 @@ Class OB_View {
                 // must be ## NEW ##. 
                 // e.g. loader::config('somefile_vars'); $this->config->item('somefile_vars')
                 
-                $this->{$key} = &this()->$key;           
+                $this->{$key} = &this()->$key;          
             }
         }
         
@@ -199,7 +199,22 @@ Class OB_View {
             return array('filename' => $file_url, 'path' => BASE .$folder. DS);
         }
         
-        if(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
+        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
+        {
+            $paths          = explode('/', $file_url); 
+            $filename       = array_pop($paths);       // get file name
+            $sub_modulename = array_shift($paths);     // get sub module name
+            $modulename     = '';
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;      // /filename/sub/file.php  sub dir support
+            }
+            
+            $sub_module_path = $sub_modulename;
+        }
+        elseif(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
         {
             $sub_module_path = ''; // clear sub module path
             
@@ -207,15 +222,21 @@ Class OB_View {
             $filename       = array_pop($paths);       // get file name
             $sub_modulename = array_shift($paths);     // get sub module name
             $modulename     = array_shift($paths);     // get module name
-            
-            $sub_module_path = $sub_modulename. DS .SUB_MODULES;
-            
+
             $sub_path   = '';
             if( count($paths) > 0)
             {
                 $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
             }
-
+            
+            if($modulename == '')
+            {
+                $sub_module_path = $sub_modulename;
+            }
+            else
+            {
+                $sub_module_path = $sub_modulename. DS .SUB_MODULES;
+            }
         }
         elseif(strpos($file_url, '../') === 0)  // if  ../modulename/file request
         {
@@ -276,14 +297,18 @@ Class OB_View {
         
         $module_path = MODULES .$sub_module_path.$modulename. DS .$folder. DS .$sub_path. $extra_path;
         $path        = $module_path;
-        
-        if(file_exists(APP .$folder. DS .$sub_path .$extra_path . $filename. EXT))
+
+        if(strpos($file_url, 'layouts') === 0 AND lib('ob/URI')->fetch_sub_module() != '')
         {
-            $path = APP .$folder. DS .$sub_path .$extra_path;
+            $path = MODULES .'sub.'.lib('ob/URI')->fetch_sub_module(). DS .$folder. DS .'layouts'. DS .$extra_path;
         }
         elseif(file_exists($module_path. $filename. EXT))  // first check module path
         {
             $path = $module_path;
+        }
+        elseif(file_exists(APP .$folder. DS .$sub_path .$extra_path . $filename. EXT))
+        {
+            $path = APP .$folder. DS .$sub_path .$extra_path;
         }
         
         if($application_view)

@@ -356,7 +356,7 @@ Class OB_Loader {
 
             return;
         }
-         
+        
         if( ! class_exists('OB_Database'))
         {
             if(is_bool($db_name_or_params) AND $db_name_or_params === FALSE)  // No instantite
@@ -369,7 +369,7 @@ Class OB_Loader {
         
         ################
         
-        $database = lib('ob/Database', '', TRUE); // Database Object Must Be New Object.
+        $database = lib('ob/Database', '', TRUE); // Database Object Must Be New.
 
         ################
         
@@ -634,12 +634,34 @@ Class OB_Loader {
             $sub_root = '';
         }
         
-        if(strpos($real_name, '../sub.') === 0)   // sub.module/module folder request
+        if(strpos($real_name, 'sub.') === 0)   // sub.module/module folder request
+        {
+            $paths          = explode('/', $real_name); 
+            $filename       = array_pop($paths);       // get file name
+            $sub_modulename = array_shift($paths);     // get sub module name
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;      // /filename/sub/file.php  sub dir support
+            }
+            
+            $file = MODULES .$sub_modulename. DS .$folder . DS . $sub_path . $filename. EXT;
+            
+            $return['file_name'] = $filename;
+            $return['file']      = $file;
+
+            return $return;
+        }
+        
+        if(strpos($real_name, '../sub.') === 0)   // ../sub.module/module folder request
         {
             $paths          = explode('/', substr($real_name, 3)); 
             $filename       = array_pop($paths);           // get file name
             $sub_modulename = array_shift($paths);     // get sub module name
             $modulename     = array_shift($paths);     // get module name
+            
+            $modulename     = ($modulename == '') ? '' : $modulename . DS;
             
             $sub_path   = '';
             if( count($paths) > 0)
@@ -647,8 +669,8 @@ Class OB_Loader {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
             
-            $file = MODULES .$sub_modulename. DS .SUB_MODULES. $modulename. DS .$folder . DS . $sub_path . $filename. EXT;
-            
+            $file = MODULES .$sub_modulename. DS .SUB_MODULES. $modulename .$folder . DS . $sub_path . $filename. EXT;
+
             $return['file_name'] = $filename;
             $return['file']      = $file;
 
