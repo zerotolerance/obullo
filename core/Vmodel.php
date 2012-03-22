@@ -15,7 +15,7 @@ defined('BASE') or exit('Access Denied!');
  * @filesource
  */ 
  
-Class VMException extends CommonException {}
+Class VmodelException extends CommonException {}
  
 /**
  * Validation Model.
@@ -35,6 +35,8 @@ Class Vmodel extends Model {
     public $validation = FALSE;    // If form validation success we set it to true.
     public $debug      = FALSE;    // Turn On / Off Debugging
     
+    public $function   = array();
+    
     public $where           = array();
     public $or_where        = array();
     public $where_in        = array();
@@ -49,19 +51,27 @@ Class Vmodel extends Model {
     * @return void
     */
     public function __construct()
-    {               
+    {                
         parent::__construct();
         
         if( ! isset($this->settings['fields']) OR ! isset($this->settings['database'])) 
         {
-            throw new VMException('Check your model it must be contain $settings[\'fields\'] and $settings[\'database\'] array.');
+            throw new VmodelException('Check your model it must be contain $settings[\'fields\'] and $settings[\'database\'] array.');
         }
         
         $db = $this->settings['database'];
                  
-        $this->db = loader::database($db, true); // Cannot assign by reference to overloaded object 
+        if($db != '' AND $db != 'no')
+        {
+            $this->db = loader::database($db, true); // Cannot assign by reference to overloaded object 
+        }
+                            
+        if( ! isset($this->settings['table'])) // create random table name
+        {
+            $this->settings['table'] = 'unknown_'.rand();
+        }
         
-        log_me('debug', "VM Class Initialized");
+        log_me('debug', "Vmodel Class Initialized");
     }
     
     // --------------------------------------------------------------------
@@ -126,10 +136,10 @@ Class Vmodel extends Model {
             
             return TRUE;
         }
-        else
+        else 
         {
             foreach($fields as $key => $val)  // Set validation errors..
-            { 
+            {
                if(isset($validator->_field_data[$key]['error']))
                {
                    $error = $validator->error($key, NULL, NULL);
@@ -139,13 +149,13 @@ Class Vmodel extends Model {
                        $this->errors[$table][$key] = $error;
                    }
                }
-               
+              
                // Set filtered values
                $this->values[$table][$key] = $this->_set_value($key, $this->{$key});
             }
             
             $this->validation = FALSE;
-
+            
             return FALSE;
         }
     }
@@ -285,7 +295,7 @@ Class Vmodel extends Model {
     // --------------------------------------------------------------------
 
     /**
-    * Set Custom VM error for field.
+    * Set Custom Vmodel error for field.
     *
     * @param string $key or $field
     */
@@ -297,7 +307,47 @@ Class Vmodel extends Model {
     // --------------------------------------------------------------------
 
     /**
-    * Set Custom VM error for field.
+    * Set Custom Vmodel function.
+    *
+    * @param string $key name of function
+    */
+    public function set_func($name, $val)
+    {
+        $this->function[$this->item('table')]['name'] = $name;
+        $this->function[$this->item('table')]['val']  = $val;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Get the function name and values.
+    *
+    * @param string $type
+    */
+    public function get_func($type = 'name')
+    {        
+       if($type == '')
+       {
+           if(isset($this->function[$this->item('table')]['name']))
+           {
+               return TRUE;
+           }
+           
+           return FALSE;
+       }
+       
+       if(isset($this->function[$this->item('table')][$type]))
+       {
+           return $this->function[$this->item('table')][$type];
+       }
+       
+       return FALSE;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+    * Set value for field.
     *
     * @param string $key or $field
     */
@@ -672,7 +722,7 @@ Class Vmodel extends Model {
                 }
             }
             else   // ELSE do insert ..
-            {   
+            { 
                 try {
 
                     $this->db->transaction(); // begin the transaction
@@ -732,7 +782,7 @@ Class Vmodel extends Model {
         {
             $this->errors[$table]['success'] = 0;
         }
-                
+        
         return FALSE;
     }
     
@@ -1069,6 +1119,7 @@ Class Vmodel extends Model {
         $this->where_not_in    = array();
         $this->or_where_not_in = array();
         
+        $this->function   = array();
         $this->property   = array();
         $this->no_input   = array(); 
         $this->validation = FALSE;
@@ -1144,5 +1195,5 @@ Class Vmodel extends Model {
 
 // END Validation Model Class
 
-/* End of file VM.php */
-/* Location: ./obullo/core/VM.php */
+/* End of file Vmodel.php */
+/* Location: ./obullo/core/Vmodel.php */

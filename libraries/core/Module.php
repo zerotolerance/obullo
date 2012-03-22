@@ -188,6 +188,8 @@ Class OB_Module {
     {
         $autoload = $this->_merge_autoloaders('autoload', '', 'Autoloaders');
 
+        unset($autoload['mode']);
+        
         if(is_array($autoload))
         {
             loader::helper('ob/array');
@@ -198,7 +200,7 @@ Class OB_Module {
                 {
                     if( ! is_assoc_array($autoload[$key]))
                     {
-                        show_error('Please redefine your '.$key.' autoload variables, they must be associative array !');
+                        throw new ModuleException('Please redefine your '.$key.' autoload variables, they must be associative array !');
                     }
                     
                     foreach($autoload[$key] as $filename => $args)
@@ -251,6 +253,8 @@ Class OB_Module {
     {
         $autorun = $this->_merge_autoloaders('autorun', '', 'Autorun');
         
+        unset($autorun['mode']);
+        
         if(isset($autorun['function']))
         {
             if(count($autorun['function']) > 0)
@@ -294,15 +298,22 @@ Class OB_Module {
                 $sub_module_values = get_static($file, $var, MODULES .'sub.'.$this->sub_module. DS .'config');
 
                 log_me('debug', '[ '.ucfirst($this->sub_module).' ]: Sub-Module '.$type.' Initialized', false, true);
-
+         
                 return $sub_module_values;
             }
         }
-
+        
         if(file_exists(MODULES .$this->module. DS .'config'. DS .$file. EXT))
         {       
             $module_vars = get_static($file, $var, MODULES .$this->module. DS .'config');
 
+            if(isset($module_vars['mode']) AND strtolower($module_vars['mode']) == 'replace')
+            {
+                log_me('debug', '[ '.ucfirst($this->module).' ]: Module '.$type.' Replaced', false, true);
+                
+                return $module_vars;
+            }
+            
             foreach($app_vars as $key => $array)
             {   
                 $values[$key] = array_merge($module_vars[$key], $array);
