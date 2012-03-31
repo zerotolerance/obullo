@@ -35,7 +35,6 @@ if( ! function_exists('ob_include_files'))
         require (BASE .'core'. DS .'Registry'. EXT);
         require (BASE .'core'. DS .'Common'. EXT);
         require (BASE .'core'. DS .'Loader'. EXT);
-        require (APP  .'core'. DS .'Loader'. EXT);
         
         if(config_item('log_threshold') > 0) 
         { 

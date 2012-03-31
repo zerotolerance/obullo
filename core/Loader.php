@@ -23,7 +23,7 @@ Class LoaderException extends CommonException {}
  * Load Obullo library, model, config, lang and any other files ...
  */
 
-Class OB_Loader {
+Class loader {
 
     /**
     * Track "local" helper files.

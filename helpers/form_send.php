@@ -88,11 +88,11 @@ if ( ! function_exists('form_send_success'))
        
         if(is_object($model))
         {
-            $array = array('success' => true, 'success_msg' => $model->errors('msg'), 'errors' => $model->errors());
+            $array = array('success' => true, 'msg' => $model->errors('msg'), 'errors' => $model->errors());
         }
         else
         {
-            $array = array('success' => true, 'success_msg' => $model);
+            $array = array('success' => true, 'msg' => $model);
         }
         
         return json_encode($array);
@@ -121,7 +121,7 @@ if ( ! function_exists('form_send_redirect'))
             $type = 'top_redirect';
         }
         
-        return json_encode(array('success' => true, 'success_msg' => '', $type => $redirect_url));
+        return json_encode(array('success' => true, 'msg' => '', $type => $redirect_url));
     }
 }
 

@@ -200,7 +200,8 @@ Class OB_Module {
                 {
                     if( ! is_assoc_array($autoload[$key]))
                     {
-                        throw new ModuleException('Please redefine your '.$key.' autoload variables, they must be associative array !');
+                        throw new ModuleException("Please redefine your $key autoload variables, they must be associative array ! 
+                                An example configuration <b>\$autoload['helper'] = array('ob/session' => '', 'ob/form' => '')</b>");
                     }
                     
                     foreach($autoload[$key] as $filename => $args)

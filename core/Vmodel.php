@@ -906,11 +906,6 @@ Class Vmodel extends Model {
         {
             return (boolean)$value;
         }
-               
-        if($type == 'array')
-        {
-            return (array)$value;
-        }
         
         if($type == 'object')
         {
@@ -1073,17 +1068,10 @@ Class Vmodel extends Model {
     * @return void
     */
     public function set_debug()
-    {
-        if($this->debug)
+    {   
+        if($this->debug AND is_object($this->db))
         {
-            if($this->errors('success') == 1)
-            {
-                $this->errors[$this->item('table')]['debug'] = $this->db->last_query($this->db->prepare);
-            }
-            else 
-            {
-                $this->errors[$this->item('table')]['debug'] = $this->db->last_query($this->db->prepare);
-            }  
+            $this->set_error('sql_debug', $this->db->last_query($this->db->prepare));
         }
     }
     
