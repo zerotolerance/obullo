@@ -13,8 +13,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
 
-Class HMVCException extends CommonException {}
-
 function ob_request_timer($mark = '')
 {
     list($sm, $ss) = explode(' ', microtime());
@@ -41,7 +39,6 @@ Class OB_Hmvc
     public $uri;                   // Clone original URI object
     public $router;                // Clone original Router object
     public $config;                // Clone original Config object
-    public $storage;               // Clone original Storage Class;
     public $_this         = NULL;  // Clone original this(); ( Controller instance)
 
     // Request, Response, Reset
@@ -106,7 +103,6 @@ Class OB_Hmvc
             $URI     = lib('ob/URI');
             $Router  = lib('ob/Router');
             $Config  = lib('ob/Config');
-            $Storage = lib('ob/Storage');
             
             # CLONE
             #######################################
@@ -114,8 +110,7 @@ Class OB_Hmvc
             $this->uri     = clone $URI;     // Create copy of original URI class.
             $this->router  = clone $Router;  // Create copy of original Router class.
             $this->config  = clone $Config;  // Create copy of original Config class.
-            $this->storage = clone $Storage; // Create copy of original Storage class and it's Objects.
-
+            
             # CLEAR
             #######################################
 
@@ -178,7 +173,6 @@ Class OB_Hmvc
         $this->uri          = '';
         $this->router       = '';
         $this->config       = '';
-        $this->storage      = '';
         $this->_this        = '';
 
         $this->request_method   = 'GET';
@@ -273,7 +267,7 @@ Class OB_Hmvc
             
             if( ! is_array($params_or_data))
             {
-                throw new HMVCException('Data must be array when using HMVC POST methods.');
+                throw new Exception('Data must be array when using HMVC POST methods.');
             }
                
             foreach($params_or_data as $key => $val)
@@ -289,7 +283,7 @@ Class OB_Hmvc
             
             if( ! is_array($params_or_data))
             {
-                throw new HMVCException('Data must be array when using HMVC GET or DELETE methods.');
+                throw new Exception('Data must be array when using HMVC GET or DELETE methods.');
             }
                
             foreach($params_or_data as $key => $val)
@@ -387,11 +381,7 @@ Class OB_Hmvc
         
         // Get possible sub.modules directory
         $GLOBALS['sub_path'] = ($URI->fetch_sub_module() == '') ? '' : 'sub.'.$URI->fetch_sub_module(). DS .SUB_MODULES;
-        $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
-        $GLOBALS['s']   = $router->fetch_subfolder();   // Get requested subfolder
-        $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
-        $GLOBALS['m']   = $router->fetch_method();      // Get requested method
-        
+
         // A Hmvc uri must be unique otherwise may collission with standart uri, 
         // also we need it for cache functionality.
         $URI->uri_string = rtrim($URI->uri_string, '/').'/__ID__'. $this->_get_id();
@@ -399,7 +389,7 @@ Class OB_Hmvc
     
         ob_start();
 
-        if($output->_display_cache($config, $URI, TRUE) !== FALSE) // Check request uri if there is a HMVC cached file exist.
+        if($output->_display_cache($config, $URI, $router, TRUE) !== FALSE) // Check request uri if there is a HMVC cached file exist.
         {
             $cache_content = ob_get_contents();  if(ob_get_level() > 0) { ob_end_clean(); }
             
@@ -412,54 +402,30 @@ Class OB_Hmvc
 
         if(ob_get_level() > 0) ob_end_clean();
         
-        if($GLOBALS['s'] != '')  // sub folder request ?
+        $hmvc_uri = "{$router->fetch_directory()} / {$router->fetch_class()} / {$router->fetch_method()}";
+
+        $controller = MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'controllers'. DS .$router->fetch_class(). EXT;
+
+        // Check the controller exists or not
+        if ( ! file_exists($controller))
         {
-            $hmvc_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
+            $this->set_response('404 - Hmvc request not found: Hmvc unable to load your controller.');
 
-            $controller = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
-            
-            // Check the sub controller exists or not
-            if ( ! file_exists($controller))
-            {
-                $this->set_response('404 - Hmvc request not found: Hmvc unable to load your controller.');
+            $this->_reset_router();
 
-                $this->_reset_router();
-                
-                return $this->_response();
-            }
-
-            $arg_slice  = 4;
-
-            // Call the requested method.                1        2       3       4
-            // Any URI segments present (besides the directory/subfolder/class/method)
-        }
-        else
-        {
-            $hmvc_uri = "{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
-
-            $controller = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'controllers'. DS .$GLOBALS['c']. EXT;
-            
-            // Check the controller exists or not
-            if ( ! file_exists($controller))
-            {
-                $this->set_response('404 - Hmvc request not found: Hmvc unable to load your controller.');
-
-                $this->_reset_router();
-
-                return $this->_response();
-            }
-            
-            $arg_slice  = 3;
+            return $this->_response();
         }
 
+        $arg_slice  = 3;
+     
         // Call the controller.
         require_once($controller);
 
-        if ( ! class_exists($GLOBALS['c']) OR $GLOBALS['m'] == 'controller'
-              OR $GLOBALS['m'] == '_output'
-              OR $GLOBALS['m'] == '_hmvc_output'
-              OR $GLOBALS['m'] == '_instance'
-              OR in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods('Controller')))
+        if ( ! class_exists($router->fetch_class()) OR $router->fetch_method() == 'controller'
+              OR $router->fetch_method() == '_output'
+              OR $router->fetch_method() == '_hmvc_output'
+              OR $router->fetch_method() == '_instance'
+              OR in_array(strtolower($router->fetch_method()), array_map('strtolower', get_class_methods('Controller')))
             )
         {
             $this->set_response('404 - Hmvc request not found: '.$hmvc_uri);
@@ -469,11 +435,13 @@ Class OB_Hmvc
             return $this->_response();
         }
 
+        $class = $router->fetch_class();
+        
         // If Everyting ok Declare Called Controller !
-        $OB = new $GLOBALS['c']();
+        $OB = new $class();
 
         // Check method exist or not
-        if ( ! in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods($OB))))
+        if ( ! in_array(strtolower($router->fetch_method()), array_map('strtolower', get_class_methods($OB))))
         {
             $this->set_response('404 - Hmvc request not found: '.$hmvc_uri);
 
@@ -488,7 +456,7 @@ Class OB_Hmvc
         // Call the requested method.                1       2       3
         // Any URI segments present (besides the directory/class/method)
         // will be passed to the method for convenience
-        call_user_func_array(array($OB, $GLOBALS['m']), array_slice($URI->rsegments, $arg_slice));
+        call_user_func_array(array($OB, $router->fetch_method()), array_slice($URI->rsegments, $arg_slice));
 
         $content = ob_get_contents();       
 
@@ -541,7 +509,6 @@ Class OB_Hmvc
         $this->_this->uri     = lib('ob/URI', '', $this->uri);
         $this->_this->router  = lib('ob/Router', '', $this->router);
         $this->_this->config  = lib('ob/Config', '', $this->config);
-        $this->_this->storage = lib('ob/Storage', '', $this->storage);
 
         this($this->_this);         // Set original $this to controller instance that we backup before
     
@@ -549,10 +516,6 @@ Class OB_Hmvc
         ######################################
 
         $GLOBALS['sub_path'] = ($this->uri->fetch_sub_module() == '') ? '' : 'sub.'.$this->uri->fetch_sub_module(). DS .SUB_MODULES;
-        $GLOBALS['d']   = $this->router->fetch_directory();   
-        $GLOBALS['s']   = $this->router->fetch_subfolder();
-        $GLOBALS['c']   = $this->router->fetch_class();
-        $GLOBALS['m']   = $this->router->fetch_method();
 
         $this->clear();  // reset all HMVC variables.
         
@@ -565,8 +528,6 @@ Class OB_Hmvc
             $end_time = ob_request_timer('end'); // Profiler
 
             self::$request_times[$URI->uri_string] = $end_time - self::$start_time;
-
-            profiler_set('hmvc_requests', 'request_time', self::$request_times);
         }
         
         $this->is_reset = TRUE;  // This means hmvc process completed succesfully without any errors.
@@ -697,7 +658,6 @@ Class OB_Hmvc
         $this->decode_assoc  = FALSE;
     }
     
-
     // --------------------------------------------------------------------
     
     /**
@@ -721,7 +681,6 @@ Class OB_Hmvc
         $this->is_reset = FALSE;
     }
 
-    
 }
 // END Hmvc Class
 

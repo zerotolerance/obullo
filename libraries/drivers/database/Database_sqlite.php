@@ -90,7 +90,7 @@ Class OB_Database_sqlite extends OB_Database_adapter
             
             $error = $this->_conn->errorInfo();
 
-            throw new DBException($error[2]);
+            throw new Exception($error[2]);
         }
 
         $retval = $this->_conn->exec('PRAGMA short_column_names=1');
@@ -98,7 +98,7 @@ Class OB_Database_sqlite extends OB_Database_adapter
             
             $error = $this->_conn->errorInfo();
 
-            throw new DBException($error[2]);
+            throw new Exception($error[2]);
         }
         
     } 

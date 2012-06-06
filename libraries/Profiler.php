@@ -87,54 +87,6 @@ Class OB_Profiler {
         return $output;
     
      }
-     
-    // --------------------------------------------------------------------
-    
-    /**
-    * Compile HMVC Requests
-    * 
-    * @access    private
-    * @return    string
-    */
-    public function _compile_hmvc_requests()
-    {
-        $requests = profiler_get('hmvc_requests');
-        
-        if( ! isset($requests['request_time'])) return FALSE;
-        
-        // Let's determine which databases are currently connected to         
-        if ($requests['request_time'] > 0)
-        {    
-            $request_times = array();
-            foreach($requests['request_time'] as $hmvc_uri => $time)
-            {
-                $explode = explode('__ID__', $hmvc_uri);
-                $request_times[] = array('uri' => $explode[0], 'id' => $explode[1], 'time' => number_format($time, 4));
-            }
-            
-            $output  = '<div id="hmvc">';       
-            $output .= "<table class=\"tableborder\">";
-            $output .= "<tr><th>".lang('profiler_hmvc_requests')."</th></tr>";
-            
-            foreach ($request_times as $data)
-            {   
-                if(strpos($data['uri'], '/') > 0)
-                { 
-                    $data['uri'] = explode('/', $data['uri']);
-                    $data['uri'] = implode(' / ', $data['uri']);
-                }
-                
-                $output .= "<tr><td valign='top' class=\"td\"><span class='label'>";
-                $output .= ucwords($data['uri'])."</span>&nbsp;&nbsp;</td><td class=\"td_val\">".'Time: '.$data['time'];
-                $output .= ' | ID: '.$data['id']."</td></tr>";
-            }
-            
-            $output .= "</table>";
-            $output .= "</div>";
-        }
-    
-        return $output;
-    }
         
     // --------------------------------------------------------------------
 
@@ -413,7 +365,8 @@ Class OB_Profiler {
         $output .= "<table class=\"tableborder\">";
         $output .= "<tr><th>".lang('profiler_controller_info')."</th></tr>";
 
-        $output .= "<tr><td class=\"td_val\">".$GLOBALS['d'].' / '.$GLOBALS['c'].' / '.$GLOBALS['m']."</td></tr>";
+        $router  = lib('ob/Router');
+        $output .= "<tr><td class=\"td_val\">".$router->fetch_directory().' / '.$router->fetch_class().' / '.$router->fetch_method()."</td></tr>";
         
         $output .= "</table>";
         $output .= "</div>";
@@ -472,10 +425,10 @@ Class OB_Profiler {
         $output .= "<tr><th width='25%'>".lang('profiler_loaded_files')."</th></tr>";
         
         $config_files = '';
-        foreach(profiler_get('config_files') as $config_file) { $config_files .= error_secure_path($config_file) .'<br />'; }
+        foreach(lib('ob/Config')->is_loaded as $config_file) { $config_files .= error_secure_path($config_file) .'<br />'; }
         
         $lang_files   = '';
-        foreach(profiler_get('lang_files') as $lang_file) { $lang_files .= error_secure_path($lang_file) .'<br />'; }
+        foreach(lib('ob/Lang')->is_loaded as $lang_file) { $lang_files .= error_secure_path($lang_file) .'<br />'; }
         
         $base_helpers  = '';
         foreach(loader::$_base_helpers as $base_helper) 
@@ -489,28 +442,10 @@ Class OB_Profiler {
                 $base_helpers .= error_secure_path($base_helper) .', ';
             }
         }
-                    
-        $app_helpers  = '';
-        foreach(loader::$_app_helpers as $app_helper) { $app_helpers .= error_secure_path($app_helper) .'<br />'; }
-        
+
         $helpers  = '';
         foreach(loader::$_helpers as $helper) { $helpers .= error_secure_path($helper) .'<br />'; }
         
-        $ob_libraries  = '';
-        foreach(profiler_get('ob_libraries') as $lib_key => $lib) 
-        { 
-            if(strpos($lib, $subclass_prefix) === 0)
-            {
-                $ob_libraries .= str_replace($subclass_prefix, "<span class='subclass_prefix'>$subclass_prefix</span>", error_secure_path($lib)).'<br />';
-            } 
-            else
-            {
-                $ob_libraries .= error_secure_path($lib) .'<span class="class_operations"> (' . $lib_key . ') </span><br />'; 
-            }
-        }
-        
-        $libraries  = '';
-        foreach(profiler_get('libraries') as $libs) { $libraries .= error_secure_path($libs) .'<br />'; }
         
         $models  = '';
         foreach(loader::$_models as $mod) { $models .= error_secure_path($mod) .'<br />'; }
@@ -518,45 +453,29 @@ Class OB_Profiler {
         $databases  = '';
         foreach(loader::$_databases as $db_name => $db_var) { $databases .= $db_var.'<br />'; }
         
-        $views  = '';
-        foreach(profiler_get('views') as $view) { $views .= error_secure_path($view) .'<br /> '; }
-        
-        $controllers = '';
-        foreach(profiler_get('parents') as $gc) { $controllers .= error_secure_path($gc) .'<br /> '; }
-        
-        $autorun = '';
-        foreach(profiler_get('autorun') as $function => $arguments) { $autorun .= error_secure_path($function).'()'.'<br />'; }
-        
         $base_helpers   = (isset($base_helpers{2}))   ? $base_helpers : '-';
         $app_helpers    = (isset($app_helpers{2}))    ? $app_helpers : '-';
         $helpers        = (isset($helpers{2}))        ? $helpers : '-';
-        $ob_libraries   = (isset($ob_libraries{2}))   ? $ob_libraries : '-';
-        $libraries      = (isset($libraries{2}))      ? $libraries : '-';
         $models         = (isset($models{2}))         ? $models : '-';
         $databases      = (isset($databases{2}))      ? $databases : '-';
         $views          = (isset($views{2}))          ? $views : '-';
         $config_files   = (isset($config_files{2}))   ? $config_files : '-';
         
-        $autoloads = profiler_get('autoloads');
-        $autoloads = $autoloads['autoloads'];
-        $autoloads = print_r($autoloads, true);
-        $autoloads = $this->clean_string($autoloads);
-        $autoloads = preg_replace('/\[(.*?)\]/', '<br />[<b>$1</b>]', $autoloads); // Highlight keys.
+        // $autoloads = profiler_get('autoloads');
+        // $autoloads = $autoloads['autoloads'];
+        // $autoloads = print_r($autoloads, true);
+        // $autoloads = $this->clean_string($autoloads);
+        // $autoloads = preg_replace('/\[(.*?)\]/', '<br />[<b>$1</b>]', $autoloads); // Highlight keys.
 
 
         $output .= "<tr><td class=\"td\">Config Files&nbsp;&nbsp;</td><td class=\"td_val\">".$config_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Lang Files&nbsp;&nbsp;</td><td class=\"td_val\">".$lang_files."</td></tr>";  
         $output .= "<tr><td class=\"td\">Obullo Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".trim(trim($base_helpers), ',')."</td></tr>";  
         $output .= "<tr><td class=\"td\">Application Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".$app_helpers."</td></tr>";
-        $output .= "<tr><td class=\"td\">Autoload Data&nbsp;&nbsp;</td><td class=\"td_val\">" .$autoloads."</td></tr>";
-        $output .= "<tr><td class=\"td\">Autorun Functions&nbsp;&nbsp;</td><td class=\"td_val\">".$autorun."</td></tr>";
         $output .= "<tr><td class=\"td\">Module Helpers&nbsp;&nbsp;</td><td class=\"td_val\">".trim(trim($helpers), ',')."</td></tr>";
-        $output .= "<tr><td class=\"td\">Obullo Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$ob_libraries."</td></tr>";
-        $output .= "<tr><td class=\"td\">Libraries&nbsp;&nbsp;</td><td class=\"td_val\">".$libraries."</td></tr>";  
         $output .= "<tr><td class=\"td\">Models&nbsp;&nbsp;</td><td class=\"td_val\">".$models."</td></tr>";    
         $output .= "<tr><td class=\"td\">Databases&nbsp;&nbsp;</td><td class=\"td_val\">".$databases."</td></tr>";      
         $output .= "<tr><td class=\"td\">Views&nbsp;&nbsp;</td><td class=\"td_val\">".$views."</td></tr>";          
-        $output .= "<tr><td class=\"td\">Controllers&nbsp;&nbsp;</td><td class=\"td_val\">".$controllers."</td></tr>";    
         
         $output .= "</table>";
         $output .= "</div>";
@@ -585,6 +504,51 @@ Class OB_Profiler {
     // --------------------------------------------------------------------
    
     /**
+    * Compile HMVC Requests
+    * 
+    * @access    private
+    * @return    string
+    */
+    public function _compile_hmvc_requests()
+    {
+        $requests = OB_Hmvc::$request_times;
+        
+        if( count($requests) == 0 ) return FALSE;
+        
+        // Let's determine which databases are currently connected to         
+
+        $request_times = array();
+        foreach($requests as $hmvc_uri => $time)
+        {
+            $explode = explode('__ID__', $hmvc_uri);
+            $request_times[] = array('uri' => $explode[0], 'id' => $explode[1], 'time' => number_format($time, 4));
+        }
+
+        $output  = '<div id="hmvc">';       
+        $output .= "<table class=\"tableborder\">";
+        $output .= "<tr><th>".lang('profiler_hmvc_requests')."</th></tr>";
+
+        foreach ($request_times as $data)
+        {   
+            if(strpos($data['uri'], '/') > 0)
+            { 
+                $data['uri'] = explode('/', $data['uri']);
+                $data['uri'] = implode(' / ', $data['uri']);
+            }
+
+            $output .= "<tr><td valign='top' class=\"td\"><span class='label'>";
+            $output .= ucwords($data['uri'])."</span>&nbsp;&nbsp;</td><td class=\"td_val\">".'Time: '.$data['time'];
+            $output .= ' | ID: '.$data['id']."</td></tr>";
+        }
+
+        $output .= "</table>";
+        $output .= "</div>";
+       
+        return $output;
+    }
+        
+    
+    /**
     * Run the Profiler
     *
     * @access    public
@@ -598,7 +562,10 @@ Class OB_Profiler {
         $output .= $this->_compile_controller_info();
         $output .= $this->_compile_memory_usage();
         $output .= $this->_compile_benchmarks();
-        $output .= $this->_compile_hmvc_requests();
+        if(class_exists('OB_Hmvc'))
+        {
+            $output .= $this->_compile_hmvc_requests();
+        }
         $output .= $this->_compile_get();
         $output .= $this->_compile_post();
         $output .= $this->_compile_loaded_files();

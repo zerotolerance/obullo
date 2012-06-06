@@ -19,8 +19,6 @@ require (BASE .'libraries'. DS .'drivers'. DS .'database'. DS .'Database_adapter
 
 // ------------------------------------------------------------------------
 
-Class DBException extends CommonException {}
-
 /**
  * Obullo Database Connection Class.
  *
@@ -40,7 +38,7 @@ Class OB_Database {
     {
         if ( ! extension_loaded('pdo') )
         {
-            throw new DBException('The PDO extension is required but extension is not loaded !');
+            throw new Exception('The PDO extension is required but extension is not loaded !');
         }
         
         loader::helper('core/driver');
@@ -118,12 +116,12 @@ Class OB_Database {
     
         if( db_item('hostname', $db_var) == FALSE)
         {
-            throw new DBException('The ' . $db_var . ' database configuration undefined in your config/database.php file !');
+            throw new Exception('The ' . $db_var . ' database configuration undefined in your config/database.php file !');
         }
         
         if ( ! in_array($dbdriver, PDO::getAvailableDrivers()))  // check the PDO driver is available
         {
-            throw new DBException('The PDO' . $dbdriver . ' driver is not currently installed on your server !');
+            throw new Exception('The PDO' . $dbdriver . ' driver is not currently installed on your server !');
         }
         
         if(is_array($param))

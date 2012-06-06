@@ -14,8 +14,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
 
-Class RouterException extends CommonException {}
-
  /**
  * Router Class
  * Parses URIs and determines routing
@@ -37,7 +35,6 @@ Class OB_Router {
     public $class               = '';
     public $method              = 'index';
     public $directory           = '';
-    public $subfolder           = '';
     public $uri_protocol        = 'auto';
     public $default_controller;
 
@@ -83,7 +80,6 @@ Class OB_Router {
         $uri->_parse_request_uri();
         $uri->_remove_url_suffix();
         $uri->_explode_segments();
-        $uri->_reindex_segments();
         $uri->_parse_sub_module();
         
         $routes = get_config('routes'); //  Get the application routes.
@@ -137,7 +133,7 @@ Class OB_Router {
         }
         
         // Clean Unnecessary slashes !!
-        $routes = array_map(create_function( '$a', 'return trim($a, "/");' ), $routes);
+        // $routes = array_map(create_function( '$a', 'return trim($a, "/");' ), $routes);
         
         ##############
         
@@ -170,7 +166,6 @@ Class OB_Router {
         $this->class               = '';
         $this->method              = 'index';
         $this->directory           = '';
-        $this->subfolder           = '';
         $this->uri_protocol        = 'auto';
         $this->default_controller  = '';
         
@@ -212,13 +207,6 @@ Class OB_Router {
             if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('controller_trigger')]))
             {
                 $this->set_directory(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
-
-                if(isset($_GET[config_item('subfolder_trigger')]))
-                {
-                    // ( Obullo sub folder support )
-                    $this->set_subfolder(trim($this->uri->_filter_uri($_GET[config_item('subfolder_trigger')])));
-                }
-
                 $this->set_class(trim($this->uri->_filter_uri($_GET[config_item('controller_trigger')])));
 
                 if (isset($_GET[config_item('function_trigger')]))
@@ -247,10 +235,8 @@ Class OB_Router {
                     $this->hmvc_response = 'Hmvc unable to determine what should be displayed. A default route has not been specified in the routing file.';
                     return FALSE;
                 }
-                else
-                {
-                    show_error('Unable to determine what should be displayed. A default route has not been specified in the routing file.', 404);
-                }
+
+                show_error('Unable to determine what should be displayed. A default route has not been specified in the routing file.', 404);
             }
 
             // Turn the default route into an array.  We explode it in the event that
@@ -272,7 +258,7 @@ Class OB_Router {
             $this->uri->rsegments = $segments;
 
             // re-index the routed segments array so it starts with 1 rather than 0
-            $this->uri->_reindex_segments();
+            // $this->uri->_reindex_segments();
 
             log_me('debug', "No URI present. Default controller set.", false, true);
             
@@ -294,7 +280,7 @@ Class OB_Router {
         $this->_parse_routes();
 
         // Re-index the segment array so that it starts with 1 rather than 0
-        $this->uri->_reindex_segments();
+        // $this->uri->_reindex_segments();
     }
 
     // --------------------------------------------------------------------
@@ -351,8 +337,6 @@ Class OB_Router {
     *
     *       0      1           2
     * module / controller /  method  /
-    *       0      1           2           3
-    * module / subfolder / controller /  method  /
     *
     * @author   Ersin Guvenc
     * @author   CJ Lazell
@@ -387,77 +371,10 @@ Class OB_Router {
             $this->set_directory($segments[0]);
 
             if( ! empty($segments[1]))
-            {
-                //----------- SUB FOLDER SUPPORT ----------//
-                
-                if(defined('CMD')) // if we have a APP task subfolder ? 
+            {                    
+                if (file_exists($ROOT .$this->fetch_directory(). DS .$folder. DS .$segments[1]. EXT))
                 {
-                    if(is_dir(APP .'tasks'. DS .$segments[1]))
-                    {
-                        $this->set_directory('');
-                        
-                        $ROOT   = rtrim(APP, DS);
-                        $folder = 'tasks';
-                    }
-                }
-                
-                if(is_dir($ROOT . $this->fetch_directory() . DS .$folder. DS .$segments[1]))   // If there is a subfolder ?
-                {
-                    $this->set_subfolder($segments[1]);
-
-                    if( ! isset($segments[2])) return $segments;
-
-                    if (is_dir($ROOT .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder()))
-                    {
-                        if( file_exists($ROOT .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$this->fetch_subfolder(). EXT)
-                            AND ! file_exists($ROOT .$this->fetch_directory(). DS .$folder. DS .$this->fetch_subfolder(). DS .$segments[2]. EXT))
-                        {
-                            array_unshift($segments, $this->fetch_directory());
-                        }
-                        
-                        $segments[1] = $segments[2];      // change class
-                        
-                        if(isset($segments[3]))          
-                        {
-                            $segments[2] = $segments[3];  // change method
-                        }
-
-                        return $segments;
-                    }
-
-                //----------- SUB FOLDER SUPPORT END ----------//
-
-                }
-                else
-                {
-                    if(defined('CMD'))  // otherwise if we have just APP task controller ? 
-                    {
-                        if(file_exists(APP .'tasks'. DS .$segments[1]. EXT))
-                        {
-                            $this->set_directory('');
-                        
-                            $ROOT   = rtrim(APP, DS);
-                            $folder = 'tasks';
-                        }
-                    }
-                    
-                    // echo $ROOT .$this->fetch_directory(). DS .$folder. DS .$segments[1]. EXT;
-                    
-                    if (file_exists($ROOT .$this->fetch_directory(). DS .$folder. DS .$segments[1]. EXT))
-                    {
-                        return $segments; 
-                    }
-                }
-            }
-
-            if(defined('CMD'))  // otherwise if we have just APP task controller ? 
-            {
-                if(file_exists(APP .'tasks'. DS .$segments[1]. EXT))
-                {
-                    $this->set_directory('');
-                
-                    $ROOT   = rtrim(APP, DS);
-                    $folder = 'tasks';
+                    return $segments; 
                 }
             }
             
@@ -473,7 +390,6 @@ Class OB_Router {
 
                 return $segments;
             }
-
         }
 
         if($this->hmvc)
@@ -484,25 +400,23 @@ Class OB_Router {
             
             return FALSE;
         }
-        else
-        {  
-            // If we've gotten this far it means that the URI does not correlate to a valid
-            // controller class.  We will now see if there is an override
-            if ( ! empty($this->routes['404_override']))
-            {
-                $x = explode('/', $this->routes['404_override']);
 
-                $this->set_directory($x[0]);
-                $this->set_class($x[1]);
-                $this->set_method(isset($x[2]) ? $x[2] : 'index');
+        // If we've gotten this far it means that the URI does not correlate to a valid
+        // controller class.  We will now see if there is an override
+        if ( ! empty($this->routes['404_override']))
+        {
+            $x = explode('/', $this->routes['404_override']);
 
-                return $x;
-            }
+            $this->set_directory($x[0]);
+            $this->set_class($x[1]);
+            $this->set_method(isset($x[2]) ? $x[2] : 'index');
 
-            $error_page = (isset($segments[1])) ? $segments[0].'/'.$segments[1] : $segments[0];
-            
-            show_404($error_page); 
+            return $x;
         }
+
+        $error_page = (isset($segments[1])) ? $segments[0].'/'.$segments[1] : $segments[0];
+
+        show_404($error_page);
     }
                
     // --------------------------------------------------------------------
@@ -648,20 +562,6 @@ Class OB_Router {
     {
         $this->directory = $dir.'';  // Obullo changes..
     }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    *  Set the subfolder name
-    *
-    * @access   public
-    * @param    string
-    * @return   void
-    */
-    public function set_subfolder($dir)
-    {
-        $this->subfolder = $dir.'';  // Obullo changes..
-    }
 
     // --------------------------------------------------------------------
 
@@ -677,46 +577,6 @@ Class OB_Router {
     }
     
     // --------------------------------------------------------------------
-
-    /**
-    *  Fetch the sub-directory (if any) that contains the requested controller class
-    *
-    * @access    public
-    * @return    string
-    */
-    public function fetch_subfolder()
-    {
-        return $this->subfolder;
-    }
-    
-    // --------------------------------------------------------------------
-
-    /**
-    * A pretty HMVC forward using router class.
-    * Easy to use, just support $_POST, $_GET and $_REQUEST super globals.
-    * default $_GET.
-    * 
-    * $this->router->forward('welcome/test/hello');
-    * 
-    * @author   Ersin Guvenc
-    * @param mixed   $uri     Hmvc uri
-    * @param mixed   $method  Request method
-    * @param boolean $no_loop Prevent hmvc loop in Global Controllers.  
-    */
-    public function forward($uri, $method = 'GET', $no_loop = FALSE)
-    {
-        loader::helper('ob/request');
-        
-        $params = $_GET;
-        if($method == 'POST')
-        {
-            $params = $_POST;
-        }
-    
-        return request($method, $uri, $params)->no_loop($no_loop)->exec();
-    }
-    
-    // --------------------------------------------------------------------
     
     /**
     * Check Router Request Is Hmvc.
@@ -727,7 +587,6 @@ Class OB_Router {
     {
         return $this->hmvc;
     }
-    
     
 }
 // END Router Class

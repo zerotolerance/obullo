@@ -44,7 +44,8 @@ Class OB_Exception {
         $sql  = array();
         
         // If user want to close error_reporting in some parts of the application.
-        //-----------------------------------------------------------------------  
+        //-----------------------------------------------------------------------
+        
         if(lib('ob/Config')->item('error_reporting') == '0')
         {
             log_me('debug', 'You closed the error_reporting functionality.');
@@ -54,6 +55,7 @@ Class OB_Exception {
 
         // Database Errors
         //-----------------------------------------------------------------------
+        
         $code = $e->getCode();
         
         if(substr($e->getMessage(),0,3) == 'SQL') 

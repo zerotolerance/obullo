@@ -13,8 +13,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
 
-Class UriException extends CommonException {}
-
  /**
  * URI Class
  * Parses URIs and determines routing
@@ -351,30 +349,6 @@ Class OB_Uri
 
     // --------------------------------------------------------------------
     
-    /**
-     * Re-index Segments
-     *
-     * This function re-indexes the $this->segment array so that it
-     * starts at 1 rather than 0.  Doing so makes it simpler to
-     * use functions like $this->uri->segment(n) since there is
-     * a 1:1 relationship between the segment array and the actual segments.
-     *
-     * @access    private
-     * @return    void
-     */
-    public function _reindex_segments()
-    {
-        /////////////
-        //
-        // THIS SEEMS TO BREAK A LOT OF STUFF
-        // I REMOVED IT AND EVERYTHING WORKS MUCH BETTER
-        // IN ROUTES.
-        //
-        ////////////
-    }
-    
-    // --------------------------------------------------------------------
-    
      /**
      * Parse Sub module
      *
@@ -411,7 +385,6 @@ Class OB_Uri
            
             array_shift($this->rsegments);
         }
-
     }
 
     // --------------------------------------------------------------------
@@ -800,7 +773,6 @@ Class OB_Uri
        
        return FALSE;
     }
-    
 
 }
 // END URI Class

@@ -13,8 +13,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
 
-Class ViewException extends CommonException {}
-
 // ------------------------------------------------------------------------
 
 /**
@@ -60,24 +58,6 @@ Class OB_View {
     }
     
     // ------------------------------------------------------------------------
-
-    /**
-    * View load function
-    *
-    * @access   private
-    * @param    string   $path file path
-    * @param    string   $filename
-    * @param    array    $data template vars
-    * @param    boolean  $string
-    * @param    boolean  $return
-    * @return   void
-    */
-    public function load($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
-    {
-        return $this->view($path, $filename, $data, $string, $return, $func);
-    }
-    
-    // ------------------------------------------------------------------------
     
     /**
     * Load view files.
@@ -90,7 +70,7 @@ Class OB_View {
     * @param string $func default view
     * @return void | string
     */
-    public function view($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
+    public function load($path, $filename, $data = '', $string = FALSE, $return = FALSE, $func = 'view')
     {
         if(is_object(this()))
         {
@@ -119,7 +99,7 @@ Class OB_View {
                 return;     // fail gracefully
             }
 
-            throw new ViewException('Unable locate the '.$func.' file: '. error_secure_path($path). $filename . EXT);
+            throw new Exception('Unable locate the '.$func.' file: '. error_secure_path($path). $filename . EXT);
         }
 
         if(is_array($data) AND count($data) > 0) 
@@ -166,162 +146,6 @@ Class OB_View {
     // ------------------------------------------------------------------------
     
     /**
-    * Load view file private function.
-    * 
-    * @param string $file_url
-    * @param string $folder
-    * @param string $extra_path
-    * @param bool $base
-    * @param bool $custom
-    * @return array 
-    */
-    public function _load_file($file_url, $folder = 'views', $extra_path = '', $base = FALSE)
-    {
-        $sub_module_path  = $GLOBALS['sub_path'];
-        $application_view = FALSE;
-        
-        $file_url  = strtolower(trim($file_url, '/'));
-        
-        if(strpos($file_url, 'app/') === 0)   // application folder request
-        {
-           $file_url = substr($file_url, 4);
-           $application_view = TRUE;
-        }
-        
-        if(strpos($file_url, 'ob/') === 0)    // obullo folder request
-        {
-           $file_url = substr($file_url, 3);
-           $base = TRUE;
-        }
-        
-        if($base)  // if  /obullo/views
-        {
-            return array('filename' => $file_url, 'path' => BASE .$folder. DS);
-        }
-        
-        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
-        {
-            $paths          = explode('/', $file_url); 
-            $filename       = array_pop($paths);       // get file name
-            $sub_modulename = array_shift($paths);     // get sub module name
-            $modulename     = '';
-            
-            $sub_path   = '';
-            if( count($paths) > 0)
-            {
-                $sub_path = implode(DS, $paths) . DS;      // /filename/sub/file.php  sub dir support
-            }
-            
-            $sub_module_path = $sub_modulename;
-        }
-        elseif(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
-        {
-            $sub_module_path = ''; // clear sub module path
-            
-            $paths          = explode('/', substr($file_url, 3)); 
-            $filename       = array_pop($paths);       // get file name
-            $sub_modulename = array_shift($paths);     // get sub module name
-            $modulename     = array_shift($paths);     // get module name
-
-            $sub_path   = '';
-            if( count($paths) > 0)
-            {
-                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
-            }
-            
-            if($modulename == '')
-            {
-                $sub_module_path = $sub_modulename;
-            }
-            else
-            {
-                $sub_module_path = $sub_modulename. DS .SUB_MODULES;
-            }
-        }
-        elseif(strpos($file_url, '../') === 0)  // if  ../modulename/file request
-        {
-            $sub_module_path = ''; // clear sub module path
-            
-            $paths      = explode('/', substr($file_url, 3));
-            $filename   = array_pop($paths);          // get file name
-            $modulename = array_shift($paths);        // get module name
-            
-            $sub_path   = '';
-            if( count($paths) > 0)
-            {
-                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
-            }
-
-            //---------- Extension Support -----------//
-            
-            if(extension('enabled', $modulename) == 'yes') // If its a enabled extension
-            {
-                if(strpos(extension('path', $modulename), 'sub.') === 0) // If extension working path is a sub.module.
-                {
-                    $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.$filename;
-
-                    if($sub_path != '')
-                    {
-                        $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.str_replace(DS, '/', $sub_path).'/'.$filename;
-                    }
-     
-                    return $this->_load_file($file_url);
-                }
-            }
-            
-            //---------- Extension Support -----------//
-        }
-        else    // if current modulename/file
-        {
-            $filename = $file_url;          
-            $paths    = array();
-            if( strpos($filename, '/') !== FALSE)
-            {
-                $paths      = explode('/', $filename);
-                $filename   = array_pop($paths);
-            }
-
-            $modulename = (isset($GLOBALS['d'])) ? $GLOBALS['d'] : lib('ob/Router')->fetch_directory();
-                        
-            $sub_path   = '';
-            if( count($paths) > 0)
-            {
-                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
-            }
-        }
-
-        if($extra_path != '')
-        {
-            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
-        }
-        
-        $module_path = MODULES .$sub_module_path.$modulename. DS .$folder. DS .$sub_path. $extra_path;
-        $path        = $module_path;
-
-        if(strpos($file_url, 'layouts') === 0 AND lib('ob/URI')->fetch_sub_module() != '')
-        {
-            $path = MODULES .'sub.'.lib('ob/URI')->fetch_sub_module(). DS .$folder. DS .'layouts'. DS .$extra_path;
-        }
-        elseif(file_exists($module_path. $filename. EXT))  // first check module path
-        {
-            $path = $module_path;
-        }
-        elseif(file_exists(APP .$folder. DS .$sub_path .$extra_path . $filename. EXT))
-        {
-            $path = APP .$folder. DS .$sub_path .$extra_path;
-        }
-        
-        if($application_view)
-        {
-            $path = APP .$folder. DS .$sub_path .$extra_path;
-        }
-        
-        return array('filename' => $filename, 'path' => $path);
-    }
-    
-    // ------------------------------------------------------------------------
-    
-    /**
     * Enables you to set data that is persistent in all views
     *
     * @author CJ Lazell
@@ -331,7 +155,10 @@ Class OB_View {
     */
     public function _set_view_data($data = '')
     {
-        if($data == '') return;
+        if($data == '')
+        {
+            return;
+        }
         
         if(is_object($data)) // object to array.
         {

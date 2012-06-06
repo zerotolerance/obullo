@@ -88,7 +88,14 @@ if ( ! function_exists('form_send_success'))
        
         if(is_object($model))
         {
-            $array = array('success' => true, 'msg' => $model->errors('msg'), 'errors' => $model->errors());
+            if($model->get_func('name') != '') 
+            {
+                $array = array('success' => true, $model->get_func('name') => $model->get_func('val'), 'msg' => $model->errors('msg'), 'errors' => $model->errors());
+            } 
+            else
+            {
+                $array = array('success' => true, 'msg' => $model->errors('msg'), 'errors' => $model->errors());
+            }
         }
         else
         {

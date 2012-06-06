@@ -238,7 +238,7 @@ Class OB_Database_pdo extends OB_crud {
             
             if( ! is_assoc_array($array))
             {
-                throw new DBException(lang('db_bind_data_must_assoc'));
+                throw new Exception(lang('db_bind_data_must_assoc'));
             }
         }
 

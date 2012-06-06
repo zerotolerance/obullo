@@ -62,7 +62,7 @@ Class OB_Database_odbc extends OB_Database_adapter
         if ($this->_conn) { return; }
         
         if( empty($this->dsn) )
-        throw new DBException('Please provide a dsn for ODBC connection.');
+        throw new Exception('Please provide a dsn for ODBC connection.');
     
         $dsn = &$this->dsn;
         

@@ -14,8 +14,6 @@ defined('BASE') or exit('Access Denied!');
  * @filesource
  */
 
-Class LoaderException extends CommonException {}
-
 // ------------------------------------------------------------------------
 
 /**
@@ -43,13 +41,7 @@ Class loader {
     * @var array
     */
     public static $_overriden_helpers = array();
-    
-    /**
-    * Track "application" helper files.
-    * @var array
-    */
-    public static $_app_helpers  = array();
-      
+
     /**
     * Track db names.
     * @var array
@@ -103,7 +95,7 @@ Class loader {
             } 
             
             // If someone use HMVC we need to create new instance() foreach Library
-            if(lib('ob/Router')->hmvc == FALSE)
+            if(i_hmvc() == FALSE)
             {
                 if (isset(this()->{$library}) AND is_object(this()->{$library}))
                 {
@@ -112,18 +104,8 @@ Class loader {
             }
 
             this()->{$library} = lib($class, $params_or_no_instance, $new_instance);
-
-            profiler_set('ob_libraries', $library, $library);
             
             return;
-        }
-
-        // Application Libraries
-        // --------------------------------------------------------------------
-        
-        if(strpos($class, 'app/') === 0)
-        {
-            return self::_library(substr($class, 4), $params_or_no_instance, $object_name, $new_instance, $app_library = TRUE);
         }
         
         self::_library($class, $params_or_no_instance, $object_name, $new_instance);
@@ -140,21 +122,21 @@ Class loader {
     *
     * @return   void
     */
-    protected static function _library($class, $params_or_no_ins = '', $object_name = '', $new_instance = FALSE, $app_folder = FALSE)
+    protected static function _library($class, $params_or_no_ins = '', $object_name = '', $new_instance = FALSE)
     {
-        $OB = this();
+        $data = self::load_file($class, 'libraries', ($params_or_no_ins == FALSE) ? TRUE : FALSE);
 
-        $case_sensitive = ($params_or_no_ins == FALSE) ? TRUE : FALSE;
-        
-        $data = self::_load_file($class, $folder = 'libraries', $app_folder, $case_sensitive);
+        if( file_exists($data['path'].$data['filename'].EXT))
+        {       
+            $class_var = '';
+            
+            #####################
+            
+            require_once($data['path'].$data['filename'].EXT);
 
-        $class_var = '';
-
-        if( file_exists($data['file']))
-        {                    
-            require_once($data['file']);
-
-            $class_var = strtolower($data['file_name']);
+            #####################
+            
+            $class_var = strtolower($data['filename']);
 
             if($object_name != '') 
             {
@@ -163,53 +145,44 @@ Class loader {
             
             if(is_array($params_or_no_ins))  // HMVC need to create new instance() foreach Library
             {
-                if(lib('ob/Router')->hmvc == FALSE AND $new_instance == FALSE)
+                if(i_hmvc() == FALSE AND $new_instance == FALSE)
                 {
-                    if (isset($OB->$class_var) AND is_object($OB->$class_var))
+                    if (isset(this()->$class_var) AND is_object(this()->$class_var))
                     {
                         return;
                     }
                 }
                 
-                if(class_exists($data['file_name']))
+                if(class_exists($data['filename']))
                 {
-                    $OB->$class_var = new $data['file_name']($params_or_no_ins);
+                    this()->$class_var = new $data['filename']($params_or_no_ins);
                 }
-
-                profiler_set('libraries', $class_var, $class_var);
-
-                self::_assign_core_libraries($class_var);
                 
                 return;
             }
             elseif($params_or_no_ins === FALSE)
             {
-                profiler_set('libraries', $class_var.'_no_instantiate', $class_var);
-
                 return;
             }
             else
             {
-                if (isset($OB->$class_var) AND is_object($OB->$class_var))
+                if (isset(this()->$class_var) AND is_object(this()->$class_var))
                 {
                     return;
                 }
                 
-                if(class_exists($data['file_name']))
+                if(class_exists($data['filename']))
                 {
-                    $Class = ucfirst($data['file_name']);
-                    $OB->$class_var = new $Class();
+                    $Class = ucfirst($data['filename']);
+                    
+                    this()->$class_var = new $Class();
                 }
-                
-                profiler_set('libraries', $class_var, $class_var);
-
-                self::_assign_core_libraries($class_var);
                
                 return;
             }
         }
         
-        throw new LoaderException('Unable to locate the library file: '. $data['file']);
+        throw new Exception('Unable to locate the library file: '. $data['path'] . $data['filename'].EXT);
     }
 
     // --------------------------------------------------------------------
@@ -234,21 +207,12 @@ Class loader {
             $new_instance = TRUE;
             $object_name_or_no_ins = '';
         }
-        
-        if(strpos($model, 'app/') === 0) // Application Model
-        {
-            $data = self::_load_file(substr($model, 4), $folder = 'models', $app_folder = TRUE);
-
-            self::_model($data['file'], $data['file_name'], $object_name_or_no_ins, $params_or_no_ins, $new_instance);
-            
-            return;
-        }
-        
+         
         $case_sensitive = ($object_name_or_no_ins === FALSE || $params_or_no_ins === FALSE) ? $case_sensitive = TRUE : FALSE;
         
-        $data = self::_load_file($model, $folder = 'models', FALSE , $case_sensitive);
+        $data = self::load_file($model, 'models', FALSE , $case_sensitive);
 
-        self::_model($data['file'], $data['file_name'], $object_name_or_no_ins, $params_or_no_ins, $new_instance);
+        self::_model($data['path'], $data['filename'], $object_name_or_no_ins, $params_or_no_ins, $new_instance);
     }
 
     // --------------------------------------------------------------------
@@ -265,11 +229,11 @@ Class loader {
     * @version   0.1
     * @return    void
     */
-    protected static function _model($file, $model_name, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
+    protected static function _model($path, $model_name, $object_name = '', $params_or_no_ins = '', $new_instance = FALSE)
     {
-        if ( ! file_exists($file))
+        if ( ! file_exists($path . $model_name . EXT))
         {
-            throw new LoaderException('Unable to locate the model: '.$file);
+            throw new Exception('Unable to locate the model: '.$path . $model_name . EXT);
         }
 
         $model_var = $model_name;
@@ -278,13 +242,10 @@ Class loader {
         {
             $model_var = $object_name;
         }
-
-        $OB = this();
-
-        // If someone use HMVC we need to create new instance() foreach HMVC requests.
-        if(lib('ob/Router')->hmvc == FALSE AND $new_instance == FALSE)
+        
+        if(i_hmvc() == FALSE AND $new_instance == FALSE) // If someone use HMVC we need to create new instance() foreach HMVC requests.
         {
-            if (isset($OB->$model_var) AND is_object($OB->$model_var))
+            if (isset(this()->$model_var) AND is_object(this()->$model_var))
             {
                 return;   
             }
@@ -292,7 +253,7 @@ Class loader {
         
         #####################
 
-        require_once($file);
+        require_once($path . $model_name . EXT);
         
         #####################
         
@@ -300,24 +261,20 @@ Class loader {
 
         if($params_or_no_ins === FALSE || $object_name === FALSE)
         {
-            profiler_set('models', $model_var.'_no_instantiate', $model_name);
-            
             return;
         }
 
         if( ! class_exists($model, false)) // autoload false.
         {
-            throw new LoaderException('You have a small problem, model name isn\'t right in here: '.$model);
+            throw new Exception('You have a small problem, model name isn\'t right in here: '.$model);
         }
 
         loader::$_models[$model_var] = $model_var; // should be above instantiate od the model();
 
-        $OB->$model_var = new $model($params_or_no_ins);    // register($class); we don't need it
+        this()->$model_var = new $model($params_or_no_ins);    // register($class); we don't need it
 
-        // assign all loaded db objects inside to current model
-        // loader::database() support for Model_x { function __construct() { loader::database() }}
-        
-        $OB->$model_var->_assign_db_objects();
+        // assign all loaded db objects inside to current model, support for Model_x { function __construct() { loader::database() }}
+        this()->$model_var->_assign_db_objects();
     }
 
     // --------------------------------------------------------------------
@@ -336,8 +293,6 @@ Class loader {
     */
     public static function database($db_name_or_params = 'db', $return_object = FALSE)
     {
-        $OB = this();
-        
         if(is_array($db_name_or_params) AND isset($db_name_or_params['variable']))
         {
             $db_var = $db_name_or_params['variable'];
@@ -347,11 +302,11 @@ Class loader {
             $db_var = (empty($db_name_or_params)) ? 'db' : $db_name_or_params;
         }
 
-        if (isset($OB->{$db_var}) AND is_object($OB->{$db_var}))  // Lazy Loading ..
+        if (isset(this()->{$db_var}) AND is_object(this()->{$db_var}))  // Lazy Loading ..
         {
             if($return_object) // return to db object like libraries.
             {
-                return $OB->{$db_var};
+                return this()->{$db_var};
             }
 
             return;
@@ -378,10 +333,8 @@ Class loader {
             return $database->connect($db_var, $db_name_or_params);
         }
 
-        $OB->{$db_var} = '';
-        
-        $OB->{$db_var} = $database->connect($db_var, $db_name_or_params);  // Connect to Database
-
+        this()->{$db_var} = '';
+        this()->{$db_var} = $database->connect($db_var, $db_name_or_params);  // Connect to Database
         
         loader::$_databases[$db_var] = $db_var;
 
@@ -414,32 +367,6 @@ Class loader {
         {
             return loader::_helper(substr($helper, 3));
         }
-                
-        // Application Helpers
-        // --------------------------------------------------------------------
-        
-        if(strpos($helper, 'app/') === 0) // Application Helpers
-        {
-            $helper = substr($helper, 4);
-            
-            if( isset(self::$_app_helpers[$helper]) )
-            {
-                return;
-            }
-
-            $data = self::_load_file($helper, $folder = 'helpers', $app_folder = TRUE);
-
-            if(file_exists($data['file']))
-            {
-                include($data['file']);
-
-                self::$_app_helpers[$helper] = $helper;
-
-                return;
-            }
-
-            throw new LoaderException('Unable to locate the application helper: ' .$data['file']);
-        }
                  
         // Core helpers
         // --------------------------------------------------------------------
@@ -457,18 +384,18 @@ Class loader {
             return;
         }
         
-        $data = self::_load_file($helper, $folder = 'helpers');
+        $data = self::load_file($helper, $folder = 'helpers');
 
-        if(file_exists($data['file']))
+        if(file_exists($data['path'].$data['filename'].EXT))
         {
-            include($data['file']);
+            include($data['path'].$data['filename'].EXT);
 
             self::$_helpers[$helper] = $helper;
 
             return;
         }
 
-        throw new LoaderException('Unable to locate the helper: '.$data['file']);
+        throw new Exception('Unable to locate the helper: '.$data['path'].$data['filename'].EXT);
     }
 
     // --------------------------------------------------------------------
@@ -495,50 +422,6 @@ Class loader {
             $sub_module  = lib('ob/URI')->fetch_sub_module();
             
             $module_path = $GLOBALS['sub_path'].$module;
-            
-            if( ! isset(self::$_overriden_helpers[$helper]))
-            {
-                $module_xml = lib('ob/Module'); // parse module.xml 
-
-                if($module_xml->xml() != FALSE)
-                {
-                    $extensions = $module_xml->get_extensions();
-
-                    if(count($extensions) > 0)   // Parse Extensions
-                    {
-                        foreach($extensions as $ext_name => $extension)
-                        { 
-                            $attr = $extension['attributes'];
-
-                            if($attr['enabled'] == 'yes')
-                            {
-                                if(isset($extension['override']['helpers']))
-                                {
-                                    foreach($extension['override']['helpers'] as $helper_item)
-                                    {               
-                                        if( ! isset(self::$_overriden_helpers[$helper_item]))  // Singleton
-                                        {
-                                            if($helper == $helper_item) // Do file_exist for defined helper.
-                                            {    
-                                                if(file_exists($attr['root'] .$ext_name. DS .'helpers'. DS .$prefix. $helper. EXT))  
-                                                {
-                                                    $helpername = $prefix. $helper;
-                                                    
-                                                    include($attr['root'] .$ext_name. DS .'helpers' . DS .$prefix. 'error'. EXT); 
-                                                    
-                                                    profiler_set('helpers', 'php_'. $helper . '_overridden', $prefix . $helpername);
-
-                                                    self::$_overriden_helpers[$helper_item] = $helper_item;
-                                                } 
-                                            } 
-                                        }
-                                    }   
-                                }
-                            }
-                        }
-                    }
-                }
-            }  
      
             //------ end extensions override support -----//
             
@@ -571,7 +454,7 @@ Class loader {
 
         $type = ($core) ? 'core' : 'base';
         
-        throw new LoaderException('Unable to locate the '.$type.' helper: ' .$helper. EXT);
+        throw new Exception('Unable to locate the '.$type.' helper: ' .$helper. EXT);
         
     }
 
@@ -609,34 +492,34 @@ Class loader {
     * Common file loader for models and
     * helpers functions.
     *
-    * @param string $filename
+    * @param string $file_url
     * @param string $folder
     * @param string $loader_func
     *
     * return array  file_name | file
     */
-    protected static function _load_file($filename, $folder = 'helpers', $app_folder = FALSE, $case_sensitive = FALSE)
+    public static function load_file($file_url, $folder = 'helpers', $case_sensitive = FALSE, $extra_path = '')
     {
-        $sub_module_path = $GLOBALS['sub_path'];
-        
-        if( ! is_string($filename))
+        $realname   = ($case_sensitive) ? trim($file_url, '/') : strtolower(trim($file_url, '/'));
+        $root       = rtrim(MODULES. $GLOBALS['sub_path'], DS); 
+    
+        $sub_root   = lib('ob/Router')->fetch_directory(). DS .$folder. DS;
+       
+        if(strpos($file_url, 'app/') === 0)  // APP folder
         {
-            throw new LoaderException('Loader function filenames must be string.');
-        }
-        
-        $real_name  = ($case_sensitive) ? trim($filename, '/') : strtolower(trim($filename, '/'));
-        $root       = rtrim(MODULES. $sub_module_path, DS); 
-        
-        $sub_root   = $GLOBALS['d']. DS .$folder. DS;
-        if($app_folder)
-        {
+            $realname = strtolower(substr($file_url, 4));
             $root     = APP . $folder;
             $sub_root = '';
         }
         
-        if(strpos($real_name, 'sub.') === 0)   // sub.module/module folder request
+        if($extra_path != '')
         {
-            $paths          = explode('/', $real_name); 
+            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
+        } 
+        
+        if(strpos($realname, 'sub.') === 0)   // sub.module/module folder request
+        {
+            $paths          = explode('/', $realname); 
             $filename       = array_pop($paths);       // get file name
             $sub_modulename = array_shift($paths);     // get sub module name
             
@@ -646,18 +529,16 @@ Class loader {
                 $sub_path = implode(DS, $paths) . DS;      // /filename/sub/file.php  sub dir support
             }
             
-            $file = MODULES .$sub_modulename. DS .$folder . DS . $sub_path . $filename. EXT;
+            $return['filename'] = $filename;
+            $return['path']     = MODULES .$sub_modulename. DS .$folder . DS . $sub_path.$extra_path;
             
-            $return['file_name'] = $filename;
-            $return['file']      = $file;
-
             return $return;
         }
         
-        if(strpos($real_name, '../sub.') === 0)   // ../sub.module/module folder request
+        if(strpos($realname, '../sub.') === 0)   // ../sub.module/module folder request
         {
-            $paths          = explode('/', substr($real_name, 3)); 
-            $filename       = array_pop($paths);           // get file name
+            $paths          = explode('/', substr($realname, 3)); 
+            $filename       = array_pop($paths);       // get file name
             $sub_modulename = array_shift($paths);     // get sub module name
             $modulename     = array_shift($paths);     // get module name
             
@@ -668,20 +549,24 @@ Class loader {
             {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
+
+            if($modulename == '')
+            {
+                $return['path']     = MODULES .$sub_modulename. DS .$folder. DS .$sub_path.$extra_path;
+                $return['filename'] = $filename;
+                
+                return $return;
+            }
             
-            $file = MODULES .$sub_modulename. DS .SUB_MODULES. $modulename .$folder . DS . $sub_path . $filename. EXT;
-
-            $return['file_name'] = $filename;
-            $return['file']      = $file;
-
+            $return['path']     = MODULES .$sub_modulename. DS .SUB_MODULES. $modulename .$folder . DS . $sub_path.$extra_path;
+            $return['filename'] = $filename;
+            
             return $return;
         }
 
-        if(strpos($real_name, '../') === 0)   // ../module folder request
+        if(strpos($realname, '../') === 0)   // ../module folder request
         {
-            $sub_module_path = ''; // clear sub module path
-            
-            $paths      = explode('/', substr($real_name, 3));
+            $paths      = explode('/', substr($realname, 3));
             $filename   = array_pop($paths);         // get file name
             $modulename = array_shift($paths);       // get module name
 
@@ -690,50 +575,41 @@ Class loader {
             {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
-            
-            //---------- Extension Support -----------//
-            
-            if(extension('enabled', $modulename) == 'yes') // If its a enabled extension
-            {
-                if(strpos(extension('path', $modulename), 'sub.') === 0) // If extension working path is a sub.module.
-                {
-                    $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.$filename;
 
-                    if($sub_path != '')
-                    {
-                        $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.str_replace(DS, '/', $sub_path).'/'.$filename;
-                    }
-     
-                    return self::load_file($file_url);
+            $return['filename'] = $filename;
+            $return['path']     = MODULES .$modulename . DS . $folder . DS . $sub_path.$extra_path;
+
+            if($folder == 'layouts')
+            {
+                if(lib('ob/URI')->fetch_sub_module() != '')
+                {
+                    $return['path'] = MODULES .'sub.'.lib('ob/URI')->fetch_sub_module(). DS . SUB_MODULES. 'views'. DS .'layouts'. DS .$sub_path.$extra_path;
                 }
             }
             
-            //---------- Extension Support -----------//
-            
-            $file = MODULES . $sub_module_path.$modulename . DS . $folder . DS . $sub_path . $filename. EXT;
-            
-            $return['file_name'] = $filename;
-            $return['file']      = $file;
-
             return $return;
         }
 
-        if(strpos($real_name, '/') > 0)         //  Sub folder request
+        if(strpos($realname, '/') > 0)         //  Sub folder request
         {
-            $paths      = explode('/',$real_name);   // paths[0] = path , [1] file name
-            $filename   = array_pop($paths);          // get file name
-            $path       = implode(DS, $paths);
-
-            $return['file_name'] = $filename;
-            $return['file']      = $root. DS .$sub_root. $path. DS .$filename. EXT;
-
+            $paths      = explode('/',$realname);   // paths[0] = path , [1] file name
+            $filename   = array_pop($paths);         // get file name
+            
+            $sub_path   = '';
+            if( count($paths) > 0)
+            {
+                $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
+            }
+            
+            $return['filename'] = $filename;
+            $return['path']     = $root. DS .$sub_root.$sub_path.$extra_path;
+            
             return $return;
         }
-
-
-        return array('file_name' => $real_name, 'file' => $root. DS .$sub_root. $real_name. EXT);
+        
+        return array('filename' => $realname, 'path' => $root. DS .$sub_root);
     }
-    
+   
     // --------------------------------------------------------------------
 
     /**
@@ -744,59 +620,24 @@ Class loader {
     */
     protected static function _assign_db_objects($db_var = '')
     {
-        if( ! is_object(this()))
-        {
-            return;
-        }
-
-        $OB = this();
-
-        if (count(loader::$_models) == 0)
-        {
-            return;
-        }
-
-        foreach (loader::$_models as $model_name)
-        {
-            if( ! isset($OB->$model_name) ) return;
-
-            if(is_object($OB->$model_name->$db_var)) // lazy loading
-            {
-                return;
-            }
-
-            if(is_object($OB->$db_var))
-            {
-                $OB->$model_name->$db_var = $OB->$db_var;
-            }
-        }
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Assign this() objects to loaded
-    * user libraries.
-    * 
-    * @param string $class library name
-    * @return void
-    */
-    protected static function _assign_core_libraries($class)
-    {               
-        if( ! is_object(this()))
+        if (count(loader::$_models) == 0 || ! is_object(this()))
         {
             return;
         }
         
-        foreach(array_keys(get_object_vars(this())) as $key) // This allows to using "$this" variable in all library files.
+        foreach (loader::$_models as $model_name)
         {
-            if ( ! isset(this()->{$class}->{$key}) AND $key != $class)
+            if( ! isset(this()->$model_name) || is_object(this()->$model_name->$db_var))  // lazy loading
             {
-                this()->{$class}->{$key} = &this()->$key;
-            }             
+                return;
+            }
+
+            if(is_object(this()->$db_var))
+            {
+                this()->$model_name->$db_var = $OB->$db_var;
+            }
         }
     }
-
 }
 
 // END Loader Class

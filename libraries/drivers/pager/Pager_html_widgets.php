@@ -96,7 +96,7 @@ Class OB_Pager_html_widgets
 
         if ( ! strstr($option_text, '%d')) 
         {
-            throw new PagerException('Page class invalid format - use "%d" as placeholder.');
+            throw new Exception('Page class invalid format - use "%d" as placeholder.');
         }
         
         $start = (int)$start;
@@ -234,7 +234,7 @@ Class OB_Pager_html_widgets
 
         if ( ! strstr($option_text, '%d')) 
         {
-            throw new PagerException('invalid format - use "%d" as placeholder.');
+            throw new Exception('invalid format - use "%d" as placeholder.');
         }
         
         $tmp = '<select name="'.$this->pager->_url_var.'"';

@@ -79,7 +79,29 @@ if( ! function_exists('object_to_array') )
 {
     function object_to_array($object)
     {
-        return (is_object($object)) ? get_object_vars($object) : $object;
+        if ( ! is_object($object))
+        {
+            return $object;
+        }
+        
+        if(is_object($object))
+        {
+            foreach ($object as $key => $value)
+            {
+                $key = strtolower(trim($key));
+
+                if ( ! empty($key))
+                {
+                    $array[$key] = object_to_array($value);
+                }
+            }
+        }
+        else
+        {
+            return FALSE;
+        }
+
+        return $array;   
     }
 }
 

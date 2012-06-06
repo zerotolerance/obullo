@@ -13,8 +13,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
  
-Class ConfigException extends CommonException {}  
-
 /**
  * Obullo Config Class
 
@@ -60,30 +58,30 @@ Class OB_Config
     * @return   boolean   if the file was loaded correctly
     */    
     public function load($file_url = '', $use_sections = FALSE, $fail_gracefully = FALSE)
-    { 
-        $file_info = $this->_load_file($file_url);
+    {
+        $data = loader::load_file($file_url, 'config');
 
-        $file      = ($file_info['filename'] == '') ? 'config' : str_replace(EXT, '', $file_info['filename']);
-        $file_path = $file_info['path']; // Unique config files.
-    
-        if (in_array($file_info['path'] .$file. EXT, $this->is_loaded, TRUE))
+        $filename  = ($data['filename'] == '') ? 'config' : str_replace(EXT, '', $data['filename']);
+        $file      = $data['path'].$data['filename'].EXT;
+        
+        if (in_array($file, $this->is_loaded, TRUE))
         {
             return TRUE;
         }
         
-        if ( ! file_exists($file_info['path'] .$file. EXT))
+        if ( ! file_exists($file) )
         {
             if ($fail_gracefully === TRUE)
             {
                 return FALSE;
             }
             
-            throw new ConfigException('The configuration file '.$file_info['path'] .$file. EXT .' does not exist.');
+            throw new Exception('The configuration file <b>'. $file .'</b> does not exist.');
         }
     
         ######################
         
-        include($file_info['path'] .$file. EXT);
+        include($file);
                 
         ######################
 
@@ -94,8 +92,8 @@ Class OB_Config
                 return FALSE;
             }
             
-            throw new ConfigException('Your '.$file. EXT.' file does not appear to contain a valid configuration array. Please create 
-            $config variables in your ' . $file. EXT);
+            throw new Exception('Your <b>'. $file .'</b> file does not appear to contain a valid configuration array. Please create 
+            <b>$config</b> variables in your ' . $file);
         }
 
         if ($use_sections === TRUE)
@@ -114,171 +112,13 @@ Class OB_Config
             $this->config = array_merge($this->config, $config);
         }
 
-        $this->is_loaded[] = $file_info['path'] .$file. EXT;
+        $this->is_loaded[] = $file;
         
-        profiler_set('config_files', $file_path .$file. EXT, $file_path .$file. EXT);
-
         unset($config);
 
-        log_me('debug', 'Config file loaded: '.$file_info['path'] .$file. EXT);
+        log_me('debug', 'Config file loaded: '.$file);
         
         return TRUE;
-    }
-      
-    // --------------------------------------------------------------------
-
-    /**
-    * Load config file.
-    * 
-    * @param  string $file_url
-    * @param  string $extra_path
-    * @return array
-    */
-    public function _load_file($file_url, $extra_path = '')
-    {   
-        $sub_module_path = $GLOBALS['sub_path'];
-        
-        if($extra_path != '')
-        {
-            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
-        }
-        
-        $file_url  = strtolower(trim($file_url, '/'));
-        
-        if(strpos($file_url, 'app/') === 0)  // Application config file.
-        {
-            $file_url = substr($file_url, 4);
-        }
-        
-        if(strpos($file_url, 'sub.') === 0)   // sub.module/module folder request
-        {
-            $paths          = explode('/', $file_url); 
-            $filename       = array_pop($paths);       // get file name
-            $sub_modulename = array_shift($paths);     // get sub module name
-            
-            $sub_path   = '';
-            if( count($paths) > 0)
-            {
-                $sub_path = implode(DS, $paths) . DS;      // /filename/sub/file.php  sub dir support
-            }
-            
-            $module_path = MODULES .$sub_modulename. DS .'config'. DS .$sub_path. $extra_path;
-
-        }
-        elseif(strpos($file_url, '../sub.') === 0)   // sub.module/module folder request
-        {
-            $sub_module_path = '';  // clear sub module path
-            
-            $paths          = explode('/', substr($file_url, 3)); 
-            $filename       = array_pop($paths);       // get file name
-            $sub_modulename = array_shift($paths);     // get sub module name
-            $modulename     = array_shift($paths);     // get module name
-            
-            $sub_path   = '';
-            if( count($paths) > 0)
-            {
-                $sub_path = implode(DS, $paths) . DS;
-            }
-            
-            if($modulename == '')
-            {
-                $module_path = MODULES .$sub_modulename. DS .'config'. DS .$sub_path. $extra_path;
-            }
-            else
-            {
-                $module_path = MODULES .$sub_modulename. DS .SUB_MODULES .$modulename. DS .'config'. DS . $sub_path. $extra_path;
-            }
-            
-            if( ! file_exists($module_path. $filename. EXT))  // first check module path
-            {
-                throw new ConfigException('Unable locate the file '. $module_path. $filename. EXT);
-            }
-            
-        }
-        elseif(strpos($file_url, '../') === 0)  // if  ../modulename/file request
-        {
-            $sub_module_path = '';  // clear sub module path
-            
-            $paths      = explode('/', substr($file_url, 3));
-            $filename   = array_pop($paths);          // get file name
-            $modulename = array_shift($paths);        // get module name
-            
-            $sub_path   = '';
-            if( count($paths) > 0)
-            {
-                $sub_path = implode(DS, $paths) . DS;  // .modulename/folder/sub/file.php  sub dir support
-            }
-            
-            //---------- Extension Support -----------//
-            
-            if(extension('enabled', $modulename) == 'yes') // If its a enabled extension
-            {
-                if(strpos(extension('path', $modulename), 'sub.') === 0) // If extension working path is a sub.module.
-                {  
-                    $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.$filename;
-                    
-                    if($sub_path != '')
-                    {
-                        $file_url = '../'.extension('path', $modulename).'/'.$modulename.'/'.str_replace(DS, '/', $sub_path).'/'.$filename;
-                    }
-                    
-                    return $this->_load_file($file_url, $extra_path);
-                }
-            }
-            
-            //---------- Extension Support -----------//
-            
-            $module_path = MODULES .$modulename. DS .'config'. DS .$sub_path. $extra_path;
-            
-            if( ! file_exists($module_path. $filename. EXT))  // first check module path
-            {
-                throw new ConfigException('Unable locate the file '. $module_path. $filename. EXT);
-            }
-            
-        }
-        else       // if current modulename/file
-        {
-            $filename = $file_url;          
-            $paths    = array();
-            if( strpos($filename, '/') !== FALSE)
-            {
-                $paths      = explode('/', $filename);
-                $filename   = array_pop($paths);
-            }
-
-            $modulename = lib('ob/Router')->fetch_directory();
-            
-            $sub_path   = '';
-            if( count($paths) > 0)
-            {
-                $sub_path = implode(DS, $paths) . DS;      // .modulename/folder/sub/file.php  sub dir support
-            }
-            
-            $sub_module = lib('ob/URI')->fetch_sub_module();
-            
-            if($sub_module != '' AND file_exists(MODULES .'sub.'.$sub_module. DS .'config'. DS .$sub_path. $extra_path. $filename. EXT))
-            {
-                $module_path = MODULES .'sub.'.$sub_module. DS .'config'. DS .$sub_path. $extra_path;
-            } 
-            else
-            {
-                $module_path = MODULES .$sub_module_path.$modulename. DS .'config'. DS .$sub_path. $extra_path;
-            }   
-        }
-        
-        $path = APP .'config'. DS .$sub_path .$extra_path;        
-        
-        if(file_exists($module_path. $filename. EXT))  // first check module path
-        {
-            $path = $module_path;
-        }
-
-        if( ! file_exists($path))
-        {
-            throw new ConfigException('Unable locate the file '. $path. $filename. EXT);
-        }
-        
-        return array('filename' => $filename, 'path' => $path);
     }
     
     // --------------------------------------------------------------------

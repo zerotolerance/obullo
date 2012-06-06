@@ -26,8 +26,6 @@ defined('BASE') or exit('Access Denied!');
 *              renamed register_static() function, added replace support ..
 */
 
-Class CommonException extends Exception {};
-
 /**
 * Register core libraries
 * 
@@ -46,13 +44,13 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
     // --------------------------------------------------------------------
     if(is_object($new_object))
     {
-        $registry->unset_object('core', $Class);
-        $registry->set_object('core', $Class, $new_object);
+        $registry->unset_object($Class);
+        $registry->set_object($Class, $new_object);
         
         return $new_object;
     }
     
-    $getObject = $registry->get_object('core', $Class);   
+    $getObject = $registry->get_object($Class);   
                                                    
     if ($getObject !== NULL)
     {
@@ -70,8 +68,6 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
         if($params_or_no_ins === FALSE)
         {
-            profiler_set('ob_libraries', 'php_'.$Class.'_no_instantiate', $Class);
-            
             return TRUE;
         }
 
@@ -86,8 +82,6 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
             }
             
             $classname = $prefix. $Class;
-
-            profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
         } 
         
         // __construct params support.
@@ -109,14 +103,14 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
         {
             if(is_array($params_or_no_ins)) // construct support.
             {
-                $registry->set_object('core', $Class, new $classname($params_or_no_ins));
+                $registry->set_object($Class, new $classname($params_or_no_ins));
 
             } else
             {
-                $registry->set_object('core', $Class, new $classname());
+                $registry->set_object($Class, new $classname());
             }
 
-            $Object = $registry->get_object('core', $Class);
+            $Object = $registry->get_object($Class);
         }
 
         // return to singleton object.
@@ -180,15 +174,15 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
     // --------------------------------------------------------------------
     if(is_object($new_object))
     {
-        $registry->unset_object('load', $Class);
-        $registry->set_object('load', $Class, $new_object);
+        $registry->unset_object($Class);
+        $registry->set_object($Class, $new_object);
         
         return $new_object;
     }
 
     if($params_or_no_ins !== FALSE)  // No instantiate support.
     {
-        $getObject = $registry->get_object('load', $Class);
+        $getObject = $registry->get_object($Class);
 
         if ($getObject !== NULL)
         {
@@ -200,7 +194,6 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
     // --------------------------------------------------------------------
     if($params_or_no_ins === FALSE)
     {
-        profiler_set('ob_libraries', 'php_'.$Class.'_no_instantiate', $Class);
         return TRUE;
     }
                                                   
@@ -220,57 +213,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         $sub_module  = lib('ob/URI')->fetch_sub_module();
         $module_path = $GLOBALS['sub_path'].$module;
         
-        // Extension Support
-        // --------------------------------------------------------------------
-        
-        if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
-        {
-            $module_xml = lib('ob/Module'); // parse module.xml 
-
-            if($module_xml->xml() != FALSE)
-            {
-                $extensions = $module_xml->get_extensions();
-
-                if(count($extensions) > 0)   // Parse Extensions
-                {
-                    foreach($extensions as $ext_name => $extension)
-                    { 
-                        $attr = $extension['attributes'];
-                        
-                        if($attr['enabled'] == 'yes')
-                        {
-                            if(isset($extension['override']['libraries']))
-                            {
-                                foreach($extension['override']['libraries'] as $library)
-                                {
-                                    if( ! isset($overriden_objects[$library]))  // Singleton
-                                    {
-                                        if($Class == $library) // Do file_exist for defined library.
-                                        {
-                                            if(file_exists($attr['root'] .$ext_name. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT))  
-                                            {
-                                                if( ! isset($new_objects[$Class]) )  // check new object instance
-                                                {
-                                                    require($attr['root'] .$ext_name. DS .'libraries'. $sub_path . DS .$prefix. $Class. EXT);
-                                                }
-
-                                                $classname = $prefix. $Class;
-
-                                                profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-
-                                                $overriden_objects[$library] = $library;
-                                            }
-                                        }
-                                    }
-                                }   
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Extension Support End
+        // Override Support
         // --------------------------------------------------------------------
         
         if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
@@ -284,8 +227,6 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
                 $classname = $prefix. $Class;
 
-                profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-
                 $overriden_objects[$Class] = $Class;
 
             }  
@@ -297,9 +238,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
                 }
 
                 $classname = $prefix. $Class;
-
-                profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-
+                
                 $overriden_objects[$Class] = $Class;
             }     
         }
@@ -324,14 +263,14 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         {
             if(is_array($params_or_no_ins)) // construct support.
             {
-                $registry->set_object('load', $Class, new $classname($params_or_no_ins));
+                $registry->set_object($Class, new $classname($params_or_no_ins));
 
             } else
             {
-                $registry->set_object('load', $Class, new $classname());
+                $registry->set_object($Class, new $classname());
             }
 
-            $Object = $registry->get_object('load', $Class);
+            $Object = $registry->get_object($Class);
         }
 
         // return to singleton object.
@@ -385,22 +324,11 @@ function ob_autoload($real_name)
     // --------------------------------------------------------------------
     if(substr(strtolower($real_name), -11) == '_controller')
     {
-        if(file_exists(APP .'parents'. DS .$real_name. EXT)) // If Application Parent Controller file exist ..
-        {
-            require(APP .'parents'. DS .$real_name. EXT);
-
-            profiler_set('parents', $real_name, APP .'parents'. DS .$real_name. EXT);
-
-            return;
-        }
-
         // If Module Parent Controller file exist ..
         if(file_exists(MODULES .$GLOBALS['sub_path'].$modulename. DS .'parents'. DS .$real_name. EXT))
         {            
             require(MODULES .$GLOBALS['sub_path'].$modulename. DS .'parents'. DS .$real_name. EXT);
-
-            profiler_set('parents', $real_name, MODULES .$GLOBALS['sub_path'].$modulename. DS .'parents'. DS .$real_name. EXT);
-
+            
             return;
         }
     }
@@ -423,51 +351,16 @@ function ob_autoload($real_name)
     {
         $Class = substr($real_name, strlen($prefix));
 
-        //---------- Extension Support for Models -----------//
-
-        $module_xml = lib('ob/Module'); // parse module.xml 
-
-        if($module_xml->xml() != FALSE)
+        if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
         {
-            $extensions = $module_xml->get_extensions();
+            if(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))  
+            {    
+                require(APP .'libraries'. DS .$prefix. $Class. EXT);
 
-            if(count($extensions) > 0)   // Parse Extensions
-            {
-                foreach($extensions as $ext_name => $extension)
-                { 
-                    $attr = $extension['attributes'];
-
-                    if($attr['enabled'] == 'yes')
-                    {
-                        if(isset($extension['override']['libraries']))
-                        {
-                            foreach($extension['override']['libraries'] as $library)
-                            {
-                                if( ! isset($overriden_objects[$library]))    // Check before we override it ..
-                                {
-                                    if($Class == $library) // Do file_exist for defined library.
-                                    {   
-                                        if(file_exists($attr['root'] .$ext_name. DS .'libraries'. DS .$prefix. $Class. EXT))  
-                                        {    
-                                            require($attr['root'] .$ext_name. DS .'libraries'. DS .$prefix. $Class. EXT);
-
-                                            $classname = $prefix. $Class;
-
-                                            $overriden_objects[$library] = $library;
-                                            
-                                            profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+                $overriden_objects[$Class] = $Class;
+            }   
         }
 
-        //---------- Extension Support for Models -----------//
-        
         return;
     }
 
@@ -477,16 +370,12 @@ function ob_autoload($real_name)
     {
         require(MODULES .$GLOBALS['sub_path'].$modulename. DS .'libraries'. DS .$Class. EXT);
 
-        profiler_set('libraries', 'module_'.$Class.'_autoloaded', $Class);
-        
         return;
     }
     
     if(file_exists(APP .'libraries'. DS .$Class. EXT))
     {    
         require(APP .'libraries'. DS .$Class. EXT);
-
-        profiler_set('libraries', $Class.'_autoloaded', $Class);
         
         return;
     }
@@ -631,10 +520,13 @@ function get_config($filename = 'config', $var = '')
         $module     = lib('ob/Router')->fetch_directory(); 
         
         // Sub Module database support.
-        if( $sub_module != '' AND file_exists(MODULES .'sub.'.$sub_module. DS .'config'. DS .'database'.EXT))
+        if( $sub_module != '')
         {
-            $sub_module_db = get_static($filename, $var, MODULES .'sub.'.$sub_module. DS .'config');
-            $database      = array_merge($database, $sub_module_db); // override to application variables.
+            if(file_exists(MODULES .'sub.'.$sub_module. DS .'config'. DS .'database'.EXT))
+            {  
+                $sub_module_db = get_static($filename, $var, MODULES .'sub.'.$sub_module. DS .'config');
+                $database      = array_merge($database, $sub_module_db); // override to application variables.
+            }
         } 
         
         // Module database support.
@@ -785,41 +677,6 @@ function is_php($version = '5.0.0')
     return $_is_php[$version];
 }
 
-// --------------------------------------------------------------------  
-
-/**
-* Set data to profiler variable
-*
-* @param    string $type log type
-* @param    string $key  log key
-* @param    string $val  log val
-*/
-function profiler_set($type, $key, $val)
-{
-    lib('ob/Storage')->profiler_var[$type][$key] = $val;
-}
-
-// --------------------------------------------------------------------  
-
-/**
-* Get profiler data from profiler
-* variable.
-*
-* @param    string $type log type
-* @return   array
-*/
-function profiler_get($type)
-{
-    $storage = lib('ob/Storage');
-    
-    if( isset($storage->profiler_var[$type]))
-    {
-        return $storage->profiler_var[$type];
-    }
-
-    return array();
-}
-
 // ------------------------------------------------------------------------
 
 /**
@@ -914,7 +771,7 @@ function set_status_header($code = 200, $text = '')
  */
 if ( ! function_exists('set_response_header'))
 {
-    function set_response_header( $no_cache = TRUE )
+    function set_response_header( $no_cache = TRUE , $charset = 'UTF-8')
     {
         if(uri_extension() == 'json' AND ! headers_sent() ) // Check uri extension 
         {
@@ -929,7 +786,7 @@ if ( ! function_exists('set_response_header'))
                 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
             }
 
-            header('Content-type: application/json');
+            header('Content-type: application/json;charset='.$charset);
         }
     }
 }

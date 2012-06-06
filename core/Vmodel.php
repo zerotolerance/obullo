@@ -15,8 +15,6 @@ defined('BASE') or exit('Access Denied!');
  * @filesource
  */ 
  
-Class VmodelException extends CommonException {}
- 
 /**
  * Validation Model.
  *
@@ -56,7 +54,7 @@ Class Vmodel extends Model {
         
         if( ! isset($this->settings['fields']) OR ! isset($this->settings['database'])) 
         {
-            throw new VmodelException('Check your model it must be contain $settings[\'fields\'] and $settings[\'database\'] array.');
+            throw new Exception('Check your model it must be contain $settings[\'fields\'] and $settings[\'database\'] array.');
         }
         
         $db = $this->settings['database'];
@@ -239,21 +237,6 @@ Class Vmodel extends Model {
     }
     
     // --------------------------------------------------------------------
-
-    /**
-    * Get one error.
-    *
-    * @param string $field
-    */
-    public function error($key)
-    {
-        if(isset($this->errors[$this->item('table')][$key]))
-        {
-            return $this->errors[$this->item('table')][$key];
-        }
-    }
-    
-    // --------------------------------------------------------------------
     
     /**
     * Return filtered validation values for current model.
@@ -274,22 +257,6 @@ Class Vmodel extends Model {
         }
         
         return $this->values;
-    }
-   
-    // --------------------------------------------------------------------
-
-    /**
-    * Alias of values() function.
-    * Just return to filtered one item's value.
-    *
-    * @param string $field
-    */
-    public function value($field)
-    {
-        if(isset($this->values[$this->item('table')][$field]))
-        {
-            return $this->values[$this->item('table')][$field];
-        }
     }
 
     // --------------------------------------------------------------------
@@ -964,7 +931,7 @@ Class Vmodel extends Model {
         
         if(count($this->where) == 0 AND count($this->where_in) == 0)
         {
-            throw new VMException('Please set an ID or use $model->where() function before the delete operation.');
+            throw new Exception('Please set an ID or use $model->where() function before the delete operation.');
         }
         
         if($has_rules)  // if we have validation rules ..

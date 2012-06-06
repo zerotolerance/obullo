@@ -12,8 +12,6 @@ defined('BASE') or exit('Access Denied!');
  * @filesource
  * @license
  */
-
-Class EmailException extends CommonException {}  
  
 // ------------------------------------------------------------------------
 

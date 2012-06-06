@@ -58,56 +58,8 @@ if( ! function_exists('lib_driver'))
         // Extension Support
         // --------------------------------------------------------------------
         
-        if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
+        if( ! isset($overriden_objects[$Class])) // Modules extend support
         {
-            $module_xml = lib('ob/Module'); // parse module.xml 
-
-            if($module_xml->xml() != FALSE)
-            {
-                $extensions = $module_xml->get_extensions();
-
-                if(count($extensions) > 0)   // Parse Extensions
-                {
-                    foreach($extensions as $ext_name => $extension)
-                    { 
-                        $attr = $extension['attributes'];
-                        
-                        if($attr['enabled'] == 'yes')
-                        {
-                            if(isset($extension['override']['libraries']))
-                            {
-                                foreach($extension['override']['libraries'] as $library)
-                                {
-                                    if( ! isset($overriden_objects[$library]))  // Singleton
-                                    {
-                                        if($Class == $library) // Do file_exist for defined library.
-                                        {
-                                            if(file_exists($attr['root'] .$ext_name. DS .'libraries'. DS .'drivers'. DS .$folder. DS .$prefix. $Class. EXT))  
-                                            {
-                                                require($attr['root'] .$ext_name. DS .'libraries'. DS .'drivers'. DS .$folder. DS .$prefix. $Class. EXT);
-                                                
-                                                $classname = $prefix. $Class;
-
-                                                profiler_set('ob_libraries', 'php_'. $Class . '_overridden', $prefix . $Class);
-
-                                                $overriden_objects[$library] = $library;
-                                            }
-                                        }
-                                    }
-                                }   
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        // Extension Support End
-        // --------------------------------------------------------------------
-        
-        if( ! isset($overriden_objects[$Class]))    // Check before we override it ..
-        {
-            // Modules extend support
             if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'libraries'. DS .'drivers'. DS .$folder. DS .$prefix. $Class. EXT))  
             {
                 if ( ! class_exists($prefix. $Class)) 
@@ -118,8 +70,6 @@ if( ! function_exists('lib_driver'))
                 $overriden_objects[$Class] = $Class;
 
                 $classname = $prefix. $Class;
-
-                profiler_set('ob_libraries', 'php_'. $Class . '_driver', $prefix . $Class);
             }
             elseif(file_exists(APP .'libraries'. DS .'drivers'. DS .$folder. DS .$prefix. $Class. EXT))  // Application extend support
             {
@@ -131,8 +81,6 @@ if( ! function_exists('lib_driver'))
                 $overriden_objects[$Class] = $Class;
 
                 $classname = $prefix. $Class;
-
-                profiler_set('ob_libraries', 'php_'. $Class . '_driver', $prefix . $Class);
             }
         }
         
@@ -171,48 +119,6 @@ if( ! function_exists('helper_driver'))
         
         $prefix = config_item('subhelper_prefix');
         $module = lib('ob/Router')->fetch_directory();
-        
-        if( ! isset($overriden_helpers[$helpername]))
-        {
-            $module_xml = lib('ob/Module'); // parse module.xml 
-
-            if($module_xml->xml() != FALSE)
-            {
-                $extensions = $module_xml->get_extensions();
-
-                if(count($extensions) > 0)   // Parse Extensions
-                {
-                    foreach($extensions as $ext_name => $extension)
-                    { 
-                        $attr = $extension['attributes'];
-
-                        if($attr['enabled'] == 'yes')
-                        {
-                            if(isset($extension['override']['helpers']))
-                            {
-                                foreach($extension['override']['helpers'] as $helper_item)
-                                {               
-                                    if( ! isset($overriden_helpers[$helper_item]))  // Singleton
-                                    {
-                                        if($helpername == $helper_item) // Do file_exist for defined helper.
-                                        {    
-                                            if(file_exists($attr['root'] .$ext_name. DS .'helpers'. DS .'drivers'. DS .$folder. DS .$prefix. $helpername. EXT))  
-                                            {
-                                                include($attr['root'] .$ext_name. DS .'helpers'. DS .'drivers'. DS .$folder. DS .$prefix. $helpername. EXT); 
-
-                                                loader::$_base_helpers[$prefix .$helpername] = $prefix .$helpername;
-
-                                                $overriden_helpers[$helper_item] = $helper_item;
-                                            } 
-                                        } 
-                                    }
-                                }   
-                            }
-                        }
-                    }
-                }
-            }
-        }  
         
         if( ! isset($overriden_helpers[$helpername]))
         {

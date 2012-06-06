@@ -708,53 +708,6 @@ if( ! function_exists('error_get_allowed_errors'))
                
 // --------------------------------------------------------------------
 
-/**
-* Enable / Disable Obullo Errors
-* 
-* @param numeric $value
-* @return numeric
-*/
-if( ! function_exists('ob_error_reporting')) 
-{
-    function ob_error_reporting($value = '')
-    {
-        $config = lib('ob/Config');
-
-        if( ! is_object($config))
-        {
-            return config_item('error_reporting');
-        }
-
-        if($value == 0)  // Close Obullo's error reporting.
-        {
-            $config->set('_backup_value_error_reporting', $config->item('error_reporting'));
-            $config->set('error_reporting', 0);
-
-            return $config->item('error_reporting');
-        }
-
-        if($value == 1)  // Restore old value.
-        {
-            $old_value = $config->item('_backup_value_error_reporting');
-
-            if(is_numeric($old_value))
-            {
-                $config->set('error_reporting', $old_value);
-
-                return $config->item('error_reporting');
-            }
-
-            $config->set('error_reporting', 1);
-
-            return $config->item('error_reporting');
-        }
-
-        return $config->item('error_reporting');
-    }
-}
-               
-// --------------------------------------------------------------------
-
 set_error_handler('Obullo_Error_Handler');   
 set_exception_handler('Obullo_Exception_Handler');
 register_shutdown_function('Obullo_Shutdown_Handler');  

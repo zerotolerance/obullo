@@ -13,8 +13,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
 
-Class InputException extends CommonException {}
-
 // --------------------------------------------------------------------
 
 /**

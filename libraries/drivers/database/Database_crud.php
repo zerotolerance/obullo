@@ -790,7 +790,7 @@ Class OB_crud  {
         
         if (count($this->ar_set) == 0)
         {
-            throw new DBException(lang('db_ac_insert_set_table'));
+            throw new Exception(lang('db_ac_insert_set_table'));
             
             return FALSE;
         }
@@ -799,7 +799,7 @@ Class OB_crud  {
         {
             if ( ! isset($this->ar_from[0]))
             {
-                throw new DBException(lang('db_ac_insert_set_table'));
+                throw new Exception(lang('db_ac_insert_set_table'));
                 
                 return FALSE;
             }
@@ -836,14 +836,14 @@ Class OB_crud  {
 
         if (count($this->ar_set) == 0)
         {
-            throw new DBException(lang('db_ac_replace_use_set'));
+            throw new Exception(lang('db_ac_replace_use_set'));
         }
 
         if ($table == '')
         {
             if ( ! isset($this->ar_from[0]))
             {
-                throw new DBException(lang('db_ac_replace_set_table'));
+                throw new Exception(lang('db_ac_replace_set_table'));
             }
 
             $table = $this->ar_from[0];
@@ -908,7 +908,7 @@ Class OB_crud  {
     
         if (count($this->ar_set) == 0)
         {
-            throw new DBException(lang('db_ac_update_set_table'));
+            throw new Exception(lang('db_ac_update_set_table'));
             
             return FALSE;
         }
@@ -917,7 +917,7 @@ Class OB_crud  {
         {
             if ( ! isset($this->ar_from[0]))
             {
-                throw new DBException(lang('db_ac_update_set_table')); 
+                throw new Exception(lang('db_ac_update_set_table')); 
                 
                 return FALSE;
             }
@@ -1019,7 +1019,7 @@ Class OB_crud  {
         {
             if ( ! isset($this->ar_from[0]))
             {
-                throw new DBException(lang('db_active_record_set_table'));
+                throw new Exception(lang('db_active_record_set_table'));
                 
                 return FALSE;
             }
@@ -1046,7 +1046,7 @@ Class OB_crud  {
         
         if (count($this->ar_where) == 0 && count($this->ar_wherein) == 0 && count($this->ar_like) == 0)
         {
-            throw new DBException(lang('db_active_record_delete'));
+            throw new Exception(lang('db_active_record_delete'));
             
             return FALSE;
         }        

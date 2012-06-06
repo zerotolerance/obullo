@@ -31,7 +31,7 @@ if( ! function_exists('sess_start'))
                                             
             $helpername = 'session_'.$driver; // Driver name
             
-            helper_driver($folder = 'session', $helpername, $params);
+            helper_driver('session', $helpername, $params);
             
             _sess_start($params); // Start the sessions
             

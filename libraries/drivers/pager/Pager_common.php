@@ -485,7 +485,8 @@ Class OB_Pager_common
     {
         if ( ! is_array($data))   // Check we have an array to work with
         {
-            throw new PagerException('_generateForm() Parameter 1 expected to be Array or Object. Incorrect value given.');
+            throw new Exception('_generateForm() Parameter 1 expected to be Array or Object. Incorrect value given.');
+            
             return FALSE;
         }
 

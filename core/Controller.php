@@ -14,8 +14,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
  
-define('OBULLO_VERSION', '1.0.1');
- 
  /**
  * Controller Class.
  *
@@ -53,10 +51,10 @@ Class Controller {
         $this->uri    = lib('ob/URI');
         $this->output = lib('ob/Output');
         
-        // Initialize to Modules and Extensions
+        // Initialize to Module Libraries
         // ------------------------------------
         
-        lib('ob/Module')->init();
+        module_init();
         
         // ------------------------------------
     }

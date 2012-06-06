@@ -16,8 +16,6 @@ defined('BASE') or exit('Access Denied!');
 
 // ------------------------------------------------------------------------
 
-Class EncryptException extends CommonException {}
-
 /**
  * Obullo Encryption Class
  * 
@@ -75,7 +73,7 @@ Class OB_Encrypt {
 
             if ($key === FALSE)
             {
-                throw new EncryptException('In order to use the encryption class requires that you set 
+                throw new Exception('In order to use the encryption class requires that you set 
                 an encryption key in your config file.');
             }
         }

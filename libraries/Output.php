@@ -13,8 +13,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
 
-Class OutputException extends CommonException {}  
- 
 // ------------------------------------------------------------------------
 
 /**
@@ -441,7 +439,7 @@ Class OB_Output {
     * @access    public
     * @return    void
     */    
-    public function _display_cache(&$config, &$URI, $HMVC = FALSE)
+    public function _display_cache(&$config, &$URI, &$router, $HMVC = FALSE)
     {        
         $cache_path = ($config->item('cache_path') == '') ? APP .'core'. DS .'cache'. DS : $config->item('cache_path');
 
@@ -451,9 +449,9 @@ Class OB_Output {
         {
             $cache_path = MODULES .'sub.'.$URI->fetch_sub_module(). DS .'core'. DS .'cache'. DS;
         }
-        elseif (is_dir(MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'core'. DS . 'cache'))
+        elseif (is_dir(MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS . 'cache'))
         {
-            $cache_path = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'core'. DS .'cache'. DS;
+            $cache_path = MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS .'cache'. DS;
         }
 
         //----------- SUB MODULES AND MODULES SUPPORT -------------//

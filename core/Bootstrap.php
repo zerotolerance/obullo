@@ -58,7 +58,9 @@ if( ! function_exists('ob_set_headers'))
         
         lib('ob/URI');
         lib('ob/Router');
-        lib('ob/Module'); // Parse module.xml file if its exist. 
+        
+        loader::helper('core/module'); // Load Module Helper
+        
         lib('ob/Lang');
         lib('ob/Benchmark');
         lib('ob/Input');
@@ -75,7 +77,7 @@ if( ! function_exists('ob_set_headers'))
 if( ! function_exists('ob_system_run'))
 {
     function ob_system_run()
-    {   
+    { 
         $uri    = lib('ob/URI'); 
         $router = lib('ob/Router');
         
@@ -83,79 +85,38 @@ if( ! function_exists('ob_system_run'))
         benchmark_mark('loading_time_base_classes_start');
         
         lib('ob/Input')->_sanitize_globals();  // Initalize to input filter. ( Sanitize must be above the GLOBALS !! )             
-                                  
-        $GLOBALS['d']   = $router->fetch_directory();   // Get requested directory
-        $GLOBALS['s']   = $router->fetch_subfolder();   // Get subfolder if exists
-        $GLOBALS['c']   = $router->fetch_class();       // Get requested controller
-        $GLOBALS['m']   = $router->fetch_method();      // Get requested method
 
         $output = lib('ob/Output');
         $config = lib('ob/Config'); 
                 
-        if ($output->_display_cache($config, $uri) == TRUE) { exit; }  // Check REQUEST uri if there is a Cached file exist 
+        if ($output->_display_cache($config, $uri, $router) == TRUE) { exit; }  // Check REQUEST uri if there is a Cached file exist 
         
         $folder = 'controllers';
         
         if(defined('CMD'))  // Command Line Request
         {                
-            if($GLOBALS['d'] != 'tasks')    // Check module and application folders.
+            if($router->fetch_directory() != 'tasks')    // Check module and application folders.
             {                    
-                if(is_dir(MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .'tasks'))
+                if(is_dir(MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'tasks'))
                 {
                     $folder = 'tasks';
                 } 
             }
         }
         
-        if($GLOBALS['s'] != '')
+        $page_uri = "{$router->fetch_directory()} / {$router->fetch_class()} / {$router->fetch_method()}";
+
+        $controller = MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .$folder. DS .$router->fetch_class(). EXT;
+
+
+        if ( ! file_exists($controller))   // Check the controller exists or not
         {
-            $page_uri = "{$GLOBALS['d']} / {$GLOBALS['s']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
-            
-            $controller = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .$folder. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
-            
-            if(defined('CMD')) // call /app/tasks controller
-            {
-                if(file_exists(APP .'tasks'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT))
-                {
-                    $controller = APP .'tasks'. DS .$GLOBALS['s']. DS .$GLOBALS['c']. EXT;
-                }
-            }
-            
-            if ( ! file_exists($controller))  // Check the sub controller exists or not
-            {
-                if(config_item('enable_query_strings') === TRUE) show_404();
-                
-                show_404($page_uri);
-            }
-            
-            $arg_slice  = 4;
-            
-            // Call the requested method.                1        2       3       4
-            // Any URI segments present (besides the directory/subfolder/class/method) 
-        } 
-        else 
-        {
-            $page_uri = "{$GLOBALS['d']} / {$GLOBALS['c']} / {$GLOBALS['m']}";
-            
-            $controller = MODULES .$GLOBALS['sub_path'].$GLOBALS['d']. DS .$folder. DS .$GLOBALS['c']. EXT;
-            
-            if(defined('CMD'))  // call /app/tasks controller
-            {
-                if(file_exists(APP .'tasks'. DS .$GLOBALS['c']. EXT))
-                {
-                    $controller = APP .'tasks'. DS .$GLOBALS['c']. EXT;
-                }
-            }
-            
-            if ( ! file_exists($controller))   // Check the controller exists or not
-            {
-                if(config_item('enable_query_strings') === TRUE) show_404();
-                
-                throw new Exception('Unable to load your default controller.Please make sure the controller specified in your Routes.php file is valid.');
-            }
-            
-            $arg_slice  = 3;
+            if(config_item('enable_query_strings') === TRUE) show_404();
+
+            throw new Exception('Unable to load your default controller.Please make sure the controller specified in your Routes.php file is valid.');
         }
+
+        $arg_slice  = 3;
 
         require (BASE .'core'. DS .'Controller'. EXT);  // We load Model File with a 'ob_autoload' function which is
                                                         // located in obullo/core/common.php.
@@ -165,45 +126,42 @@ if( ! function_exists('ob_system_run'))
         
         require ($controller);  // call the controller.
         
-        if ( ! class_exists($GLOBALS['c']) OR $GLOBALS['m'] == 'controller' 
-              OR $GLOBALS['m'] == '_output'       // security fix.
-              OR $GLOBALS['m'] == '_hmvc_output'
-              OR $GLOBALS['m'] == '_instance'
-              OR in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods('Controller')))
+        if ( ! class_exists($router->fetch_class()) OR $router->fetch_method() == 'controller' 
+              OR $router->fetch_method() == '_output'       // security fix.
+              OR $router->fetch_method() == '_hmvc_output'
+              OR $router->fetch_method() == '_instance'
+              OR in_array(strtolower($router->fetch_method()), array_map('strtolower', get_class_methods('Controller')))
             )
         {
             show_404($page_uri);
         }
         
-        $OB = new $GLOBALS['c']();           // If Everyting ok Declare Called Controller ! 
+        $Class = $router->fetch_class();
+        
+        $OB = new $Class();           // If Everyting ok Declare Called Controller ! 
 
-        if ( ! in_array(strtolower($GLOBALS['m']), array_map('strtolower', get_class_methods($OB))))  // Check method exist or not 
+        if ( ! in_array(strtolower($router->fetch_method()), array_map('strtolower', get_class_methods($OB))))  // Check method exist or not 
         {
             show_404($page_uri);
         }
         
         $arguments = array_slice($OB->uri->rsegments, $arg_slice);
         
-        if(defined('CMD'))  // Command Line Request Boolean Support
-        {
-            foreach($arguments as $k => $v)
-            {                                           
-                if($v == 'true')  { $arguments[$k] = TRUE; }
-                if($v == 'false') { $arguments[$k] = FALSE; }
-                if($v == 'null')  { $arguments[$k] = NULL; }
-            }
-        }
-        
         //                                                                     0       1       2
         // Call the requested method. Any URI segments present (besides the directory/class/method) 
         // will be passed to the method for convenience
-        call_user_func_array(array($OB, $GLOBALS['m']), $arguments);
+        call_user_func_array(array($OB, $router->fetch_method()), $arguments);
         
         benchmark_mark('execution_time_( '.$page_uri.' )_end');  // Mark a benchmark end point 
         
         // Write Cache file if cache on ! and Send the final rendered output to the browser
         $output->_display();
             
+        while (ob_get_level() > 0) // close all buffers.  
+        { 
+            ob_end_flush();    
+        }        
+        
     }
 }
 
@@ -213,20 +171,12 @@ if( ! function_exists('ob_system_close'))
 {
     function ob_system_close()
     {
-        $OB = this();
-        
         foreach(loader::$_databases as $db_name => $db_var)  // Close all PDO connections..  
         {
-            $OB->{$db_var} = NULL;
-        }
-        
-        while (ob_get_level() > 0) // close all buffers.  
-        { 
-            ob_end_flush();    
-        }        
+            this()->{$db_var} = NULL;
+        } 
     }
 }
-
 
 // END Bootstrap.php File
 

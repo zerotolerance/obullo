@@ -12,8 +12,6 @@ defined('BASE') or exit('Access Denied!');
  * @filesource
  * @license
  */
- 
-Class TableException extends CommonException {} 
 
 /**
  * Table Genarator Class

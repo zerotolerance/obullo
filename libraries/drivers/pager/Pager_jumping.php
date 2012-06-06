@@ -43,7 +43,7 @@ Class OB_Pager_jumping extends OB_Pager_common
         
         if ($res !== TRUE) 
         {
-            throw new PagerException('Pager Unknown Error.');
+            throw new Exception('Pager Unknown Error.');
         }
     
         $this->build();

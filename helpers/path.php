@@ -43,7 +43,7 @@ if( ! function_exists('set_realpath') )
 	    // Security check to make sure the path is NOT a URL.  No remote file inclusion!
 	    if (preg_match("#^(http:\/\/|https:\/\/|www\.|ftp|[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})#i", $path))
 	    {
-		    throw new CommonException('The path you submitted must be a local server path, not a URL');
+		    throw new Exception('The path you submitted must be a local server path, not a URL');
 	    }
 
 	    // Resolve the path
@@ -60,7 +60,7 @@ if( ! function_exists('set_realpath') )
 	    {
 		    if ( ! is_dir($path))
 		    {
-			    throw new CommonException('Not a valid path: '.$path);
+			    throw new Exception('Not a valid path: '.$path);
 		    }
 	    }
 

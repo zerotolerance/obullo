@@ -129,14 +129,7 @@ if ( ! function_exists('module'))
 {
     function module($uri = '')
     {
-        if(isset($GLOBALS['d']))
-        {
-            $module = $GLOBALS['d'];
-        }
-        else
-        {
-            $module = lib('ob/Router')->fetch_directory();
-        }
+        $module = lib('ob/Router')->fetch_directory();
         
         if($uri == '')
         {

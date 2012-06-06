@@ -12,8 +12,6 @@ defined('BASE') or exit('Access Denied!');
  * @filesource
  * @license
  */
- 
-Class FormException extends CommonException {}  
 
 // ------------------------------------------------------------------------
 
@@ -615,7 +613,7 @@ Class OB_Validator {
             // --------------------------------------------------------------------
             
             // Strip the parameter (if exists) from the rule
-            // Rules can contain parameters: max_length[5], callback_request[get][/module/class/method]
+            // Rules can contain parameters: max_len[5], callback_request[get][/module/class/method]
             $param = FALSE;
             if (preg_match_all("/(.*?)\[(.*?)\]/", $rule, $matches))
             {
@@ -992,14 +990,14 @@ Class OB_Validator {
     // --------------------------------------------------------------------
     
     /**
-     * Minimum Length
+     * Minimum length
      *
      * @access    public
      * @param    string
      * @param    value
      * @return    bool
      */    
-    public function min_length($str, $val)
+    public function min_len($str, $val)
     {
         if (preg_match("/[^0-9]/", $val))
         {
@@ -1012,14 +1010,14 @@ Class OB_Validator {
     // --------------------------------------------------------------------
     
     /**
-     * Max Length
+     * Max length
      *
      * @access    public
      * @param    string
      * @param    value
      * @return    bool
      */    
-    public function max_length($str, $val)
+    public function max_len($str, $val)
     {
         if (preg_match("/[^0-9]/", $val))
         {
@@ -1032,14 +1030,14 @@ Class OB_Validator {
     // --------------------------------------------------------------------
     
     /**
-     * Exact Length
+     * Exact length
      *
      * @access   public
      * @param    string
      * @param    value
      * @return   bool
      */    
-    public function exact_length($str, $val)
+    public function exact_len($str, $val)
     {
         if (preg_match("/[^0-9]/", $val))
         {

@@ -114,82 +114,28 @@ if ( ! function_exists('view'))
 {
     function view($file_url, $data = '', $string = TRUE)
     {
+        $folder = 'views';
         if(strpos($file_url, 'layouts/') === 0) // include file and load view files form /layouts folder.
         {
             $string = FALSE;
         }
-        
-        $view = lib('ob/View');
-        
-        $return     = FALSE;
-        $extra_path = '';
-        
-        if(isset($view->view_folder{1})) // if view folder changed don't show errors ..
-        { 
-            if($view->view_folder_msg) $return = TRUE;
-            
-            $extra_path = $view->view_folder;
-        }    
-
-        $file_info = $view->_load_file($file_url, 'views', $extra_path);
-        
-        profiler_set('views', $file_info['filename'], $file_info['path'] . $file_info['filename'] .EXT);
-
-        return $view->load($file_info['path'], $file_info['filename'], $data, $string, $return, __FUNCTION__);
-    }
-}
-
-// ------------------------------------------------------------------------
-
-/**
-* Create your custom folders and
-* change all your view paths to supporting
-* filexible subfolders.
-*
-* @param    string $func view function
-* @param    string $folder view folder (no trailing slash)
-* @param    string $failure_msg
-* @version  0.1
-* @version  0.2 added img folder
-*/
-if ( ! function_exists('view_set_folder'))
-{
-    function view_set_folder($func = 'view', $folder = '', $failure_msg = FALSE)
-    {
-        $view = lib('ob/View');
-
-        switch ($func)
+        elseif(strpos($file_url, '../layouts/') === 0)
         {
-            case 'view':
-                $view->view_folder     = $folder;
-                $view->view_folder_msg = $failure_msg;
-                
-                log_me('debug', "View() Function Paths Changed");
-             break;
-         
-           case 'css':
-                $view->css_folder      = $folder;
-                $view->css_folder_msg  = $failure_msg;
-
-                log_me('debug', "Css() Function Paths Changed");
-             break;
-
-           case 'js':
-                $view->js_folder       = $folder;
-                $view->js_folder_msg   = $failure_msg;
-
-                log_me('debug', "Js() Function Paths Changed");
-             break;
-
-           case 'img':
-                $view->img_folder      = $folder;
-                $view->img_folder_msg  = $failure_msg;
-
-                log_me('debug', "Img() Function Paths Changed");
-               break;
+            $file_url = '../views/'.str_replace('../layouts/', '', $file_url);
+            $folder   = 'layouts';
+            $string   = FALSE;   
         }
         
-        return TRUE;
+        if(strpos($file_url, 'ob/') === 0)  // Obullo Core Views
+        {
+            $file_data = array('filename' => strtolower(substr($file_url, 3)), 'path' => BASE .'views'. DS);
+        } 
+        else
+        {
+            $file_data = loader::load_file($file_url, $folder, FALSE, FALSE);
+        }
+        
+        return lib('ob/View')->load($file_data['path'], $file_data['filename'], $data, $string, FALSE);
     }
 }
 

@@ -64,7 +64,8 @@ if( ! function_exists('log_me') )
 
                     return;
                 }
-                elseif(is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs')) // Sub module
+                
+                if(is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs')) // Sub module
                 {
                     log_write($level, $message, $php_error, TRUE);
 
@@ -113,34 +114,20 @@ if( ! function_exists('log_write') )
             
             $log_threshold   = $config->item('log_threshold');
             $log_date_format = $config->item('log_date_format');
-
-            $module_or_extension_log = FALSE;
             
             //---- Keep the Module logs in Current Module ---//
             
             if(preg_match('/\[(.*?)\]/', $msg, $matches))  // If its a custom module log request [ module ] : message
             {                                              // keep the logs in module/core/logs folder.
                 $module = trim($matches[1]);
-                $module_ext_path = MODULES .$GLOBALS['sub_path'].$module. DS .'core'. DS .'logs'. DS;
-                
-                if(extension('enabled', $module) == 'yes')  // Check if its a extension.
-                {
-                    $module_ext_path = extension('root', $module).$module. DS .'core'. DS .'logs'. DS;
-                }
-                
-                if(is_really_writable($module_ext_path))
-                {
-                    $log_path = $module_ext_path;
-                    $module_or_extension_log = TRUE;   
-                }
+                $module_sub_path = MODULES .$GLOBALS['sub_path'].$module. DS .'core'. DS .'logs'. DS;
+
+                $log_path = $module_sub_path;
             }
 
-            if($module_or_extension_log == FALSE) // If not current module request write to logs sub.module/core if it exist.
+            if($log_path == '' AND is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs')) // If not current module request write to logs sub.module/core if it exist.
             {
-                if(is_dir(MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs'))
-                {
-                    $log_path = MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs'. DS;
-                }
+                $log_path = MODULES .'sub.'.$uri->fetch_sub_module(). DS .'core'. DS .'logs'. DS;
             }
             
             if($config->item('log_path') != '')

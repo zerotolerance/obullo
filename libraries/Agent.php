@@ -13,8 +13,6 @@ defined('BASE') or exit('Access Denied!');
  * @license
  */
 
-Class AgentException extends CommonException {}
-
 // ------------------------------------------------------------------------
 
 /**
@@ -498,8 +496,7 @@ Class OB_Agent {
     {
         return (in_array(strtolower($charset), $this->charsets(), TRUE)) ? TRUE : FALSE;
     }
-
-
+    
 }
 
 
