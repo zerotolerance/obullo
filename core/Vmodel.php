@@ -237,6 +237,21 @@ Class Vmodel extends Model {
     }
     
     // --------------------------------------------------------------------
+
+    /**
+    * Get one error.
+    *
+    * @param string $field
+    */
+    public function error($key)
+    {
+        if(isset($this->errors[$this->item('table')][$key]))
+        {
+            return $this->errors[$this->item('table')][$key];
+        }
+    }
+    
+    // --------------------------------------------------------------------
     
     /**
     * Return filtered validation values for current model.
@@ -257,6 +272,22 @@ Class Vmodel extends Model {
         }
         
         return $this->values;
+    }
+   
+    // --------------------------------------------------------------------
+
+    /**
+    * Alias of values() function.
+    * Just return to filtered one item's value.
+    *
+    * @param string $field
+    */
+    public function value($field)
+    {
+        if(isset($this->values[$this->item('table')][$field]))
+        {
+            return $this->values[$this->item('table')][$field];
+        }
     }
 
     // --------------------------------------------------------------------
@@ -554,6 +585,11 @@ Class Vmodel extends Model {
         
         foreach($this->settings['fields'] as $k => $v)
         {
+            if(strpos($k, '[]') > 0)  // remove multiple key names from save key ..
+            {
+                $k = str_replace('[]', '', $k);
+            }
+            
             if(isset($this->settings['fields'][$k]['rules']))  // validation used or not
             {
                 $has_rules = TRUE;
@@ -563,6 +599,7 @@ Class Vmodel extends Model {
             {
                 $v_data[$k] = $this->_set_value($k, $this->property[$k]);
 
+                
                 if(isset($this->settings['fields'][$k]['func']))
                 {
                     $function_string = trim($this->settings['fields'][$k]['func'], '|');
@@ -609,7 +646,6 @@ Class Vmodel extends Model {
                 
                 $v_data[$k] = $this->_set_value($k, i_get_post($k));
             }
-            
         }
 
         if($has_rules)  // if we have validation rules ..
@@ -632,23 +668,25 @@ Class Vmodel extends Model {
                     $this->where[$id] = $this->{$id};  // store where statetements.
                 }
                 
-                //------ Compile Crud Statements -------//
-                
-                $this->_compile_select();
-                
-                //------ Compile Crud Statements -------//
-                
                 try {
 
                     $this->db->transaction(); // begin the transaction
 
                     $this->_before_save();
-                    
+                                    
+                    $this->_compile_select();                
                     $this->errors[$table]['affected_rows'] = $this->db->update($table, $s_data);
-
+                    
                     $this->_after_save();
                     
                     $this->db->commit();    // commit the transaction
+                    
+                    $this->errors[$table]['success'] = 1;
+                    $this->errors[$table]['msg']     = lang('vm_update_success');
+                    
+                    $this->clear();    // reset validator data
+
+                    return TRUE;
 
                 } catch(Exception $e)
                 {
@@ -657,20 +695,17 @@ Class Vmodel extends Model {
                     $this->errors[$table]['success'] = 0;
                     $this->errors[$table]['msg']     = lang('vm_update_fail');
                     $this->errors[$table]['transaction_error'] = $e->getMessage();
-
-                    $this->set_debug();
                     
                     $this->clear();    // reset validator data
 
                     return FALSE;
                 }
                 
+                /*
                 if($this->errors[$table]['affected_rows'] >= 1)
                 {
                     $this->errors[$table]['success'] = 1;
                     $this->errors[$table]['msg']     = lang('vm_update_success');
-
-                    $this->set_debug();
                     
                     $this->clear();    // reset validator data
 
@@ -680,13 +715,13 @@ Class Vmodel extends Model {
                 {
                     $this->errors[$table]['success']    = 0;
                     $this->errors[$table]['system_msg'] = lang('vm_update_fail');
-
-                    $this->set_debug();
                     
                     $this->clear();    // reset validator data
 
                     return FALSE;  
                 }
+                
+                */
             }
             else   // ELSE do insert ..
             { 
@@ -695,13 +730,21 @@ Class Vmodel extends Model {
                     $this->db->transaction(); // begin the transaction
                     
                     $this->_before_save();
-                    
+                     
+                    $this->_compile_select();    
                     $this->errors[$table]['affected_rows'] = $this->db->insert($table, $s_data);
                     $this->values[$table][$id] = $this->db->insert_id();  // add last inserted id.
 
                     $this->_after_save();
                     
                     $this->db->commit();    // commit the transaction
+                    
+                    $this->errors[$table]['success'] = 1;
+                    $this->errors[$table]['msg']     = lang('vm_insert_success');
+                    
+                    $this->clear();    // reset validator data  // reset validator data
+
+                    return TRUE;
 
                 } catch(Exception $e)
                 {
@@ -710,20 +753,17 @@ Class Vmodel extends Model {
                     $this->errors[$table]['success'] = 0;
                     $this->errors[$table]['msg']     = lang('vm_insert_fail');
                     $this->errors[$table]['transaction_error'] = $e->getMessage();
-
-                    $this->set_debug();
                     
                     $this->clear();    // reset validator data  // reset validator data
 
                     return FALSE;
                 }
                 
+                /*
                 if($this->errors[$table]['affected_rows'] >= 1)
                 {
                     $this->errors[$table]['success'] = 1;
                     $this->errors[$table]['msg']     = lang('vm_insert_success');
-
-                    $this->set_debug();
                     
                     $this->clear();    // reset validator data  // reset validator data
 
@@ -733,14 +773,12 @@ Class Vmodel extends Model {
                 {
                     $this->errors[$table]['success']    = 0;
                     $this->errors[$table]['system_msg'] = lang('vm_insert_fail');
-
-                    $this->set_debug();
                     
                     $this->clear();    // reset validator data  // reset validator data
 
                     return FALSE;  
                 } 
-          
+                */
             }
             
         }
@@ -893,7 +931,8 @@ Class Vmodel extends Model {
     }
     
     // --------------------------------------------------------------------
-    
+
+        
     /**
     * Delete a record from current table 
     * using ID
@@ -942,12 +981,6 @@ Class Vmodel extends Model {
         {
             $validator = TRUE;  // don't do validation
         }
-        
-        //------ Compile Crud Statements -------//
-
-        $this->_compile_select();
-
-        //------ Compile Crud Statements -------//
 
         if($validator)
         {
@@ -957,13 +990,19 @@ Class Vmodel extends Model {
 
                 $this->_before_delete();
                 
+                $this->_compile_select();
                 $this->errors[$table]['affected_rows'] = $this->db->delete($table);
 
                 $this->_after_delete();
                 
                 $this->db->commit();    // commit the transaction
                 
-                $this->clear();    // reset validator data 
+                $this->errors[$table]['success'] = 1;
+                $this->errors[$table]['msg']     = lang('vm_delete_success');
+                
+                $this->clear();    // reset validator data
+
+                return TRUE;
 
             } catch(Exception $e)
             {
@@ -972,20 +1011,17 @@ Class Vmodel extends Model {
                 $this->errors[$table]['success'] = 0;
                 $this->errors[$table]['msg']     = lang('vm_delete_fail');
                 $this->errors[$table]['transaction_error'] = $e->getMessage();
-                
-                $this->set_debug();
 
                 $this->clear();    // reset validator data 
 
                 return FALSE;
             }
 
+            /*
             if($this->errors[$table]['affected_rows'] >= 1)
             {
                 $this->errors[$table]['success'] = 1;
                 $this->errors[$table]['msg']     = lang('vm_delete_success');
-
-                $this->set_debug();
                 
                 $this->clear();    // reset validator data
 
@@ -995,14 +1031,12 @@ Class Vmodel extends Model {
             {
                 $this->errors[$table]['success']     = 0;
                 $this->errors[$table]['system_msg']  = lang('vm_delete_fail');
-
-                $this->set_debug();
                 
                 $this->clear();    // reset validator data
 
                 return FALSE;  
             }
-
+            */
         }
         
         if( ! i_ajax())  // If request not AJAX, add success key for native posts.
@@ -1028,43 +1062,16 @@ Class Vmodel extends Model {
     // ---------------------------------------------------------------------
     
     /**
-    * Put lastest sql query to
-    * json array.
-    * 
-    * @access private
-    * @return void
-    */
-    public function set_debug()
-    {   
-        if($this->debug AND is_object($this->db))
-        {
-            $this->set_error('sql_debug', $this->db->last_query($this->db->prepare));
-        }
-    }
-    
-    // ---------------------------------------------------------------------
-    
-    /**
-    * Turn On / Off Debugging
-    * 
-    * @param type $bool 
-    */
-    public function debug($bool = TRUE)
-    {
-        if(ENV != 'LIVE') // Secure debug, don't show sql query in LIVE mode.
-        {
-            $this->debug = $bool;
-        }
-    }
-    
-    // ---------------------------------------------------------------------
-    
-    /**
     * Clear All Variables.
     * 
     */
     public function clear()
-    {   
+    {
+        if(is_object($this->db))
+        {
+            $this->db->_reset_select();  // Reset CRUD variables.
+        }
+        
         lib('ob/Validator')->clear(); // Clear validation settings.
         
         $this->where           = array();   // Reset Select
@@ -1078,7 +1085,8 @@ Class Vmodel extends Model {
         $this->property   = array();
         $this->no_input   = array(); 
         $this->validation = FALSE;
-       
+
+        
         // DON'T reset below the variables
         /*
             $this->errors     = array();  // Validation errors.

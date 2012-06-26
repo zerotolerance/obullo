@@ -1395,7 +1395,7 @@ Class OB_crud  {
     * @access    private
     * @return    void
     */
-    private function _reset_select()
+    public function _reset_select()
     {
         $ar_reset_items = array(
                                 'ar_select'         => array(), 
