@@ -25,7 +25,8 @@ if( ! function_exists('sess_start'))
         
         if ($session_start == NULL)
         {
-            $driver = (isset($params['sess_driver'])) ? $params['sess_driver'] : config_item('sess_driver');
+            $config = lib('ob/Config');
+            $driver = (isset($params['sess_driver'])) ? $params['sess_driver'] : $config->item('sess_driver');
             
             loader::helper('core/driver');
                                             

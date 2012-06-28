@@ -17,13 +17,14 @@ if( ! function_exists('_sess_start') )
     {                       
         log_me('debug', "Session Native Driver Initialized"); 
 
-        $sess = lib('ob/Session');
+        $sess   = lib('ob/Session');
+        $config = lib('ob/Config');
 
         foreach (array('sess_expiration', 'sess_match_ip', 'sess_die_cookie',
         'sess_match_useragent', 'sess_cookie_name', 'cookie_path', 'cookie_domain', 
         'sess_time_to_update', 'time_reference', 'cookie_prefix') as $key)
         {
-            $sess->{$key} = (isset($params[$key])) ? $params[$key] : config_item($key);
+            $sess->{$key} = (isset($params[$key])) ? $params[$key] : $config->item($key);
         }
 
         // @todo _unserialize func. use strip_slashes() func. We can add it later if we need it in Native Library. ?

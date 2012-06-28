@@ -17,14 +17,15 @@ if( ! function_exists('_sess_start') )
     {                       
         log_me('debug', "Session Database Driver Initialized"); 
 
-        $sess = lib('ob/Session');
-        $ob   = this();
+        $sess   = lib('ob/Session');
+        $config = lib('ob/Config');
+        $ob     = this();
 
         foreach (array('sess_encrypt_cookie', 'sess_driver', 'sess_db_var', 'sess_table_name', 
         'sess_expiration', 'sess_die_cookie', 'sess_match_ip', 'sess_match_useragent', 'sess_cookie_name', 'cookie_path', 
         'cookie_domain', 'sess_time_to_update', 'time_reference', 'cookie_prefix', 'encryption_key') as $key)
         {
-            $sess->{$key} = (isset($params[$key])) ? $params[$key] : config_item($key);
+            $sess->{$key} = (isset($params[$key])) ? $params[$key] : $config->item($key);
         }
 
         // _unserialize func. use strip_slashes() func.
