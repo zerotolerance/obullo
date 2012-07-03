@@ -505,18 +505,18 @@ Class loader {
     
         $sub_root   = lib('ob/Router')->fetch_directory(). DS .$folder. DS;
        
+        if($extra_path != '')
+        {
+            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
+        } 
+        
         if(strpos($file_url, 'app/') === 0)  // APP folder
         {
             $realname = strtolower(substr($file_url, 4));
             $root     = APP . $folder;
             $sub_root = '';
         }
-        
-        if($extra_path != '')
-        {
-            $extra_path = str_replace('/', DS, trim($extra_path, '/')) . DS;
-        } 
-        
+       
         if(strpos($realname, 'sub.') === 0)   // sub.module/module folder request
         {
             $paths          = explode('/', $realname); 
@@ -605,6 +605,11 @@ Class loader {
             $return['path']     = $root. DS .$sub_root.$sub_path.$extra_path;
             
             return $return;
+        }
+        
+        if($folder == 'lang')
+        {
+            return array('filename' => $realname, 'path' => $root. DS .$sub_root.$extra_path);
         }
         
         return array('filename' => $realname, 'path' => $root. DS .$sub_root);
