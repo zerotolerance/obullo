@@ -576,8 +576,10 @@ Class loader {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
 
+            $modulename     = ($modulename == '') ? '' : $modulename . DS;
+                        
             $return['filename'] = $filename;
-            $return['path']     = MODULES .$modulename . DS . $folder . DS . $sub_path.$extra_path;
+            $return['path']     = MODULES .$modulename . $folder . DS . $sub_path.$extra_path;
 
             if($folder == 'layouts')
             {
