@@ -44,11 +44,11 @@ if( ! function_exists('_sess_start') )
         
         // --------------------------------------------------------------------
 
-            loader::config('app/mongodb');
+            loader::config('app/mongodb');  // load mongodb config file.
             
             $mongo      = new Mongo();
             $database   = $mongo->{$config->item('database')};
-            $collection = $database->{$config->item('collection_name')};
+            $collection = $database->{$sess->sess_table_name};
 
             $sess->sess_db = $collection;
  
