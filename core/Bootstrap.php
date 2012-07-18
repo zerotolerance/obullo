@@ -56,7 +56,7 @@ if( ! function_exists('ob_set_headers'))
         
         ###  load core libraries ####
         
-        lib('ob/URI');
+        lib('ob/Uri');
         lib('ob/Router');
         
         loader::helper('core/module'); // Load Module Helper
@@ -78,7 +78,7 @@ if( ! function_exists('ob_system_run'))
 {
     function ob_system_run()
     { 
-        $uri    = lib('ob/URI'); 
+        $uri    = lib('ob/Uri'); 
         $router = lib('ob/Router');
         
         benchmark_mark('total_execution_time_start');

@@ -843,5 +843,5 @@ if( ! function_exists('_sess_gc') )
     }
 }
 
-/* End of file database_driver.php */
-/* Location: ./obullo/helpers/drivers/session/database_driver.php */
+/* End of file session_database.php */
+/* Location: ./obullo/helpers/drivers/session/session_database.php */

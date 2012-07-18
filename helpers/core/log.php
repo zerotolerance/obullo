@@ -47,7 +47,7 @@ if( ! function_exists('log_me') )
                                    // otherwise log functionality not works.
 
             $router = lib('ob/Router');  // If current module /logs dir exists
-            $uri    = lib('ob/URI');     // write module logs into current module.
+            $uri    = lib('ob/Uri');     // write module logs into current module.
 
             if (is_object($router) AND is_object($uri))
             {   
@@ -110,7 +110,7 @@ if( ! function_exists('log_write') )
         {
             $config = lib('ob/Config');
             $router = lib('ob/Router');
-            $uri    = lib('ob/URI');
+            $uri    = lib('ob/Uri');
             
             $log_threshold   = $config->item('log_threshold');
             $log_date_format = $config->item('log_date_format');

@@ -48,7 +48,7 @@ Class Controller {
         
         $this->config = lib('ob/Config');
         $this->router = lib('ob/Router');
-        $this->uri    = lib('ob/URI');
+        $this->uri    = lib('ob/Uri');
         $this->output = lib('ob/Output');
         
         // Initialize to Module Libraries

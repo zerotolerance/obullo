@@ -100,7 +100,7 @@ Class OB_Hmvc
         
         if($hmvc_uri != '')
         {
-            $URI     = lib('ob/URI');
+            $URI     = lib('ob/Uri');
             $Router  = lib('ob/Router');
             $Config  = lib('ob/Config');
             
@@ -363,7 +363,7 @@ Class OB_Hmvc
             self::$_conn_id[$conn_id] = $conn_id;    // store connection id.
         }
 
-        $URI    = lib('ob/URI');
+        $URI    = lib('ob/Uri');
         $router = lib('ob/Router');
         $config = lib('ob/Config');
         $output = lib('ob/Output');
@@ -504,7 +504,7 @@ Class OB_Hmvc
         # Set original objects foreach HMVC requests we backup before  ..
         ######################################
         
-        $URI = lib('ob/URI');
+        $URI = lib('ob/Uri');
 
         $this->_this->uri     = lib('ob/URI', '', $this->uri);
         $this->_this->router  = lib('ob/Router', '', $this->router);

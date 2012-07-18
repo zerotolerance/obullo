@@ -37,7 +37,7 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
 {
     static $new_objects = array();                
     
-    $Class    = ucfirst(strtolower($realname));
+    $Class    = ucfirst(mb_strtolower($realname, config_item('charset')));
     $registry = OB_Registry::instance();
     
     // if we need to reset any registered object .. 
@@ -167,7 +167,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         $sub_path = DS . implode(DS, $paths);  // build sub path  ( e.g ./drivers/pager/)
     }
     
-    $Class    = ucfirst(strtolower($realname));
+    $Class    = ucfirst(mb_strtolower($realname, config_item('charset')));
     $registry = OB_Registry::instance();
     
     // if we need to reset any registered object .. 
@@ -210,7 +210,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         $prefix      = config_item('subclass_prefix');  // MY_
         
         $module      = lib('ob/Router')->fetch_directory();
-        $sub_module  = lib('ob/URI')->fetch_sub_module();
+        $sub_module  = lib('ob/Uri')->fetch_sub_module();
         $module_path = $GLOBALS['sub_path'].$module;
         
         // Override Support
@@ -322,7 +322,7 @@ function ob_autoload($real_name)
 
     // Parent Controllers
     // --------------------------------------------------------------------
-    if(substr(strtolower($real_name), -11) == '_controller')
+    if(substr(mb_strtolower($real_name, config_item('charset')), -11) == '_controller')
     {
         // If Module Parent Controller file exist ..
         if(file_exists(MODULES .$GLOBALS['sub_path'].$modulename. DS .'parents'. DS .$real_name. EXT))
@@ -400,7 +400,7 @@ if( ! function_exists('lib'))
     {    
         //------------ Begin core classes --------------
         
-        $class = strtolower($class);
+        $class = mb_strtolower($class, config_item('charset'));
 
         if(strpos($class, 'ob/') === 0) // Obullo Libraries.
         {               
@@ -516,7 +516,7 @@ function get_config($filename = 'config', $var = '')
     {
         $database   = get_static($filename, $var, APP .'config');
         
-        $sub_module = lib('ob/URI')->fetch_sub_module();
+        $sub_module = lib('ob/Uri')->fetch_sub_module();
         $module     = lib('ob/Router')->fetch_directory(); 
         
         // Sub Module database support.

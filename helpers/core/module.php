@@ -33,7 +33,7 @@ defined('BASE') or exit('Access Denied!');
 */
 function module_init()
 {
-    $sub_module = lib('ob/URI')->fetch_sub_module();
+    $sub_module = lib('ob/Uri')->fetch_sub_module();
     
     // Sub Module Config Files
     // ------------------------------------------------
@@ -169,7 +169,7 @@ function module_merge_autoloaders($file = 'autoload', $var = '', $type = 'Autolo
 {   
     $app_vars = get_static($file, $var, APP .'config');
 
-    $sub_module = lib('ob/URI')->fetch_sub_module();
+    $sub_module = lib('ob/Uri')->fetch_sub_module();
     $module     = lib('ob/Router')->fetch_directory();
 
     if($sub_module != '')  // Don't Merge Sub-Module and Application Variables

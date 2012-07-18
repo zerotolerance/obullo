@@ -469,5 +469,5 @@ if( ! function_exists('_get_time') )
 // --------------------------------------------------------------------
 
 
-/* End of file native_driver.php */
-/* Location: ./obullo/helpers/drivers/session/native_driver.php */
+/* End of file session_native.php */
+/* Location: ./obullo/helpers/drivers/session/session_native.php */

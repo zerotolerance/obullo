@@ -587,7 +587,7 @@ if( ! function_exists('_get_public_path') )
         }
 
         $config     = lib('ob/Config');
-        $sub_module = (lib('ob/URI')->fetch_sub_module() != '') ? 'sub.'.lib('ob/URI')->fetch_sub_module() : '';
+        $sub_module = (lib('ob/Uri')->fetch_sub_module() != '') ? 'sub.'.lib('ob/Uri')->fetch_sub_module() : '';
         
         $public_folder = trim($config->item('public_folder'), '/');  
         $MODULE_ROOT   = str_replace(ROOT, '', rtrim(MODULES .$sub_module_path, DS));

@@ -52,7 +52,7 @@ Class OB_Router {
         // the Router Class at Bootstrap loading level. When you try load any library
         // you will get a Fatal Error.
         
-        $this->uri = lib('ob/URI');
+        $this->uri = lib('ob/Uri');
 
         $this->_detect_sub_module();
         $this->_set_routing();         
@@ -72,7 +72,7 @@ Class OB_Router {
     {
         ############## Clone URI Object ############## 
         
-        $uri = clone lib('ob/URI');
+        $uri = clone lib('ob/Uri');
         
         ############## Clone URI Object ############## 
         
@@ -157,7 +157,7 @@ Class OB_Router {
     */
     public function clear()
     {
-        $this->uri                 = lib('ob/URI');   // reset cloned URI object.
+        $this->uri                 = lib('ob/Uri');   // reset cloned URI object.
         $this->config              = '';
         $this->hmvc                = FALSE;
         $this->hmvc_response       = '';
@@ -176,7 +176,7 @@ Class OB_Router {
 
     /**
     * Clone URI object for HMVC Requests, When we
-    * use HMVC we use $this->uri = clone lib('ob/URI');
+    * use HMVC we use $this->uri = clone lib('ob/Uri');
     * that means we say to Router class when Clone word used in HMVC library
     * use cloned URI object instead of orginal ( ersin ).
     */

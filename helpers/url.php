@@ -93,7 +93,7 @@ if ( ! function_exists('current_url'))
 {
     function current_url()
     {
-        return lib('ob/Config')->site_url(lib('ob/URI')->uri_string());
+        return lib('ob/Config')->site_url(lib('ob/Uri')->uri_string());
     }
 }
 // ------------------------------------------------------------------------
@@ -113,7 +113,7 @@ if ( ! function_exists('uri_extension'))
 {
     function uri_extension()
     {
-        return lib('ob/URI')->extension();
+        return lib('ob/Uri')->extension();
     }
 }
 // ------------------------------------------------------------------------
@@ -152,7 +152,7 @@ if ( ! function_exists('sub_module'))
 {
     function sub_module($uri = '')
     {
-        $sub_module = lib('ob/URI')->fetch_sub_module();
+        $sub_module = lib('ob/Uri')->fetch_sub_module();
         
         if($uri == '')
         {

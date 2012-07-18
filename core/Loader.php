@@ -419,7 +419,7 @@ Class loader {
         {
             $prefix      = config_item('subhelper_prefix');
             $module      = lib('ob/Router')->fetch_directory();
-            $sub_module  = lib('ob/URI')->fetch_sub_module();
+            $sub_module  = lib('ob/Uri')->fetch_sub_module();
             
             $module_path = $GLOBALS['sub_path'].$module;
      
@@ -583,9 +583,9 @@ Class loader {
 
             if($folder == 'layouts')
             {
-                if(lib('ob/URI')->fetch_sub_module() != '')
+                if(lib('ob/Uri')->fetch_sub_module() != '')
                 {
-                    $return['path'] = MODULES .'sub.'.lib('ob/URI')->fetch_sub_module(). DS . SUB_MODULES. 'views'. DS .'layouts'. DS .$sub_path.$extra_path;
+                    $return['path'] = MODULES .'sub.'.lib('ob/Uri')->fetch_sub_module(). DS . SUB_MODULES. 'views'. DS .'layouts'. DS .$sub_path.$extra_path;
                 }
             }
             
