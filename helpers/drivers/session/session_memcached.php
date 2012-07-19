@@ -9,13 +9,13 @@ defined('BASE') or exit('Access Denied!');
 * @author      Obullo Team.
 * @author      Dalım Çepiç.
 * @version     0.1
-* 
+*
 */
 if( ! function_exists('_sess_start') ) 
 {
     function _sess_start($params = array())
     {                       
-        log_me('debug', "Session MongoDb Driver Initialized"); 
+        log_me('debug', "Session Memcached Driver Initialized"); 
 
         $sess   = lib('ob/Session');
         $config = lib('ob/Config');
@@ -43,15 +43,14 @@ if( ! function_exists('_sess_start') )
         $sess->sess_cookie_name = $sess->cookie_prefix . $sess->sess_cookie_name;
         
         // --------------------------------------------------------------------
+        
+            loader::config('app/memcached');
 
-            loader::config('app/mongodb');
+            $memcached = new Memcached();
+            $memcached->addServer($config->item('mem_host'), $config->item('mem_port'));
 
-            $mongoDb    = new Mongo();
-            $database   = $mongoDb->{$config->item('database')};
-            $collection = $database->{$sess->sess_table_name};
-
-            $sess->sess_db = $collection;
-
+            $sess->sess_db = $memcached;
+        
         // --------------------------------------------------------------------
         
         // Run the Session routine. If a session doesn't exist we'll 
@@ -71,8 +70,8 @@ if( ! function_exists('_sess_start') )
         // Mark all new flashdata as old (data will be deleted before next request)
         _flashdata_mark();
 
-        // Delete expired sessions if necessary
-        _sess_gc();
+        // Delete expired sessions if necessary || IN MEMCACHED NOT NECASSARY _sess_gc()
+        //_sess_gc();
 
         log_me('debug', "Session routines successfully run"); 
 
@@ -91,6 +90,7 @@ if( ! function_exists('sess_read') )
 {
     function sess_read()
     {    
+        $control = 0; // Controlling as $this->db->where()..
         $sess = lib('ob/Session');
         
         // Fetch the cookie
@@ -161,25 +161,26 @@ if( ! function_exists('sess_read') )
         // Db driver changes ...
         // -------------------------------------------------------------------- 
 
-        $where['session_id'] = $session['session_id'];
-                
+
+        $row = $sess->sess_db->get($session['session_id']);
+        $result_row = json_decode($row);
+        
         if ($sess->sess_match_ip == TRUE)
         {
-            $where['ip_address'] = $session['ip_address'];
+            if (!isset($result_row->ip_address) || $result_row->ip_address == NULL || $result_row->ip_address == "" ||  $result_row->ip_address != $session['ip_address'])
+                $control ++;
         }
 
         if ($sess->sess_match_useragent == TRUE)
         {
-            $where['user_agent'] =$session['user_agent'];
+            if (!isset($result_row->user_agent) || $result_row->user_agent == NULL || $result_row->user_agent == "" ||  $result_row->user_agent != $session['user_agent'])
+                $control ++;
         }
-        
-        $row = $sess->sess_db->findOne($where);
-
         // Is there custom data?  If so, add it to the main session array
 
         
         // No result?  Kill it!
-        if ($row == Null)      // Obullo changes ..
+        if ($row == Null || $control > 0)      // Obullo changes ..
         {
             sess_destroy();
             return FALSE;
@@ -200,6 +201,7 @@ if( ! function_exists('sess_read') )
 
         // Session is valid!
         $sess->userdata = $session;
+   
         unset($session);
         
         return TRUE;
@@ -245,9 +247,12 @@ if( ! function_exists('sess_write') )
         }
 
         // Run the update query
-        $sess->sess_db->update(array('session_id' => $sess->userdata['session_id']), array('last_activity' => $sess->userdata['last_activity'], 
-        'user_data' => $custom_userdata));
-
+        $sess->sess_db->set($sess->userdata['session_id'],json_encode( array('last_activity' => $sess->userdata['last_activity'], 
+        'user_data' => $custom_userdata)),$sess->sess_expiration);
+        $session_data = $sess->sess_db->get("ob_session_keys");
+        if(strpos($session_data, $sess->userdata['session_id']) === false)         
+                $sess->sess_db->set("ob_session_keys",$session_data."|".$sess->userdata['session_id'],$sess->sess_expiration);
+        
         // Write the cookie.  Notice that we manually pass the cookie data array to the
         // _set_cookie() function. Normally that function will store $this->userdata, but 
         // in this case that array contains custom data, which we do not want in the cookie.
@@ -287,7 +292,10 @@ if( ! function_exists('sess_create') )
         // Db driver changes..
         // --------------------------------------------------------------------  
 
-        $sess->sess_db->insert($sess->userdata);
+        $sess->sess_db->set($sess->userdata['session_id'],json_encode($sess->userdata),$sess->sess_expiration);
+        $session_data = $sess->sess_db->get("ob_session_keys");
+        if(strpos($session_data, $sess->userdata['session_id']) === false)
+         $sess->sess_db->set("ob_session_keys",$session_data."|".$sess->userdata['session_id'],$sess->sess_expiration);
         
         // Write the cookie        
         _set_cookie(); 
@@ -349,9 +357,10 @@ if( ! function_exists('sess_update') )
             $cookie_data[$val] = $sess->userdata[$val];
         }
 
-        $sess->sess_db->update(array('session_id' => $old_sessid),
-                array('last_activity' => $sess->now, 'session_id' => $new_sessid));
-
+        $sess->sess_db->set($old_sessid,json_encode(array('last_activity' => $sess->now, 'session_id' => $new_sessid),$sess->sess_expiration));
+        $session_data = $sess->sess_db->get("ob_session_keys");
+        if(strpos($session_data, $sess->userdata['session_id']) === false)         
+                $sess->sess_db->set("ob_session_keys",$session_data."|".$sess->userdata['session_id'],$sess->sess_expiration);
         
         // Write the cookie
         _set_cookie($cookie_data);
@@ -376,7 +385,7 @@ if( ! function_exists('sess_destroy') )
         if(isset($sess->userdata['session_id']))
         {
             // Kill the session DB row
-            $sess->sess_db->remove(array('session_id' => $sess->userdata['session_id']));
+            $sess->sess_db->delete($sess->userdata['session_id']);
           
         }
         // -------------------------------------------------------------------
@@ -819,19 +828,12 @@ if( ! function_exists('_sess_gc') )
 {
     function _sess_gc()
     {
-        $sess = lib('ob/Session');
+        // Memcached has time limit to every Session Data 
+        // This function is not necessary
         
-        srand(time());
-        
-        if ((rand() % 100) < $sess->gc_probability)
-        {
-            $expire = $sess->now - $sess->sess_expiration;
-            $sess->sess_db->remove(array('last_activity' => array('$lt' => $expire)));
-            
-            log_me('debug', 'Session garbage collection performed.');
-        }
+        return;
     }
 }
 
-/* End of file session_mongodb.php */
-/* Location: ./obullo/helpers/drivers/session/session_mongodb.php */
+/* End of file session_memcached.php */
+/* Location: ./obullo/helpers/drivers/session/session_memcached.php */
