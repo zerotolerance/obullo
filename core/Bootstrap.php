@@ -35,11 +35,7 @@ if( ! function_exists('ob_include_files'))
         require (BASE .'core'. DS .'Registry'. EXT);
         require (BASE .'core'. DS .'Common'. EXT);
         require (BASE .'core'. DS .'Loader'. EXT);
-        
-        if(config_item('log_threshold') > 0) 
-        { 
-            require(BASE .'helpers'. DS .'core'. DS .'log'. EXT); 
-        } 
+        require (BASE .'helpers'. DS .'core'. DS .'log'. EXT); 
     }
 }
 
@@ -160,7 +156,7 @@ if( ! function_exists('ob_system_run'))
         while (ob_get_level() > 0) // close all buffers.  
         { 
             ob_end_flush();    
-        }        
+        }
         
     }
 }
