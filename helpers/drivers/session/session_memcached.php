@@ -44,10 +44,10 @@ if( ! function_exists('_sess_start') )
         
         // --------------------------------------------------------------------
         
-            loader::config('app/memcached');
+            $config = get_config('memcached');
 
             $memcached = new Memcached();
-            $memcached->addServer($config->item('mem_host'), $config->item('mem_port'));
+            $memcached->addServer($config->item('host'), $config->item('port'));
 
             $sess->sess_db = $memcached;
         
@@ -247,12 +247,17 @@ if( ! function_exists('sess_write') )
         }
 
         // Run the update query
-        $sess->sess_db->set($sess->userdata['session_id'],json_encode( array('last_activity' => $sess->userdata['last_activity'], 
-        'user_data' => $custom_userdata)),$sess->sess_expiration);
-        $session_data = $sess->sess_db->get("ob_session_keys");
-        if(strpos($session_data, $sess->userdata['session_id']) === false)         
-                $sess->sess_db->set("ob_session_keys",$session_data."|".$sess->userdata['session_id'],$sess->sess_expiration);
+        $sess->sess_db->set($sess->userdata['session_id'],
+                json_encode( array('last_activity' => $sess->userdata['last_activity'], 'user_data' => $custom_userdata)), 
+                $sess->sess_expiration);
         
+        $session_data = $sess->sess_db->get("ob_session_keys");
+        
+        if(strpos($session_data, $sess->userdata['session_id']) === FALSE)  
+        {
+            $sess->sess_db->set("ob_session_keys",$session_data."|".$sess->userdata['session_id'],$sess->sess_expiration);
+        }
+              
         // Write the cookie.  Notice that we manually pass the cookie data array to the
         // _set_cookie() function. Normally that function will store $this->userdata, but 
         // in this case that array contains custom data, which we do not want in the cookie.
@@ -294,8 +299,11 @@ if( ! function_exists('sess_create') )
 
         $sess->sess_db->set($sess->userdata['session_id'],json_encode($sess->userdata),$sess->sess_expiration);
         $session_data = $sess->sess_db->get("ob_session_keys");
-        if(strpos($session_data, $sess->userdata['session_id']) === false)
-         $sess->sess_db->set("ob_session_keys",$session_data."|".$sess->userdata['session_id'],$sess->sess_expiration);
+        
+        if(strpos($session_data, $sess->userdata['session_id']) === FALSE)
+        {
+            $sess->sess_db->set("ob_session_keys",$session_data."|".$sess->userdata['session_id'],$sess->sess_expiration);
+        }
         
         // Write the cookie        
         _set_cookie(); 
@@ -357,10 +365,16 @@ if( ! function_exists('sess_update') )
             $cookie_data[$val] = $sess->userdata[$val];
         }
 
-        $sess->sess_db->set($old_sessid,json_encode(array('last_activity' => $sess->now, 'session_id' => $new_sessid),$sess->sess_expiration));
+        $sess->sess_db->set($old_sessid, 
+                json_encode(array('last_activity' => $sess->now, 'session_id' => $new_sessid), 
+                        $sess->sess_expiration));
+        
         $session_data = $sess->sess_db->get("ob_session_keys");
-        if(strpos($session_data, $sess->userdata['session_id']) === false)         
-                $sess->sess_db->set("ob_session_keys",$session_data."|".$sess->userdata['session_id'],$sess->sess_expiration);
+        
+        if(strpos($session_data, $sess->userdata['session_id']) === FALSE) 
+        {
+            $sess->sess_db->set("ob_session_keys",$session_data."|".$sess->userdata['session_id'], $sess->sess_expiration);
+        }    
         
         // Write the cookie
         _set_cookie($cookie_data);

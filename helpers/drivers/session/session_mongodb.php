@@ -44,13 +44,28 @@ if( ! function_exists('_sess_start') )
         
         // --------------------------------------------------------------------
 
-            loader::config('app/mongodb');
+            $config = get_config('mongodb');
 
-            $mongoDb    = new Mongo();
-            $database   = $mongoDb->{$config->item('database')};
-            $collection = $database->{$sess->sess_table_name};
-
-            $sess->sess_db = $collection;
+            if($config['database'] == '')
+            {
+                throw new Exception('Please set a <b>$mongodb[\'database\']</b> from <b>/app/config/mongodb.php</b>.');
+            }
+            
+            try 
+            {
+                $dsn = "mongodb://{$config['username']}:{$config['password']}@{$config['host']}[:{$config['port']}]";
+                
+                $sess->mongo  = new Mongo($dsn, array('timeout' => 100));
+                
+                $database = $sess->mongo->selectDB($config['database']);
+            }
+            catch ( MongoConnectionException $e ) 
+            {
+                echo $e->getMessage();
+            }
+            
+            // collection
+            $sess->sess_db = $database->{$sess->sess_table_name};
 
         // --------------------------------------------------------------------
         
@@ -175,11 +190,13 @@ if( ! function_exists('sess_read') )
         
         $row = $sess->sess_db->findOne($where);
 
+        $sess->mongo->close();
+        
         // Is there custom data?  If so, add it to the main session array
 
         
         // No result?  Kill it!
-        if ($row == Null)      // Obullo changes ..
+        if ($row == NULL)      // Obullo changes ..
         {
             sess_destroy();
             return FALSE;
@@ -248,6 +265,8 @@ if( ! function_exists('sess_write') )
         $sess->sess_db->update(array('session_id' => $sess->userdata['session_id']), array('last_activity' => $sess->userdata['last_activity'], 
         'user_data' => $custom_userdata));
 
+        $sess->mongo->close();
+        
         // Write the cookie.  Notice that we manually pass the cookie data array to the
         // _set_cookie() function. Normally that function will store $this->userdata, but 
         // in this case that array contains custom data, which we do not want in the cookie.
@@ -288,6 +307,8 @@ if( ! function_exists('sess_create') )
         // --------------------------------------------------------------------  
 
         $sess->sess_db->insert($sess->userdata);
+        
+        $sess->mongo->close();
         
         // Write the cookie        
         _set_cookie(); 
@@ -352,6 +373,7 @@ if( ! function_exists('sess_update') )
         $sess->sess_db->update(array('session_id' => $old_sessid),
                 array('last_activity' => $sess->now, 'session_id' => $new_sessid));
 
+        $sess->mongo->close();
         
         // Write the cookie
         _set_cookie($cookie_data);
@@ -378,6 +400,7 @@ if( ! function_exists('sess_destroy') )
             // Kill the session DB row
             $sess->sess_db->remove(array('session_id' => $sess->userdata['session_id']));
           
+            $sess->mongo->close();
         }
         // -------------------------------------------------------------------
         
