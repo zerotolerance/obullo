@@ -103,7 +103,7 @@ Class OB_Auth {
     */
     public function get($username = '', $password = '')
     {
-        if($this->get_allow_login() == FALSE)
+        if($this->item('allow_login') == FALSE)
         {
             return FALSE;
         }
@@ -297,7 +297,7 @@ Class OB_Auth {
      * 
      * @param array $data 
      */
-    public function drop_auth($data = array())
+    public function unset_auth($data = array())
     {
         sess_unset($this->session_prefix.'ok');
         sess_unset($data);
