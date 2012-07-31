@@ -853,7 +853,7 @@ if( ! function_exists('form_error') )
             
             if(isset($model->errors[$model->item('table')]['transaction_error']))
             {
-                log_me('debug', 'Transactional (system) Error: '. $model->errors[$model->item('table')]['transaction_error']);
+                log_me('debug', 'Transactional Error: '. $model->errors[$model->item('table')]['transaction_error']);
                 
                 return lang('vm_system_message') . $model->errors[$model->item('table')]['transaction_error'];
             }
@@ -917,6 +917,22 @@ if( ! function_exists('form_msg'))
            return;
         }
         
+        if(isset($model->errors[$model->item('table')]['transaction_error']))
+        {
+            log_me('debug', 'Transactional Error: '. $model->errors[$model->item('table')]['transaction_error']);
+
+            $msg =  $model->errors[$model->item('table')]['msg'] .' '. lang('vm_system_message') . $model->errors[$model->item('table')]['transaction_error'];
+            
+            return ($msg == '') ? '' : '<div class="'.$class_error.'">'.$msg.'</div>';
+        }
+        
+        if($model->errors('system_msg') != '')
+        {
+            $msg = $model->errors('system_msg');
+            
+            return ($msg == '') ? '' : '<div class="'.$class_error.'">'.$msg.'</div>';
+        }
+        
         if($model->errors('success') == 0)
         {
             $msg = lang('vm_form_error');
@@ -926,12 +942,12 @@ if( ! function_exists('form_msg'))
                 $msg = $form_msg;
             }
             
-            if($model->validation())  // If validation ok but we have a system error ?
+            if($model->validation())  // If validation ok but we have a transaction error ?
             {
                 $msg = form_error($model);
             }
 
-            return '<div class="'.$class_error.'">'.$msg.'</div>';
+            return ($msg == '') ? '' : '<div class="'.$class_error.'">'.$msg.'</div>';
         }
         elseif($model->errors('success') == 1)
         {
@@ -942,7 +958,7 @@ if( ! function_exists('form_msg'))
                 $msg = $form_msg;
             }
             
-            return '<div class="'.$class_success.'">'.$msg.'</div>';
+            return ($msg == '') ? '' : '<div class="'.$class_success.'">'.$msg.'</div>';
         }
     }
 }

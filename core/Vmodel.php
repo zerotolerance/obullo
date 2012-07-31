@@ -230,7 +230,17 @@ Class Vmodel extends Model {
                 return $this->errors[$this->item('table')][$key];
             }
             
+            if($key != '')
+            {
+                return;
+            }
+            
             return $this->errors[$this->item('table')];
+        }
+        
+        if($key != '')
+        {
+            return;
         }
         
         return $this->errors;
@@ -300,6 +310,13 @@ Class Vmodel extends Model {
     public function set_error($key, $error)
     {
         $this->errors[$this->item('table')][$key] = $error;
+        
+        $fields = $this->settings['fields'];
+        
+        if(isset($fields[$key])) // set a validation error.
+        {
+            lib('ob/Validator')->_field_data[$key]['error'] = $error;
+        }
     }
 
     // --------------------------------------------------------------------

@@ -809,7 +809,16 @@ Class OB_Validator {
             return $default;
         }
         
-        return $this->_field_data[$field]['postdata'];
+        if(isset($this->_field_data[$field]['postdata']))
+        { 
+            $this->_field_data[$field]['postdata'];
+        } 
+        elseif(isset($_REQUEST[$field]))
+        {
+            return $_REQUEST[$field];
+        }
+        
+        return;
     }
     
     // --------------------------------------------------------------------
