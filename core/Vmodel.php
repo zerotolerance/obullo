@@ -81,7 +81,7 @@ Class Vmodel extends Model {
     * @param  array $_GLOBALS can be $_POST, $_GET, $_FILES
     * @return boolean
     */
-    public function validator($_GLOBALS = array(), $fields = array())
+    private function validator($_GLOBALS = array(), $fields = array())
     {
         $validator = lib('ob/Validator', '', TRUE);
         $validator->clear();
@@ -611,13 +611,15 @@ Class Vmodel extends Model {
             {
                 $has_rules = TRUE;
             }
-
+            
             if($this->{$k} != '')
             {
                 $v_data[$k] = $this->_set_value($k, $this->property[$k]);
-
-                
-                if(isset($this->settings['fields'][$k]['func']))
+            }
+            
+            if($this->{$k} != '')
+            {
+                if(isset($this->settings['fields'][$k]['func']))  // functions ..
                 {
                     $function_string = trim($this->settings['fields'][$k]['func'], '|');
 
@@ -660,10 +662,18 @@ Class Vmodel extends Model {
                 {
                     $s_data[$k] = '';
                 }
-                
+
                 $v_data[$k] = $this->_set_value($k, i_get_post($k));
             }
-        }
+            
+            // ************ do not save if field selected via where() function
+            
+            if(isset($this->where[$k]) OR isset($this->where_in[$k]))
+            {
+                unset($s_data[$k]);
+            }
+            
+        } // end foreach.
 
         if($has_rules)  // if we have validation rules ..
         {
@@ -741,7 +751,7 @@ Class Vmodel extends Model {
                 */
             }
             else   // ELSE do insert ..
-            { 
+            {
                 try {
 
                     $this->db->transaction(); // begin the transaction
@@ -776,26 +786,6 @@ Class Vmodel extends Model {
                     return FALSE;
                 }
                 
-                /*
-                if($this->errors[$table]['affected_rows'] >= 1)
-                {
-                    $this->errors[$table]['success'] = 1;
-                    $this->errors[$table]['msg']     = lang('vm_insert_success');
-                    
-                    $this->clear();    // reset validator data  // reset validator data
-
-                    return TRUE;
-                }
-                else
-                {
-                    $this->errors[$table]['success']    = 0;
-                    $this->errors[$table]['system_msg'] = lang('vm_insert_fail');
-                    
-                    $this->clear();    // reset validator data  // reset validator data
-
-                    return FALSE;  
-                } 
-                */
             }
             
         }
@@ -1034,26 +1024,6 @@ Class Vmodel extends Model {
                 return FALSE;
             }
 
-            /*
-            if($this->errors[$table]['affected_rows'] >= 1)
-            {
-                $this->errors[$table]['success'] = 1;
-                $this->errors[$table]['msg']     = lang('vm_delete_success');
-                
-                $this->clear();    // reset validator data
-
-                return TRUE;
-            } 
-            elseif($this->errors[$table]['affected_rows'] == 0)
-            {
-                $this->errors[$table]['success']     = 0;
-                $this->errors[$table]['system_msg']  = lang('vm_delete_fail');
-                
-                $this->clear();    // reset validator data
-
-                return FALSE;  
-            }
-            */
         }
         
         if( ! i_ajax())  // If request not AJAX, add success key for native posts.
