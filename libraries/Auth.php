@@ -43,6 +43,8 @@ Class OB_Auth {
     public $query_binding      = FALSE;  // Whether to enable the PDO query binding feature for security.
     public $regenerate_sess_id = FALSE;  // Set to TRUE to regenerate the session id on every page load or leave as FALSE to regenerate only upon new login.
     
+    public $row = FALSE;    // SQL Query result as row
+    
     /**
     * Constructor
     *
@@ -134,7 +136,7 @@ Class OB_Auth {
             $this->db->bind_param(':password', $password, param_str, $this->password_length); // String (int Length)
 
             $query = $this->db->exec();
-            $row   = $query->row();
+            $this->row = $query->row();
         } 
         else 
         {
@@ -143,23 +145,48 @@ Class OB_Auth {
             $this->db->where($this->password_col, $password);
             $query = $this->db->get($this->tablename);
             
-            $row   = $query->row();
+            $this->row = $query->row();
         }
         
-        if(is_object($row) AND isset($row->{$this->username_col}))
+        if(is_object($this->row) AND isset($this->row->{$this->username_col}))
         {
-            $data = array();
-            foreach($this->select_data as $key)
-            {
-                $data[$key] = $row->{$key};
-            }
-            
-            $this->set_auth($data);  // auth is ok ?
-            
-            return $row;
+            return $this->row;
         }
         
         return FALSE;
+    }
+    
+    // ------------------------------------------------------------------------
+    
+    /**
+     * Autheticate the user if login is successfull !
+     * 
+     * @return bool
+     */
+    public function set()
+    {
+        $row = $this->get_row();
+        
+        if(is_object($row) AND isset($row->{$this->username_col}))
+        {            
+            $this->set_auth($this->select_data);  // auth is ok ?
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    // ------------------------------------------------------------------------
+    
+    /**
+     * Get validated user sql query result object
+     *
+     * @return type 
+     */
+    public function get_row()
+    {
+        return $this->row;
     }
     
     // ------------------------------------------------------------------------
@@ -206,12 +233,7 @@ Class OB_Auth {
     */
     public function data($key)
     {
-        if( ! in_array($key, $this->select_data, true))
-        {
-            throw new Exception('<b>'.$key.'</b> is not a valid key first you need to select() it before the fetching. Select data output : <b>'.print_r($this->select_data, true).'</b>');
-        }
-        
-        return sess($key);
+        return sess($this->session_prefix.$key);
     }
     
     // ------------------------------------------------------------------------
@@ -219,10 +241,23 @@ Class OB_Auth {
     /**
     * Set session auth data to user session container
     * 
-    * @param type $key
-    * @return type 
+    * @param string $key
+    * @return void 
     */
     public function set_data($key)
+    {
+        sess_set($this->session_prefix.$key);
+    }
+    
+    // ------------------------------------------------------------------------
+    
+    /**
+    * Unset session auth data from user session container
+    * 
+    * @param string $key
+    * @return void
+    */
+    public function unset_data($key)
     {
         sess_set($this->session_prefix.$key);
     }
@@ -286,34 +321,48 @@ Class OB_Auth {
      */
     public function set_auth($data = array())
     {
+        $row = $this->get_row();
+        
         sess_set($this->session_prefix.'ok', 1);  // Authenticate the user.
-        sess_set($data);   // Store user data to session container.
+        
+        $sess_data = array();
+        foreach($data as $key)
+        {
+            $sess_data[$this->session_prefix.$key] = $row->{$key};
+        }
+        
+        sess_set($sess_data);   // Store user data to session container.
     }
     
     // ------------------------------------------------------------------------
     
     /**
-     * Unset auth data from session container.
-     * 
-     * @param array $data 
-     */
-    public function unset_auth($data = array())
-    {
-        sess_unset($this->session_prefix.'ok');
-        sess_unset($data);
-    }
-    
-    // ------------------------------------------------------------------------
-    
-    /**
-    * Logout user and destroy all session data
+    * Logout user and destroy session auth data.
     * 
+    * @param bool $sess_destroy whether to use session destroy function
     * @return void 
     */
-    public function logout()
+    public function logout($sess_destroy = FALSE)
     {
         sess_unset($this->session_prefix.'ok');
-        sess_unset($this->select_data);
+        
+        if($sess_destroy)
+        {
+            sess_destroy();
+            return;
+        }
+        
+        $user_data = sess_alldata();
+        if(count($user_data) > 0)
+        {
+            foreach($user_data as $key => $val)
+            {
+                if(strpos($key, $this->session_prefix) === 0)
+                {
+                    sess_unset($key);
+                }
+            }
+        }
     }
     
 }

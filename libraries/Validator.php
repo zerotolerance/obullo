@@ -811,7 +811,7 @@ Class OB_Validator {
         
         if(isset($this->_field_data[$field]['postdata']))
         { 
-            $this->_field_data[$field]['postdata'];
+            return $this->_field_data[$field]['postdata'];
         } 
         elseif(isset($_REQUEST[$field]))
         {
