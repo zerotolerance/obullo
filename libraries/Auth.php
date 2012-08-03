@@ -39,9 +39,12 @@ Class OB_Auth {
 
     public $post_username      = '';     // The name of the form field that contains the username to authenticate.
     public $post_password      = '';     // The name of the form field that contains the password to authenticate.
-    public $advanced_security  = FALSE;  // Whether to enable the advanced security features.
-    public $query_binding      = FALSE;  // Whether to enable the PDO query binding feature for security.
+    public $advanced_security  = TRUE;   // Whether to enable the advanced security features.
+    public $query_binding      = TRUE;   // Whether to enable the PDO query binding feature for security.
     public $regenerate_sess_id = FALSE;  // Set to TRUE to regenerate the session id on every page load or leave as FALSE to regenerate only upon new login.
+    
+    public $is_not_ok_url      = '/login';
+    public $is_ok_url          = '/dashboard';
     
     public $row = FALSE;    // SQL Query result as row
     
@@ -195,29 +198,13 @@ Class OB_Auth {
      * Get User is authenticated 
      * if its ok it returns to TRUE otherwise FALSE
      * 
-     * @param type $callback
-     * @param type $params
-     * @return boolean | void ( callback function )
+     * @return boolean 
      */
-    public function check($success_url = '', $fail_url = '')
+    public function check()
     {
         if(sess($this->session_prefix.'ok') == 1)  // auth is ok ?
         {
-            if($success_url != '')
-            {
-                loader::helper('ob/url');
-                
-                redirect($success_url); 
-            }
-            
             return TRUE;
-        }
-        
-        if($fail_url != '')
-        {
-            loader::helper('ob/url');
-
-            redirect($fail_url); 
         }
         
         return FALSE;
@@ -226,13 +213,63 @@ Class OB_Auth {
     // ------------------------------------------------------------------------
     
     /**
+     * Check Auth is Fail and Redirect to provided url.
+     * 
+     * @param type $callback
+     * @param type $params
+     * @return boolean | void ( callback function )
+     */
+    public function is_not_ok($redirect = '', $auto_redirect = TRUE, $urlencode = TRUE)
+    {
+        $redirect_url = ($redirect == '') ? $this->is_not_ok_url : $redirect;
+        
+        if($auto_redirect === TRUE)
+        {
+            $redirect_url = $redirect_url.'?redirect='.lib('ob/Uri')->request_uri($urlencode);
+        }
+        
+        if( ! $this->check())  // auth is ok ?
+        {
+            redirect($redirect_url); 
+        }
+        
+        return;
+    }
+    
+    // ------------------------------------------------------------------------
+    
+     /**
+     * Check Auth is OK and Redirect to provided url.
+     * 
+     * @param type $callback
+     * @param type $params
+     * @return boolean | void ( callback function )
+     */
+    public function is_ok($redirect = '/dashboard')
+    {
+        if($this->check())  // auth is ok ?
+        {
+            redirect($redirect); 
+        }
+        
+        return;
+    }
+    
+    // ------------------------------------------------------------------------
+    
+    /**
     * Retrieve authenticated user session data
     * 
-    * @param type $key
-    * @return type 
+    * @param string $key
+    * @return mixed
     */
-    public function data($key)
+    public function data($key = '')
     {
+        if($key == '')
+        {
+            return sess_alldata();
+        }
+        
         return sess($this->session_prefix.$key);
     }
     
@@ -242,7 +279,7 @@ Class OB_Auth {
     * Set session auth data to user session container
     * 
     * @param string $key
-    * @return void 
+    * @return void
     */
     public function set_data($key)
     {
@@ -259,7 +296,7 @@ Class OB_Auth {
     */
     public function unset_data($key)
     {
-        sess_set($this->session_prefix.$key);
+        sess_unset($this->session_prefix.$key);
     }
     
     // ------------------------------------------------------------------------

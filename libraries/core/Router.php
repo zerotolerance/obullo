@@ -204,7 +204,8 @@ Class OB_Router {
         {
             // Are query strings enabled in the config file?
             // If so, we're done since segment based URIs are not used with query strings.
-            if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('controller_trigger')]))
+            if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('controller_trigger')]) AND 
+                    isset($_GET[config_item('directory_trigger')]))
             {
                 $this->set_directory(trim($this->uri->_filter_uri($_GET[config_item('directory_trigger')])));
                 $this->set_class(trim($this->uri->_filter_uri($_GET[config_item('controller_trigger')])));
