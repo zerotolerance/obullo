@@ -910,7 +910,7 @@ function form_is_error($field = '', $return_string = '')
  */
 if( ! function_exists('form_msg'))
 {
-    function form_msg($model = '', $form_msg = '', $class_error = 'notification error', $class_success = 'notification success')
+    function form_msg($model = '', $form_msg = '', $class_error = 'notification error')
     {
         if( ! is_object($model))
         {
@@ -933,6 +933,11 @@ if( ! function_exists('form_msg'))
             return ($msg == '') ? '' : '<div class="'.$class_error.'">'.$msg.'</div>';
         }
         
+        if($form_msg === FALSE)
+        {
+            return;
+        }
+        
         if($model->errors('success') == 0)
         {
             $msg = lang('vm_form_error');
@@ -948,17 +953,6 @@ if( ! function_exists('form_msg'))
             }
 
             return ($msg == '') ? '' : '<div class="'.$class_error.'">'.$msg.'</div>';
-        }
-        elseif($model->errors('success') == 1)
-        {
-            $msg = lang('vm_form_save');
-            
-            if( ! empty($form_msg))
-            {
-                $msg = $form_msg;
-            }
-            
-            return ($msg == '') ? '' : '<div class="'.$class_success.'">'.$msg.'</div>';
         }
     }
 }
