@@ -166,8 +166,14 @@ Class OB_Auth {
      * 
      * @return bool
      */
-    public function set()
+    public function set($fake_auth = FALSE)
     {
+        if($fake_auth)
+        {
+            sess_set('ok', 1, $this->session_prefix);  // Just authenticate the user.
+            return;
+        }
+        
         $row = $this->get_row();
         
         if(is_object($row) AND isset($row->{$this->username_col}))
@@ -202,7 +208,7 @@ Class OB_Auth {
      */
     public function check()
     {
-        if(sess($this->session_prefix.'ok') == 1)  // auth is ok ?
+        if(sess('ok', $this->session_prefix) == 1)  // auth is ok ?
         {
             return TRUE;
         }
@@ -219,7 +225,7 @@ Class OB_Auth {
      * @param type $params
      * @return boolean | void ( callback function )
      */
-    public function is_not_ok($redirect = '', $auto_redirect = TRUE, $urlencode = TRUE)
+    public function redirect($redirect = '', $auto_redirect = TRUE, $urlencode = TRUE)
     {
         $redirect_url = ($redirect == '') ? $this->is_not_ok_url : $redirect;
         
@@ -245,14 +251,16 @@ Class OB_Auth {
      * @param type $params
      * @return boolean | void ( callback function )
      */
-    public function is_ok($redirect = '/dashboard')
+    public function is_ok($redirect = '')
     {
         if($this->check())  // auth is ok ?
         {
-            redirect($redirect); 
+            if($redirect != '') redirect($redirect);
+            
+            return TRUE;
         }
         
-        return;
+        return FALSE;
     }
     
     // ------------------------------------------------------------------------
@@ -270,7 +278,7 @@ Class OB_Auth {
             return sess_alldata();
         }
         
-        return sess($this->session_prefix.$key);
+        return sess($key, $this->session_prefix);
     }
     
     // ------------------------------------------------------------------------
@@ -281,9 +289,15 @@ Class OB_Auth {
     * @param string $key
     * @return void
     */
-    public function set_data($key)
+    public function set_data($key, $val = '')
     {
-        sess_set($this->session_prefix.$key);
+        if(is_array($key))
+        {
+            sess_set($key, '', $this->session_prefix);
+            return;
+        }
+        
+        sess_set($key, $val, $this->session_prefix);
     }
     
     // ------------------------------------------------------------------------
@@ -296,7 +310,13 @@ Class OB_Auth {
     */
     public function unset_data($key)
     {
-        sess_unset($this->session_prefix.$key);
+        if(is_array($key))
+        {
+            sess_unset($key, $this->session_prefix);
+            return;
+        }
+        
+        sess_unset($key, $this->session_prefix);
     }
     
     // ------------------------------------------------------------------------
@@ -360,15 +380,15 @@ Class OB_Auth {
     {
         $row = $this->get_row();
         
-        sess_set($this->session_prefix.'ok', 1);  // Authenticate the user.
+        sess_set('ok', 1, $this->session_prefix);  // Authenticate the user.
         
         $sess_data = array();
         foreach($data as $key)
         {
-            $sess_data[$this->session_prefix.$key] = $row->{$key};
+            $sess_data[$key] = $row->{$key};
         }
         
-        sess_set($sess_data);   // Store user data to session container.
+        sess_set($sess_data, '', $this->session_prefix);   // Store user data to session container.
     }
     
     // ------------------------------------------------------------------------
@@ -379,9 +399,9 @@ Class OB_Auth {
     * @param bool $sess_destroy whether to use session destroy function
     * @return void 
     */
-    public function logout($sess_destroy = FALSE)
+    public function logout($sess_destroy = TRUE)
     {
-        sess_unset($this->session_prefix.'ok');
+        sess_unset('ok', $this->session_prefix);
         
         if($sess_destroy)
         {
@@ -390,16 +410,7 @@ Class OB_Auth {
         }
         
         $user_data = sess_alldata();
-        if(count($user_data) > 0)
-        {
-            foreach($user_data as $key => $val)
-            {
-                if(strpos($key, $this->session_prefix) === 0)
-                {
-                    sess_unset($key);
-                }
-            }
-        }
+        sess_unset($user_data, $this->session_prefix);
     }
     
 }

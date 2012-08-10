@@ -302,11 +302,11 @@ if( ! function_exists('sess_destroy') )
 */        
 if( ! function_exists('sess_get') ) 
 {
-    function sess_get($item)
+    function sess_get($item, $prefix = '')
     {
         $sess = lib('ob/Session');
         
-        return ( ! isset($sess->userdata[$item])) ? FALSE : $sess->userdata[$item];
+        return ( ! isset($sess->userdata[$prefix.$item])) ? FALSE : $sess->userdata[$prefix.$item];
     }
 }
 // --------------------------------------------------------------------
@@ -320,9 +320,9 @@ if( ! function_exists('sess_get') )
 */
 if( ! function_exists('sess') ) 
 {
-    function sess($item)
+    function sess($item, $prefix = '')
     {
-        return sess_get($item);
+        return sess_get($prefix.$item);
     }
 }
 // --------------------------------------------------------------------
@@ -354,7 +354,7 @@ if( ! function_exists('sess_alldata') )
 */       
 if( ! function_exists('sess_set') ) 
 { 
-    function sess_set($newdata = array(), $newval = '')
+    function sess_set($newdata = array(), $newval = '', $prefix = '')
     {
         $sess = lib('ob/Session');
         
@@ -367,7 +367,7 @@ if( ! function_exists('sess_set') )
         {
             foreach ($newdata as $key => $val)
             {
-                $sess->userdata[$key] = $val;
+                $sess->userdata[$prefix.$key] = $val;
             }
         }
 
@@ -384,7 +384,7 @@ if( ! function_exists('sess_set') )
 */       
 if( ! function_exists('sess_unset') ) 
 { 
-    function sess_unset($newdata = array())  // obullo changes ...
+    function sess_unset($newdata = array(), $prefix = '')
     {
         $sess = lib('ob/Session');
         
@@ -397,7 +397,7 @@ if( ! function_exists('sess_unset') )
         {
             foreach ($newdata as $key => $val)
             {
-                unset($sess->userdata[$key]);
+                unset($sess->userdata[$prefix.$key]);
             }
         }
 
