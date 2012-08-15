@@ -581,13 +581,10 @@ Class loader {
             $return['filename'] = $filename;
             $return['path']     = MODULES .$modulename . $folder . DS . $sub_path.$extra_path;
 
-            if($folder == 'layouts')
+            if(lib('ob/Uri')->fetch_sub_module() != '') // If its a su.module ?
             {
-                if(lib('ob/Uri')->fetch_sub_module() != '')
-                {
-                    $return['path'] = MODULES .'sub.'.lib('ob/Uri')->fetch_sub_module(). DS . SUB_MODULES. 'views'. DS .'layouts'. DS .$sub_path.$extra_path;
-                }
-            }
+                $return['path'] = MODULES .'sub.'.lib('ob/Uri')->fetch_sub_module(). DS . SUB_MODULES. $folder . DS .$sub_path.$extra_path;
+            }            
             
             return $return;
         }
