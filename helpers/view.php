@@ -115,6 +115,8 @@ if ( ! function_exists('view'))
     function view($file_url, $data = '', $string = TRUE)
     {
         $folder = 'views';
+        
+        /*
         if(strpos($file_url, 'layouts/') === 0) // include file and load view files form /layouts folder.
         {
             $string = FALSE;
@@ -125,11 +127,12 @@ if ( ! function_exists('view'))
             $folder   = 'layouts';
             $string   = FALSE;   
         }
+        */
         
         if(strpos($file_url, 'ob/') === 0)  // Obullo Core Views
         {
             $file_data = array('filename' => strtolower(substr($file_url, 3)), 'path' => BASE .'views'. DS);
-        } 
+        }
         else
         {
             $file_data = loader::load_file($file_url, $folder, FALSE, FALSE);

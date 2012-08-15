@@ -45,6 +45,7 @@ Class OB_Auth {
     
     public $is_not_ok_url      = '/login';
     public $is_ok_url          = '/dashboard';
+    public $fields             = array();
     
     public $row = FALSE;    // SQL Query result as row
     
@@ -77,17 +78,24 @@ Class OB_Auth {
     }
     
     // ------------------------------------------------------------------------
-
+    
     /**
     * Set database select names
     * 
     * @param string $select database select fields
     */
-    public function select($select = 'username, password')
+    public function select($select = '')
     {
+        if($select == '')
+        {
+            $this->select_data = $this->item('fields');
+            
+            return;
+        }
+        
         if(is_array($select))
         {
-            $this->select_data = $data;
+            $this->select_data = $select;
         } 
         else
         {
