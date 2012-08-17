@@ -319,20 +319,7 @@ function ob_autoload($real_name)
     }
     
     $modulename = lib('ob/Router')->fetch_directory();
-
-    // Parent Controllers
-    // --------------------------------------------------------------------
-    if(substr(mb_strtolower($real_name, config_item('charset')), -11) == '_controller')
-    {
-        // If Module Parent Controller file exist ..
-        if(file_exists(MODULES .$GLOBALS['sub_path'].$modulename. DS .'parents'. DS .$real_name. EXT))
-        {            
-            require(MODULES .$GLOBALS['sub_path'].$modulename. DS .'parents'. DS .$real_name. EXT);
-            
-            return;
-        }
-    }
-
+    
     $Class = $real_name;    
     
     // Database files.
