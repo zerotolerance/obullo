@@ -19,7 +19,6 @@ if( ! function_exists('_sess_start') )
 
         $sess   = lib('ob/Session');
         $config = lib('ob/Config');
-        $ob     = this();
 
         foreach (array('sess_encrypt_cookie', 'sess_driver', 'sess_db_var', 'sess_table_name', 
         'sess_expiration', 'sess_die_cookie', 'sess_match_ip', 'sess_match_useragent', 'sess_cookie_name', 'cookie_path', 
@@ -44,12 +43,12 @@ if( ! function_exists('_sess_start') )
         
         // --------------------------------------------------------------------
         
-            $config = get_config('memcached');
+        $config = get_config('memcached');
 
-            $memcached = new Memcached();
-            $memcached->addServer($config->item('host'), $config->item('port'));
+        $memcached = new Memcached();
+        $memcached->addServer($config->item('host'), $config->item('port'));
 
-            $sess->sess_db = $memcached;
+        $sess->sess_db = $memcached;
         
         // --------------------------------------------------------------------
         
@@ -104,10 +103,10 @@ if( ! function_exists('sess_read') )
         }
         
         // Decrypt the cookie data
-        if ($sess->sess_encrypt_cookie == TRUE)
+        if ($sess->sess_encrypt_cookie == TRUE)  // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $encrypt = lib('ob/Encrypt');
-            $session = $encrypt->decode($session);
+            $key     = config_item('encryption_key');
+            $session = rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($key), base64_decode($session), MCRYPT_MODE_CBC, md5(md5($key))), "\0");
         }
         else
         {    
@@ -737,10 +736,10 @@ if( ! function_exists('_set_cookie') )
         // Serialize the userdata for the cookie
         $cookie_data = _serialize($cookie_data);
         
-        if ($sess->sess_encrypt_cookie == TRUE)
+        if ($sess->sess_encrypt_cookie == TRUE) // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $encrypt = lib('ob/Encrypt');
-            $cookie_data = $encrypt->encode($cookie_data);
+            $key         = config_item('encryption_key');
+            $cookie_data = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($key), $cookie_data, MCRYPT_MODE_CBC, md5(md5($key))));
         }
         else
         {

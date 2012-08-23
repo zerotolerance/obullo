@@ -61,7 +61,7 @@ Class Vmodel extends Model {
                  
         if($db != '' AND $db != 'no')
         {
-            $this->db = loader::database($db, true); // Cannot assign by reference to overloaded object 
+            $this->db = loader::database($db, TRUE); // Cannot assign by reference to overloaded object 
         }
                             
         if( ! isset($this->settings['table'])) // create random table name

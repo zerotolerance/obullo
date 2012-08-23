@@ -17,7 +17,7 @@ if( ! function_exists('_sess_start') )
     {                       
         log_me('debug', "Session Cookie Driver Initialized"); 
 
-        $sess = lib('ob/Session');
+        $sess   = lib('ob/Session');
         $config = lib('ob/Config');
         
         foreach (array('sess_encrypt_cookie','sess_expiration', 'sess_die_cookie', 'sess_match_ip', 
@@ -94,10 +94,10 @@ if( ! function_exists('sess_read') )
         }
         
         // Decrypt the cookie data
-        if ($sess->sess_encrypt_cookie == TRUE)
+        if ($sess->sess_encrypt_cookie == TRUE)  // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $encrypt = lib('ob/Encrypt');
-            $session = $encrypt->decode($session);
+            $key     = config_item('encryption_key');
+            $session = rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($key), base64_decode($session), MCRYPT_MODE_CBC, md5(md5($key))), "\0");
         }
         else
         {    
@@ -611,10 +611,10 @@ if( ! function_exists('_set_cookie') )
         // Serialize the userdata for the cookie
         $cookie_data = _serialize($cookie_data);
         
-        if ($sess->sess_encrypt_cookie == TRUE)
+        if ($sess->sess_encrypt_cookie == TRUE) // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $encrypt = lib('ob/Encrypt');
-            $cookie_data = $encrypt->encode($cookie_data);
+            $key         = config_item('encryption_key');
+            $cookie_data = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($key), $cookie_data, MCRYPT_MODE_CBC, md5(md5($key))));
         }
         else
         {

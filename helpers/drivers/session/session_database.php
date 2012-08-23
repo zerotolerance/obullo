@@ -19,8 +19,7 @@ if( ! function_exists('_sess_start') )
 
         $sess   = lib('ob/Session');
         $config = lib('ob/Config');
-        $ob     = this();
-
+        
         foreach (array('sess_encrypt_cookie', 'sess_driver', 'sess_db_var', 'sess_table_name', 
         'sess_expiration', 'sess_die_cookie', 'sess_match_ip', 'sess_match_useragent', 'sess_cookie_name', 'cookie_path', 
         'cookie_domain', 'sess_time_to_update', 'time_reference', 'cookie_prefix', 'encryption_key') as $key)
@@ -44,20 +43,7 @@ if( ! function_exists('_sess_start') )
         
         // --------------------------------------------------------------------
         
-        // if custom database variable exists ..
-        if(isset($ob->{$sess->sess_db_var}) AND $ob->{$sess->sess_db_var} instanceof OB_DB)
-        {
-            $sess->sess_db = $ob->{$sess->sess_db_var};
-        }                                
-        else
-        {
-            if( ! isset($ob->db) || ! $ob->db instanceof OB_DB) 
-            {
-                loader::database();
-            }
-            
-            $sess->sess_db = &$ob->db;
-        }
+        $sess->sess_db = loader::database('db', TRUE);
         
         // --------------------------------------------------------------------
         
@@ -97,7 +83,7 @@ if( ! function_exists('_sess_start') )
 if( ! function_exists('sess_read') ) 
 {
     function sess_read()
-    {    
+    {
         $sess = lib('ob/Session');
         
         // Fetch the cookie
@@ -107,14 +93,15 @@ if( ! function_exists('sess_read') )
         if ($session === FALSE)
         {               
             log_me('debug', 'A session cookie was not found.');
+            
             return FALSE;
         }
         
         // Decrypt the cookie data
-        if ($sess->sess_encrypt_cookie == TRUE)
+        if ($sess->sess_encrypt_cookie == TRUE)  // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $encrypt = lib('ob/Encrypt');
-            $session = $encrypt->decode($session);
+            $key     = config_item('encryption_key');
+            $session = rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($key), base64_decode($session), MCRYPT_MODE_CBC, md5(md5($key))), "\0");
         }
         else
         {    
@@ -722,10 +709,10 @@ if( ! function_exists('_set_cookie') )
         // Serialize the userdata for the cookie
         $cookie_data = _serialize($cookie_data);
         
-        if ($sess->sess_encrypt_cookie == TRUE)
+        if ($sess->sess_encrypt_cookie == TRUE) // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $encrypt = lib('ob/Encrypt');
-            $cookie_data = $encrypt->encode($cookie_data);
+            $key         = config_item('encryption_key');
+            $cookie_data = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($key), $cookie_data, MCRYPT_MODE_CBC, md5(md5($key))));
         }
         else
         {
