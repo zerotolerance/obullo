@@ -29,7 +29,7 @@ Class Vmodel extends Model {
     public $property   = array();  // User public variables, we set them in controller.
     public $errors     = array();  // Validation errors.
     public $values     = array();  // Filtered safe values.
-    public $no_input   = array();  // No input fields, so save function will not save them to database.
+    public $no_save    = array();  // No save fields, so save function will not save selected fields to database.
     public $validation = FALSE;    // If form validation success we set it to true.
     public $debug      = FALSE;    // Turn On / Off Debugging
     
@@ -223,6 +223,18 @@ Class Vmodel extends Model {
     */
     public function errors($key = '')
     {
+        if($key == 'transaction')
+        {
+            if(isset($this->errors[$this->item('table')]['transaction_error']))
+            {
+                return $this->errors[$this->item('table')]['transaction_error'];
+            } 
+            else 
+            {
+                return;
+            }
+        }
+        
         if(isset($this->errors[$this->item('table')]))
         {
             if(isset($this->errors[$this->item('table')][$key]))
@@ -247,18 +259,28 @@ Class Vmodel extends Model {
     }
     
     // --------------------------------------------------------------------
-
+    
     /**
-    * Get one error.
-    *
-    * @param string $field
-    */
-    public function error($key)
+     * Build Httpd GET friendly error query strings.
+     * 
+     * errors[user_password]=Wrond%20Password!&errors['user_email']=Wrong%20Email%20Address!
+     * @return type 
+     */
+    public function build_query_errors()
     {
-        if(isset($this->errors[$this->item('table')][$key]))
+        $http_query['errors'] = array();
+        if(isset($this->errors[$this->item('table')]))
         {
-            return $this->errors[$this->item('table')][$key];
+            foreach($this->errors[$this->item('table')] as $key => $val)
+            {
+                if(is_string($val))
+                {
+                    $http_query['errors'][$key] = $val;
+                }
+            }
         }
+        
+        return http_build_query($http_query);
     }
     
     // --------------------------------------------------------------------
@@ -282,22 +304,6 @@ Class Vmodel extends Model {
         }
         
         return $this->values;
-    }
-   
-    // --------------------------------------------------------------------
-
-    /**
-    * Alias of values() function.
-    * Just return to filtered one item's value.
-    *
-    * @param string $field
-    */
-    public function value($field)
-    {
-        if(isset($this->values[$this->item('table')][$field]))
-        {
-            return $this->values[$this->item('table')][$field];
-        }
     }
 
     // --------------------------------------------------------------------
@@ -449,19 +455,7 @@ Class Vmodel extends Model {
     */
     public function no_save($key)
     {
-        $this->no_input[$key] = $key;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Alias of no_save() function.
-    * 
-    * @param type $key
-    */
-    public function no_input($key)
-    {
-        return $this->no_save($key);
+        $this->no_save[$key] = $key;
     }
     
     // --------------------------------------------------------------------
@@ -590,9 +584,9 @@ Class Vmodel extends Model {
         $table  = $this->item('table');
         $id     = ($this->item('primary_key') !== FALSE) ? $this->item('primary_key') : 'id';
         
-        if(count($this->no_input) > 0)
+        if(count($this->no_save) > 0)
         {
-            foreach($this->no_input as $k)
+            foreach($this->no_save as $k)
             {
                 unset($this->settings['fields'][$k]);
             }
@@ -728,27 +722,6 @@ Class Vmodel extends Model {
                     return FALSE;
                 }
                 
-                /*
-                if($this->errors[$table]['affected_rows'] >= 1)
-                {
-                    $this->errors[$table]['success'] = 1;
-                    $this->errors[$table]['msg']     = lang('vm_update_success');
-                    
-                    $this->clear();    // reset validator data
-
-                    return TRUE;
-                } 
-                elseif($this->errors[$table]['affected_rows'] == 0)
-                {
-                    $this->errors[$table]['success']    = 0;
-                    $this->errors[$table]['system_msg'] = lang('vm_update_fail');
-                    
-                    $this->clear();    // reset validator data
-
-                    return FALSE;  
-                }
-                
-                */
             }
             else   // ELSE do insert ..
             {
@@ -1070,7 +1043,7 @@ Class Vmodel extends Model {
         
         $this->function   = array();
         $this->property   = array();
-        $this->no_input   = array(); 
+        $this->no_save    = array(); 
         $this->validation = FALSE;
 
         

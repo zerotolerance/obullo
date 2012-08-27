@@ -58,8 +58,7 @@ if( ! function_exists('form_open') )
 
         $form .= '>';
         
-        // CSRF Support
-        if ($config->item('csrf_protection') === TRUE)
+        if ($config->item('csrf_protection') === TRUE) // CSRF Support
         {
             $security = lib('ob/Security');
             
@@ -124,29 +123,29 @@ if( ! function_exists('form_hidden') )
 
         if ($recursing === FALSE)
         {
-                $form = "\n";
+            $form = "\n";
         }
 
         if (is_array($name))
         {
-                foreach ($name as $key => $val)
-                {
-                        form_hidden($key, $val, '', TRUE);
-                }
-                return $form;
+            foreach ($name as $key => $val)
+            {
+                form_hidden($key, $val, '', TRUE);
+            }
+            return $form;
         }
 
         if ( ! is_array($value))
         {
-                $form .= '<input type="hidden" name="'.$name.'" value="'.form_prep($value, $name).'"'. $extra . '/>'."\n";
+            $form .= '<input type="hidden" name="'.$name.'" value="'.form_prep($value, $name).'"'. $extra . '/>'."\n";
         }
         else
         {
-                foreach ($value as $k => $v)
-                {
-                        $k = (is_int($k)) ? '' : $k; 
-                        form_hidden($name.'['.$k.']', $v, '', TRUE);
-                }
+            foreach ($value as $k => $v)
+            {
+                $k = (is_int($k)) ? '' : $k; 
+                form_hidden($name.'['.$k.']', $v, '', TRUE);
+            }
         }
 
         return $form;
@@ -190,7 +189,9 @@ if( ! function_exists('form_password') )
     function form_password($data = '', $value = '', $extra = '')
     {
         if ( ! is_array($data))
-        $data = array('name' => $data);
+        {
+            $data = array('name' => $data);
+        }
 
         $data['type'] = 'password';
         return form_input($data, $value, $extra);
@@ -214,8 +215,10 @@ if( ! function_exists('form_upload') )
     function form_upload($data = '', $value = '', $extra = '')
     {
         if ( ! is_array($data))
-        $data = array('name' => $data);
-
+        {
+            $data = array('name' => $data);
+        }
+        
         $data['type'] = 'file';
         return form_input($data, $value, $extra);
     }
@@ -239,12 +242,12 @@ if( ! function_exists('form_textarea') )
 
         if ( ! is_array($data) OR ! isset($data['value']))
         {
-                $val = $value;
+            $val = $value;
         }
         else
         {
-                $val = $data['value']; 
-                unset($data['value']); // textareas don't use the value attribute
+            $val = $data['value']; 
+            unset($data['value']); // textareas don't use the value attribute
         }
 
         $name = (is_array($data)) ? $data['name'] : $data;
@@ -406,7 +409,9 @@ if( ! function_exists('form_radio') )
     function form_radio($data = '', $value = '', $checked = FALSE, $extra = '')
     {
         if ( ! is_array($data))
-        $data = array('name' => $data);
+        {
+            $data = array('name' => $data); 
+        }
 
         $data['type'] = 'radio';
         return form_checkbox($data, $value, $checked, $extra);
@@ -474,8 +479,8 @@ if( ! function_exists('form_button') )
 
         if ( is_array($data) AND isset($data['content']))
         {
-                $content = $data['content'];
-                unset($data['content']); // content is not an attribute
+            $content = $data['content'];
+            unset($data['content']); // content is not an attribute
         }
 
         return "<button "._parse_form_attributes($data, $defaults).$extra.">".$content."</button>";
@@ -501,15 +506,15 @@ if( ! function_exists('form_label') )
 
         if ($id != '')
         {
-                 $label .= " for=\"$id\"";
+            $label .= " for=\"$id\"";
         }
 
         if (is_array($attributes) AND count($attributes) > 0)
         {
-                foreach ($attributes as $key => $val)
-                {
-                        $label .= ' '.$key.'="'.$val.'"';
-                }
+            foreach ($attributes as $key => $val)
+            {
+                    $label .= ' '.$key.'="'.$val.'"';
+            }
         }
 
         $label .= ">$label_text</label>";
@@ -653,12 +658,15 @@ if( ! function_exists('set_value') )
     {
         if (FALSE === ($OBJ = _get_validation_object()))
         {
-                if ( ! isset($_POST[$field]))
-                {
-                        return $default;
-                }
+            if ( ! isset($_REQUEST[$field]))
+            {
+                return $default;
+            }
 
-                return form_prep($_POST[$field], $field);
+            if(isset($_REQUEST[$field]))
+            {
+                return form_prep($_REQUEST[$field], $field);
+            }   
         }
 
         return form_prep($OBJ->set_value($field, $default), $field);
@@ -687,33 +695,34 @@ if( ! function_exists('set_select') )
 
         if ($OBJ === FALSE)
         {
-                if ( ! isset($_POST[$field]))
+            if ( ! isset($_REQUEST[$field]))
+            {
+                if (count($_REQUEST) === 0 AND $default == TRUE)
                 {
-                        if (count($_POST) === 0 AND $default == TRUE)
-                        {
-                                return ' selected="selected"';
-                        }
-                        return '';
+                    return ' selected="selected"';
                 }
+                
+                return '';
+            }
 
-                $field = $_POST[$field];
+            $field = $_REQUEST[$field];
 
-                if (is_array($field))
+            if (is_array($field))
+            {
+                if ( ! in_array($value, $field))
                 {
-                        if ( ! in_array($value, $field))
-                        {
-                                return '';
-                        }
+                    return '';
                 }
-                else
+            }
+            else
+            {
+                if (($field == '' OR $value == '') OR ($field != $value))
                 {
-                        if (($field == '' OR $value == '') OR ($field != $value))
-                        {
-                                return '';
-                        }
+                    return '';
                 }
+            }
 
-                return ' selected="selected"';
+            return ' selected="selected"';
         }
 
         return $OBJ->set_select($field, $value, $default);
@@ -742,33 +751,33 @@ if( ! function_exists('set_checkbox') )
 
         if ($OBJ === FALSE)
         { 
-                if ( ! isset($_POST[$field]))
+            if ( ! isset($_REQUEST[$field]))
+            {
+                if (count($_REQUEST) === 0 AND $default == TRUE)
                 {
-                        if (count($_POST) === 0 AND $default == TRUE)
-                        {
-                                return ' checked="checked"';
-                        }
+                        return ' checked="checked"';
+                }
+                return '';
+            }
+
+            $field = $_REQUEST[$field];
+
+            if (is_array($field))
+            {
+                if ( ! in_array($value, $field))
+                {
                         return '';
                 }
-
-                $field = $_POST[$field];
-
-                if (is_array($field))
+            }
+            else
+            {
+                if (($field == '' OR $value == '') OR ($field != $value))
                 {
-                        if ( ! in_array($value, $field))
-                        {
-                                return '';
-                        }
+                        return '';
                 }
-                else
-                {
-                        if (($field == '' OR $value == '') OR ($field != $value))
-                        {
-                                return '';
-                        }
-                }
+            }
 
-                return ' checked="checked"';
+            return ' checked="checked"';
         }
 
         return $OBJ->set_checkbox($field, $value, $default);
@@ -797,33 +806,34 @@ if( ! function_exists('set_radio') )
 
         if ($OBJ === FALSE)
         {
-                if ( ! isset($_POST[$field]))
+            if ( ! isset($_REQUEST[$field]))
+            {
+                if (count($_REQUEST) === 0 AND $default == TRUE)
                 {
-                        if (count($_POST) === 0 AND $default == TRUE)
-                        {
-                                return ' checked="checked"';
-                        }
-                        return '';
+                    return ' checked="checked"';
                 }
+                
+                return '';
+            }
 
-                $field = $_POST[$field];
+            $field = $_REQUEST[$field];
 
-                if (is_array($field))
+            if (is_array($field))
+            {
+                if ( ! in_array($value, $field))
                 {
-                        if ( ! in_array($value, $field))
-                        {
-                                return '';
-                        }
+                    return '';
                 }
-                else
+            }
+            else
+            {
+                if (($field == '' OR $value == '') OR ($field != $value))
                 {
-                        if (($field == '' OR $value == '') OR ($field != $value))
-                        {
-                                return '';
-                        }
+                    return '';
                 }
+            }
 
-                return ' checked="checked"';
+            return ' checked="checked"';
         }
 
         return $OBJ->set_radio($field, $value, $default);
@@ -845,8 +855,13 @@ if( ! function_exists('set_radio') )
 */
 if( ! function_exists('form_error') ) 
 { 
-    function form_error($field = '', $prefix = '', $suffix = '')
-    {
+    function form_error($field = '', $prefix = '<p>', $suffix = '</p>')
+    {        
+        if(isset($_GET['errors'][$field])) // GET Support
+        {
+            return $prefix.$_GET['errors'][$field].$suffix;
+        }
+        
         if(is_object($field)) // Validation Model System Error Support
         {
             $model = &$field;
@@ -970,26 +985,16 @@ if( ! function_exists('form_msg'))
 * @param	string
 * @return	string
 */
-if( ! function_exists('form_validate_errors') ) 
-{ 
-    function form_validate_errors($prefix = '', $suffix = '')  // Obullo changes ..
-    {
-        if (FALSE === ($OBJ = _get_validation_object()))
-        {
-                return '';
-        }
-
-        return $OBJ->error_string($prefix, $suffix);
-    }
-}
-
-// ------------------------------------------------------------------------
-
 if( ! function_exists('validation_errors') ) 
 { 
     function validation_errors($prefix = '', $suffix = '')  // Obullo changes ..
     {
-        return form_validate_errors($prefix, $suffix);
+        if (FALSE === ($OBJ = _get_validation_object()))
+        {
+            return '';
+        }
+
+        return $OBJ->error_string($prefix, $suffix);
     }
 }
 
@@ -1011,31 +1016,31 @@ if( ! function_exists('_parse_form_attributes') )
     {
         if (is_array($attributes))
         {
-                foreach ($default as $key => $val)
+            foreach ($default as $key => $val)
+            {
+                if (isset($attributes[$key]))
                 {
-                        if (isset($attributes[$key]))
-                        {
-                                $default[$key] = $attributes[$key];
-                                unset($attributes[$key]);
-                        }
+                    $default[$key] = $attributes[$key];
+                    unset($attributes[$key]);
                 }
+            }
 
-                if (count($attributes) > 0)
-                {
-                        $default = array_merge($default, $attributes);
-                }
+            if (count($attributes) > 0)
+            {
+                $default = array_merge($default, $attributes);
+            }
         }
 
         $att = '';
 
         foreach ($default as $key => $val)
         {
-                if ($key == 'value')
-                {
-                        $val = form_prep($val, $default['name']);
-                }
+            if ($key == 'value')
+            {
+                $val = form_prep($val, $default['name']);
+            }
 
-                $att .= $key . '="' . $val . '" ';
+            $att .= $key . '="' . $val . '" ';
         }
 
         return $att;
@@ -1060,34 +1065,34 @@ if( ! function_exists('_attributes_to_string') )
     {
         if (is_string($attributes) AND strlen($attributes) > 0)
         {
-                if ($formtag == TRUE AND strpos($attributes, 'method=') === FALSE)
-                {
-                        $attributes .= ' method="post"';
-                }
+            if ($formtag == TRUE AND strpos($attributes, 'method=') === FALSE)
+            {
+                $attributes .= ' method="post"';
+            }
 
-        return ' '.$attributes;
+            return ' '.$attributes;
         }
 
         if (is_object($attributes) AND count($attributes) > 0)
         {
-                $attributes = (array)$attributes;
+            $attributes = (array)$attributes;
         }
 
         if (is_array($attributes) AND count($attributes) > 0)
         {
-        $atts = '';
+            $atts = '';
 
-        if ( ! isset($attributes['method']) AND $formtag === TRUE)
-        {
+            if ( ! isset($attributes['method']) AND $formtag === TRUE)
+            {
                 $atts .= ' method="post"';
-        }
+            }
 
-        foreach ($attributes as $key => $val)
-        {
+            foreach ($attributes as $key => $val)
+            {
                 $atts .= ' '.$key.'="'.$val.'"';
-        }
+            }
 
-        return $atts;
+            return $atts;
         }
     }
 }
