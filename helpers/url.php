@@ -621,7 +621,7 @@ if ( ! function_exists('url_title'))
 *
 * @access   public
 * @param    string    the URL
-* @param    string    the method: location or redirect
+* @param    string    the method: location or refresh[param]
 * @version  0.1       added sharp support and suffix parameter
 * @return   string
 */
@@ -649,6 +649,15 @@ if ( ! function_exists('redirect'))
             }
         }
 
+        if(strpos($method, '['))    // Obullo changes.. refresh parameter ..
+        {
+            $index = explode('[', $method);
+            $param = str_replace(']', '', $index[1]);
+
+            header("Refresh:$param;url=".$uri);
+            return;
+        }
+        
         switch($method)
         {
             case 'refresh'    : header("Refresh:0;url=".$uri);
