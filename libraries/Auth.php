@@ -233,44 +233,19 @@ Class OB_Auth {
      * @param type $params
      * @return boolean | void ( callback function )
      */
-    public function redirect($redirect = '', $auto_redirect = TRUE, $urlencode = TRUE)
+    public function redirect($redirect = '', $urlencode = TRUE)
     {
-        $redirect_url = ($redirect == '') ? $this->is_not_ok_url : $redirect;
-        
-        if($auto_redirect === TRUE)
+        if( ! $this->check())  // auth is NOT ok ?
         {
+            $redirect_url = ($redirect == '') ? $this->is_not_ok_url : $redirect;
             $redirect_url = $redirect_url.'?redirect='.lib('ob/Uri')->request_uri($urlencode);
-        }
-        
-        if( ! $this->check())  // auth is ok ?
-        {
+
             redirect($redirect_url); 
         }
         
         return;
     }
-    
-    // ------------------------------------------------------------------------
-    
-     /**
-     * Check Auth is OK and Redirect to provided url.
-     * 
-     * @param type $callback
-     * @param type $params
-     * @return boolean | void ( callback function )
-     */
-    public function is_ok($redirect = '')
-    {
-        if($this->check())  // auth is ok ?
-        {
-            if($redirect != '') redirect($redirect);
-            
-            return TRUE;
-        }
-        
-        return FALSE;
-    }
-    
+
     // ------------------------------------------------------------------------
     
     /**
