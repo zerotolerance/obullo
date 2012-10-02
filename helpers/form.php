@@ -923,9 +923,17 @@ function form_is_error($field = '', $return_string = '')
  * @param string $save_msg
  * @return string 
  */
+
+/**
+ * Form (Validation Model) Head Error
+ * 
+ * @param object $model
+ * @param string $save_msg
+ * @return string 
+ */
 if( ! function_exists('form_msg'))
 {
-    function form_msg($model = '', $form_msg = '', $class_error = 'notification error')
+    function form_msg($model = '', $form_msg = '', $prefix = '<div class="notification error">', $suffix = '</div>')
     {
         if( ! is_object($model))
         {
@@ -938,14 +946,14 @@ if( ! function_exists('form_msg'))
 
             $msg =  $model->errors[$model->item('table')]['msg'] .' '. lang('vm_system_message') . $model->errors[$model->item('table')]['transaction_error'];
             
-            return ($msg == '') ? '' : '<div class="'.$class_error.'">'.$msg.'</div>';
+            return ($msg == '') ? '' : $prefix.$msg.$suffix;
         }
         
         if($model->errors('system_msg') != '')
         {
             $msg = $model->errors('system_msg');
             
-            return ($msg == '') ? '' : '<div class="'.$class_error.'">'.$msg.'</div>';
+            return ($msg == '') ? '' : $prefix.$msg.$suffix;
         }
         
         if($form_msg === FALSE)
@@ -967,7 +975,7 @@ if( ! function_exists('form_msg'))
                 $msg = form_error($model);
             }
 
-            return ($msg == '') ? '' : '<div class="'.$class_error.'">'.$msg.'</div>';
+            return ($msg == '') ? '' : $prefix.$msg.$suffix;
         }
     }
 }
