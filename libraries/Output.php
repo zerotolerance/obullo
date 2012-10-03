@@ -267,14 +267,14 @@ Class OB_Output {
         // Is compression requested?  
         // --------------------------------------------------------------------
         
-        if (config_item('compress_output') === TRUE)
+        if (config('compress_output') === TRUE)
         {
             if (extension_loaded('zlib'))
             {             
                 if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) AND strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== FALSE)
                 {   
                     // Obullo changes .. 
-                    ini_set('zlib.output_compression_level', config_item('compression_level'));  
+                    ini_set('zlib.output_compression_level', config('compression_level'));  
                     ob_start('ob_gzhandler');
                 }
             }

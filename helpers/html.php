@@ -403,7 +403,7 @@ if( ! function_exists('doctype') )
 {
     function doctype($type = 'xhtml1-strict')
     {
-        return config_item($type, 'doctypes');
+        return config($type, 'doctypes');
     }
 }
 

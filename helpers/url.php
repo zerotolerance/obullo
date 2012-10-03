@@ -187,7 +187,7 @@ if ( ! function_exists('anchor'))
         $ssl = FALSE;  // ssl support
         if(strpos($uri, 'https://') === 0)
         {
-            if(config_item('ssl')) // Global ssl config.
+            if(config('ssl')) // Global ssl config.
             {
                 $ssl = TRUE;
             }
@@ -239,13 +239,13 @@ if ( ! function_exists('anchor'))
         {
             if($ssl == FALSE)
             {
-                $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
+                $site_url = rtrim(config('domain_root'), '/') . $site_url;
             }
         }
 
         if($ssl)
         {
-            $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
+            $site_url = rtrim(config('domain_root'), '/') . $site_url;
             $site_url = str_replace('http://',  'https://',  $site_url);
         }
 
@@ -275,7 +275,7 @@ if ( ! function_exists('anchor_popup'))
         $ssl = FALSE;  // ssl support
         if(strpos($uri, 'https://') === 0)
         {
-            if(config_item('ssl')) // Global ssl config.
+            if(config('ssl')) // Global ssl config.
             {
                 $ssl = TRUE;
             }
@@ -296,13 +296,13 @@ if ( ! function_exists('anchor_popup'))
         {
             if($ssl == FALSE)
             {
-                $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
+                $site_url = rtrim(config('domain_root'), '/') . $site_url;
             }
         }
 
         if($ssl)
         {
-            $site_url = rtrim(config_item('domain_root'), '/') . $site_url;
+            $site_url = rtrim(config('domain_root'), '/') . $site_url;
             $site_url = str_replace('http://',  'https://',  $site_url);
         }
 

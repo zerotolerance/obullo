@@ -37,7 +37,7 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
 {
     static $new_objects = array();                
     
-    $Class    = ucfirst(mb_strtolower($realname, config_item('charset')));
+    $Class    = ucfirst(mb_strtolower($realname, config('charset')));
     $registry = OB_Registry::instance();
     
     // if we need to reset any registered object .. 
@@ -72,7 +72,7 @@ function core_class($realname, $new_object = NULL, $params_or_no_ins = '')
         }
 
         $classname = 'OB_'.$Class;
-        $prefix    = config_item('subclass_prefix');  // MY_
+        $prefix    = config('subclass_prefix');  // MY_
          
         if(file_exists(APP .'libraries'. DS .$prefix. $Class. EXT))  // Application extend support
         {
@@ -167,7 +167,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         $sub_path = DS . implode(DS, $paths);  // build sub path  ( e.g ./drivers/pager/)
     }
     
-    $Class    = ucfirst(mb_strtolower($realname, config_item('charset')));
+    $Class    = ucfirst(mb_strtolower($realname, config('charset')));
     $registry = OB_Registry::instance();
     
     // if we need to reset any registered object .. 
@@ -207,7 +207,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
         $classname = $Class;    // prepare classname
 
         $classname   = 'OB_'.$Class;
-        $prefix      = config_item('subclass_prefix');  // MY_
+        $prefix      = config('subclass_prefix');  // MY_
         
         $module      = lib('ob/Router')->fetch_directory();
         $sub_module  = lib('ob/Uri')->fetch_sub_module();
@@ -331,7 +331,7 @@ function ob_autoload($real_name)
     }
     
     static $overriden_objects = array();
-    $prefix = config_item('subclass_prefix');  // MY_
+    $prefix = config('subclass_prefix');  // MY_
     
     // Extension files.
     if($real_name == $prefix.'Model' OR $real_name == $prefix.'Vmodel')
@@ -387,7 +387,7 @@ if( ! function_exists('lib'))
     {    
         //------------ Begin core classes --------------
         
-        $class = mb_strtolower($class, config_item('charset'));
+        $class = mb_strtolower($class, config('charset'));
 
         if(strpos($class, 'ob/') === 0) // Obullo Libraries.
         {               
@@ -541,7 +541,7 @@ function get_config($filename = 'config', $var = '')
 *            multiple config support
 * @return    mixed
 */
-function config_item($item, $config_name = 'config')
+function config($item, $config_name = 'config')
 {
     static $config_item = array();
 
@@ -558,6 +558,11 @@ function config_item($item, $config_name = 'config')
     }
 
     return $config_item[$item];
+}
+
+function config_item($item = '')
+{
+    throw new Exception('config() is a deprecated function look at Obullo documentation.');
 }
 
 // --------------------------------------------------------------------
@@ -818,7 +823,7 @@ if( ! function_exists('show_error'))
         log_me('error', 'HTTP Error --> '.$message, false, true);
         
         // Some times we use utf8 chars in errors.
-        header('Content-type: text/html; charset='.config_item('charset')); 
+        header('Content-type: text/html; charset='.config('charset')); 
         
         echo show_http_error($heading, $message, 'ob_general', $status_code);
         

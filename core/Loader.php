@@ -417,7 +417,7 @@ Class loader {
                
         if(file_exists(BASE .'helpers'. DS . $core_path . $helper. EXT))
         {
-            $prefix      = config_item('subhelper_prefix');
+            $prefix      = config('subhelper_prefix');
             $module      = lib('ob/Router')->fetch_directory();
             $sub_module  = lib('ob/Uri')->fetch_sub_module();
             

@@ -107,7 +107,7 @@ if( ! function_exists('ob_system_run'))
 
         if ( ! file_exists($controller))   // Check the controller exists or not
         {
-            if(config_item('enable_query_strings') === TRUE) show_404();
+            if(config('enable_query_strings') === TRUE) show_404();
 
             throw new Exception('Unable to load your default controller.Please make sure the controller specified in your Routes.php file is valid.');
         }

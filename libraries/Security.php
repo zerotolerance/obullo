@@ -72,16 +72,16 @@ Class OB_Security {
     {
         foreach(array('csrf_expire', 'csrf_token_name', 'csrf_cookie_name') as $key)  // CSRF config
         {
-            if (FALSE !== ($val = config_item($key)))
+            if (FALSE !== ($val = config($key)))
             {
                 $this->{'_'.$key} = $val;
             }
         }
 
         // Append application specific cookie prefix
-        if (config_item('cookie_prefix'))
+        if (config('cookie_prefix'))
         {
-            $this->_csrf_cookie_name = config_item('cookie_prefix').$this->_csrf_cookie_name;
+            $this->_csrf_cookie_name = config('cookie_prefix').$this->_csrf_cookie_name;
         }
 
         // Set the CSRF hash
@@ -143,7 +143,7 @@ Class OB_Security {
     public function csrf_set_cookie()
     {
         $expire = time() + $this->_csrf_expire;
-        $secure_cookie = (config_item('cookie_secure') === TRUE) ? 1 : 0;
+        $secure_cookie = (config('cookie_secure') === TRUE) ? 1 : 0;
 
         if ($secure_cookie)
         {
@@ -159,7 +159,7 @@ Class OB_Security {
             }
         }
 
-        setcookie($this->_csrf_cookie_name, $this->_csrf_hash, $expire, config_item('cookie_path'), config_item('cookie_domain'), $secure_cookie);
+        setcookie($this->_csrf_cookie_name, $this->_csrf_hash, $expire, config('cookie_path'), config('cookie_domain'), $secure_cookie);
 
         log_me('debug', "CRSF cookie Set");
 
@@ -745,7 +745,7 @@ Class OB_Security {
      */
     protected function _decode_entity($match)
     {
-        return $this->entity_decode($match[0], strtoupper(config_item('charset')));
+        return $this->entity_decode($match[0], strtoupper(config('charset')));
     }
 
     // --------------------------------------------------------------------

@@ -108,7 +108,7 @@ Class OB_Uri
             return;
         }
 
-        $protocol = strtoupper(config_item('uri_protocol'));
+        $protocol = strtoupper(config('uri_protocol'));
         
         if ($protocol == 'AUTO')
         {
@@ -245,7 +245,7 @@ Class OB_Uri
     {
         if(strpos($segment, '.') !== FALSE)
         {
-            $allowed_extensions = config_item('uri_extensions');
+            $allowed_extensions = config('uri_extensions');
             
             $extension = explode('.', $segment);
             $extension = end($extension);
@@ -291,11 +291,11 @@ Class OB_Uri
     {
         // $class = lib('anyClass');  // Don't use any class in this level this will occur fatal errors !!!
 
-    	if ($str != '' && config_item('permitted_uri_chars') != '' && config_item('enable_query_strings') == FALSE)
+    	if ($str != '' && config('permitted_uri_chars') != '' && config('enable_query_strings') == FALSE)
         {
             // preg_quote() in PHP 5.3 escapes -, so the str_replace() and addition of - to preg_quote() is to maintain backwards
             // compatibility as many are unaware of how characters in the permitted_uri_chars will be parsed as a regex pattern
-            if ( ! preg_match('|^['.str_replace(array('\\-', '\-'), '-', preg_quote(config_item('permitted_uri_chars'), '-')).']+$|i', $str))
+            if ( ! preg_match('|^['.str_replace(array('\\-', '\-'), '-', preg_quote(config('permitted_uri_chars'), '-')).']+$|i', $str))
             {
                 show_error('The URI you submitted has disallowed characters.', 400);
             }
@@ -318,9 +318,9 @@ Class OB_Uri
      */
     public function _remove_url_suffix()
     {
-        if  (config_item('url_suffix') != "")
+        if  (config('url_suffix') != "")
         {
-            $this->uri_string = preg_replace("|".preg_quote(config_item('url_suffix'))."$|", "", $this->uri_string);
+            $this->uri_string = preg_replace("|".preg_quote(config('url_suffix'))."$|", "", $this->uri_string);
         }
     }
 
@@ -363,9 +363,9 @@ Class OB_Uri
         $submodule_segment  = '';
         $submodule_rsegment = '';
         
-        if (config_item('enable_query_strings') === TRUE AND isset($_GET[config_item('submodule_trigger')]))
+        if (config('enable_query_strings') === TRUE AND isset($_GET[config('submodule_trigger')]))
         {
-            $submodule_segment  = trim($this->_filter_uri($_GET[config_item('submodule_trigger')]));
+            $submodule_segment  = trim($this->_filter_uri($_GET[config('submodule_trigger')]));
         } 
         else
         {

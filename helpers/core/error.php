@@ -46,7 +46,7 @@ if( ! function_exists('Obullo_Exception_Handler'))
         {
             $type  = ucwords(strtolower($type));
             $code  = $e->getCode();
-            $level = config_item('error_reporting');
+            $level = config('error_reporting');
     
             if(defined('CMD'))  // If Command Line Request.
             {
@@ -303,7 +303,7 @@ if( ! function_exists('error_dump_argument'))
                         }
                     }
 
-                    return '<small>resource</small><span>('.$type.')</span> '.htmlspecialchars($file, ENT_NOQUOTES, config_item('charset'));
+                    return '<small>resource</small><span>('.$type.')</span> '.htmlspecialchars($file, ENT_NOQUOTES, config('charset'));
                 }
             }
             else
@@ -314,7 +314,7 @@ if( ! function_exists('error_dump_argument'))
         elseif (is_string($var))
         {
             // Encode the string
-            $str = htmlspecialchars($var, ENT_NOQUOTES, config_item('charset'));
+            $str = htmlspecialchars($var, ENT_NOQUOTES, config('charset'));
             
             return '<small>string</small><span>('.strlen($var).')</span> "'.$str.'"';
         }
@@ -351,7 +351,7 @@ if( ! function_exists('error_dump_argument'))
                     if ($key === $marker) continue;
                     if ( ! is_int($key))
                     {
-                        $key = '"'.htmlspecialchars($key, ENT_NOQUOTES, config_item('charset')).'"';
+                        $key = '"'.htmlspecialchars($key, ENT_NOQUOTES, config('charset')).'"';
                     }
 
                     $output[] = "$space$s$key => ".error_dump_argument($val, $length, $level + 1);
@@ -435,7 +435,7 @@ if( ! function_exists('error_dump_argument'))
         }
         else
         {
-            return '<small>'.gettype($var).'</small> '.htmlspecialchars(print_r($var, TRUE), ENT_NOQUOTES, config_item('charset'));
+            return '<small>'.gettype($var).'</small> '.htmlspecialchars(print_r($var, TRUE), ENT_NOQUOTES, config('charset'));
         }
     }
 }
@@ -457,7 +457,7 @@ if( ! function_exists('error_write_file_source'))
 {
     function error_write_file_source($trace, $key = 0, $prefix = '')
     {
-        $debug = config_item('debug_backtrace'); 
+        $debug = config('debug_backtrace'); 
         
         $file  = $trace['file'];
         $line_number = $trace['line'];
@@ -484,7 +484,7 @@ if( ! function_exists('error_write_file_source'))
 
             if ($line >= $range['start'])
             {
-                $row = htmlspecialchars($row, ENT_NOQUOTES, config_item('charset'));  // Make the row safe for output
+                $row = htmlspecialchars($row, ENT_NOQUOTES, config('charset'));  // Make the row safe for output
 
                 $row = '<span class="number">'.sprintf($format, $line).'</span> '.$row;  // Trim whitespace and sanitize the row
 

@@ -78,7 +78,7 @@ Class OB_Utf8 {
     {
         if ( ! $charset)
         {
-            $charset = config_item('charset');    // Use the application character set
+            $charset = config('charset');    // Use the application character set
         }
 
         if (is_array($var) OR is_object($var))
@@ -196,7 +196,7 @@ Class OB_Utf8 {
     {
         if (self::$server_utf8)
         {
-            return mb_strlen($str, config_item('charset'));
+            return mb_strlen($str, config('charset'));
         }
             
         if ( ! isset(self::$called[__FUNCTION__]))
@@ -229,7 +229,7 @@ Class OB_Utf8 {
     {
         if (self::$server_utf8)
         {
-            return mb_strpos($str, $search, $offset, config_item('charset'));
+            return mb_strpos($str, $search, $offset, config('charset'));
         }
 
         if ( ! isset(self::$called[__FUNCTION__]))
@@ -262,7 +262,7 @@ Class OB_Utf8 {
     {
         if (self::$server_utf8)
         {
-            return mb_strrpos($str, $search, $offset, config_item('charset'));
+            return mb_strrpos($str, $search, $offset, config('charset'));
         }
             
         if ( ! isset(self::$called[__FUNCTION__]))
@@ -289,15 +289,15 @@ Class OB_Utf8 {
     * @param   integer  length limit
     * @return  string
     * @uses    UTF8::$server_utf8
-    * @uses    config_item('charset');
+    * @uses    config('charset');
     */
     public function substr($str, $offset, $length = NULL)
     {
         if (self::$server_utf8)
         {
             return ($length === NULL) 
-            ? mb_substr($str, $offset, mb_strlen($str), config_item('charset')) 
-                    : mb_substr($str, $offset, $length, config_item('charset'));
+            ? mb_substr($str, $offset, mb_strlen($str), config('charset')) 
+                    : mb_substr($str, $offset, $length, config('charset'));
         }
             
         if ( ! isset(self::$called[__FUNCTION__]))
@@ -354,7 +354,7 @@ Class OB_Utf8 {
     {
         if (self::$server_utf8)
         {
-            return mb_strtolower($str, config_item('charset')); 
+            return mb_strtolower($str, config('charset')); 
         }
 
         if ( ! isset(self::$called[__FUNCTION__]))
@@ -388,7 +388,7 @@ Class OB_Utf8 {
     {
         if (self::$server_utf8)
         {
-            return mb_strtoupper($str, config_item('charset'));
+            return mb_strtoupper($str, config('charset'));
         }
 
         if ( ! isset(self::$called[__FUNCTION__]))

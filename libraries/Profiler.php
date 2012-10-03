@@ -417,8 +417,8 @@ Class OB_Profiler {
     public function _compile_loaded_files()
     {          
         $ob  = this();
-        $helper_prefix   = config_item('subhelper_prefix');
-        $subclass_prefix = config_item('subclass_prefix');
+        $helper_prefix   = config('subhelper_prefix');
+        $subclass_prefix = config('subclass_prefix');
     
         $output  = '<div id="loaded_files">';       
         $output .= "<table class=\"tableborder\">";

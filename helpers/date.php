@@ -40,7 +40,7 @@ if( ! function_exists('now') )
 {
     function now()
     {
-        if (strtolower(config_item('time_reference')) == 'gmt')
+        if (strtolower(config('time_reference')) == 'gmt')
         {
             $now = time();
             $system_time = mktime(

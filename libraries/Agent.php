@@ -231,7 +231,7 @@ Class OB_Agent {
         {
             foreach ($this->mobiles as $key => $val)
             {
-                if (FALSE !== (strpos(mb_strtolower($this->agent, config_item('charset')), $key)))
+                if (FALSE !== (strpos(mb_strtolower($this->agent, config('charset')), $key)))
                 {
                     $this->is_mobile = TRUE;
                     $this->mobile = $val;

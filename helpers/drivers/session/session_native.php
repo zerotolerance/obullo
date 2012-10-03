@@ -9,7 +9,7 @@ defined('BASE') or exit('Access Denied!');
 * @author      Obullo Team.
 * @version     0.1
 * @version     0.2 added extend support
-* @version     0.3 added config_item('sess_die_cookie') and sess() func.
+* @version     0.3 added config('sess_die_cookie') and sess() func.
 */
 if( ! function_exists('_sess_start') ) 
 {

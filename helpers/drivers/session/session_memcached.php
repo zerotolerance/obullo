@@ -105,7 +105,7 @@ if( ! function_exists('sess_read') )
         // Decrypt the cookie data
         if ($sess->sess_encrypt_cookie == TRUE)  // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $key     = config_item('encryption_key');
+            $key     = config('encryption_key');
             $session = rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($key), base64_decode($session), MCRYPT_MODE_CBC, md5(md5($key))), "\0");
         }
         else
@@ -738,7 +738,7 @@ if( ! function_exists('_set_cookie') )
         
         if ($sess->sess_encrypt_cookie == TRUE) // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $key         = config_item('encryption_key');
+            $key         = config('encryption_key');
             $cookie_data = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($key), $cookie_data, MCRYPT_MODE_CBC, md5(md5($key))));
         }
         else

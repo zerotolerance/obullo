@@ -52,7 +52,7 @@ if( ! function_exists('lib_driver'))
         }
         
         $classname = 'OB_'.$Class;
-        $prefix    = config_item('subclass_prefix');  // MY_
+        $prefix    = config('subclass_prefix');  // MY_
         $module    = lib('ob/Router')->fetch_directory();
         
         // Extension Support
@@ -117,7 +117,7 @@ if( ! function_exists('helper_driver'))
     {
         static $overridden_helpers = array();
         
-        $prefix = config_item('subhelper_prefix');
+        $prefix = config('subhelper_prefix');
         $module = lib('ob/Router')->fetch_directory();
         
         if( ! isset($overriden_helpers[$helpername]))

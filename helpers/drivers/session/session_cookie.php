@@ -9,7 +9,7 @@ defined('BASE') or exit('Access Denied!');
 * @author      Obullo Team.
 * @version     0.1
 * @version     0.2 added extend support
-* @version     0.3 added config_item('sess_die_cookie') and sess() func.
+* @version     0.3 added config('sess_die_cookie') and sess() func.
 */
 if( ! function_exists('_sess_start') ) 
 {
@@ -96,7 +96,7 @@ if( ! function_exists('sess_read') )
         // Decrypt the cookie data
         if ($sess->sess_encrypt_cookie == TRUE)  // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $key     = config_item('encryption_key');
+            $key     = config('encryption_key');
             $session = rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($key), base64_decode($session), MCRYPT_MODE_CBC, md5(md5($key))), "\0");
         }
         else
@@ -613,7 +613,7 @@ if( ! function_exists('_set_cookie') )
         
         if ($sess->sess_encrypt_cookie == TRUE) // Obullo Changes "Encrypt Library Header redirect() Bug Fixed !"
         {
-            $key         = config_item('encryption_key');
+            $key         = config('encryption_key');
             $cookie_data = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($key), $cookie_data, MCRYPT_MODE_CBC, md5(md5($key))));
         }
         else
@@ -623,7 +623,7 @@ if( ! function_exists('_set_cookie') )
         }
         
         // ( Obullo Changes .. set cookie life time 0 )
-        $expiration = (config_item('sess_die_cookie')) ? 0 : $sess->sess_expiration + time();
+        $expiration = (config('sess_die_cookie')) ? 0 : $sess->sess_expiration + time();
 
         // Set the cookie
         setcookie(

@@ -107,7 +107,7 @@ Class OB_Exception {
              
         // Displaying Errors
         //-----------------------------------------------------------------------                
-        $level  = config_item('error_reporting');
+        $level  = config('error_reporting');
         $errors = error_get_defined_errors();
         $error  = (isset($errors[$code])) ? $errors[$code] : '';
 

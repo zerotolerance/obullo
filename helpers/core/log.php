@@ -37,7 +37,7 @@ if( ! function_exists('log_me') )
 {
     function log_me($level = 'error', $message = '', $php_error = FALSE, $core_level = FALSE)
     {    
-        if (config_item('log_threshold') == 0)
+        if (config('log_threshold') == 0)
         {
             return;
         }
