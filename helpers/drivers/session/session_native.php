@@ -222,7 +222,7 @@ if( ! function_exists('sess_set') )
         {
             foreach ($newdata as $key => $val)
             {
-                $_SESSION[$key.$prefix] = $val;
+                $_SESSION[$prefix.$key] = $val;
             }
         }
     }
