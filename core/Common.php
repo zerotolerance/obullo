@@ -562,7 +562,7 @@ function config($item, $config_name = 'config')
 
 function config_item($item = '')
 {
-    throw new Exception('config() is a deprecated function look at Obullo documentation.');
+    throw new Exception('config_item() is a deprecated function look at Obullo documentation.');
 }
 
 // --------------------------------------------------------------------
