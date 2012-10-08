@@ -31,7 +31,6 @@ Class Vmodel extends Model {
     public $values     = array();  // Filtered safe values.
     public $no_save    = array();  // No save fields, so save function will not save selected fields to database.
     public $validation = FALSE;    // If form validation success we set it to true.
-    public $debug      = FALSE;    // Turn On / Off Debugging
     
     public $function   = array();
     
@@ -929,6 +928,7 @@ Class Vmodel extends Model {
         $table  = $this->item('table');
         $id     = ($this->item('primary_key') !== FALSE) ? $this->item('primary_key') : 'id';
         
+        $has_rules = FALSE;
         foreach($this->settings['fields'] as $k => $v)
         {
             if(isset($this->settings['fields'][$k]['rules']))  // validation used or not
@@ -1007,6 +1007,23 @@ Class Vmodel extends Model {
         return FALSE;
     }
 
+    // --------------------------------------------------------------------
+    
+    /**
+     * Return latest sql query
+     *
+     * @return type 
+     */
+    public function debug()
+    {
+        if(ENV !== 'LIVE')
+        {
+            return $this->db->last_query();
+        }
+        
+        return;
+    }
+    
     // --------------------------------------------------------------------
 
     /**
