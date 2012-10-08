@@ -66,7 +66,7 @@ Class OB_Exception {
             
             foreach(loader::$_databases as $db_name => $db_var)
             {
-               if(is_object($ob->$db_var))
+               if(isset($ob->$db_var) AND is_object($ob->$db_var))
                {
                    $last_query = $ob->{$db_var}->last_query($ob->{$db_var}->prepare);
                    
