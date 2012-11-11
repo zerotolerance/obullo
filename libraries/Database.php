@@ -107,17 +107,51 @@ Class OB_Database {
            case 'cubrid':
            $driver_name = 'cubrid';
              break;
+         
+           // CUBRID    
+           case 'mongodb':
+           $driver_name = 'mongodb';
+             break;
            
           default:
           throw new DBFactoryException('Obullo database library does not support: '. $dbdriver); 
            
         } // end switch.
         
-    
-        if( db_item('hostname', $db_var) == FALSE)
+        $hostname = db_item('hostname', $db_var);
+        $database = db_item('database', $db_var);
+        
+        if($hostname == FALSE)
         {
             throw new Exception('The ' . $db_var . ' database configuration undefined in your config/database.php file !');
         }
+        
+        //----------- MONGO CONNECTION ------------//
+        
+        if($driver_name == 'mongodb') 
+        {
+            try {
+                
+                $username = db_item('username', $db_var);
+                $password = db_item('password', $db_var);
+                $port     = (db_item('dbh_port', $db_var) == '') ? '' : ':'.db_item('dbh_port', $db_var);
+                
+                $mongo_dsn = "mongodb://{$username}:{$password}@{$hostname}{$port}";
+                $conn = new Mongo($mongo_dsn); // open connection to MongoDB server
+                
+                return $conn->{$database}; // access database
+            
+            } catch (MongoConnectionException $e) 
+            {
+                throw new Exception('Error connecting to MongoDB server.');
+                
+            } catch (MongoException $e) 
+            {
+                throw new Exception('Error: ' . $e->getMessage());
+            }
+        }
+        
+        //----------- MONGO CONNECTION END ------------//
         
         if ( ! in_array($dbdriver, PDO::getAvailableDrivers()))  // check the PDO driver is available
         {

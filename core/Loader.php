@@ -419,9 +419,6 @@ Class loader {
         {
             $prefix      = config('subhelper_prefix');
             $module      = lib('ob/Router')->fetch_directory();
-            $sub_module  = lib('ob/Uri')->fetch_sub_module();
-            
-            $module_path = $GLOBALS['sub_path'].$module;
      
             //------ end extensions override support -----//
             

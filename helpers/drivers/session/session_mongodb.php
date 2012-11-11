@@ -52,7 +52,7 @@ if( ! function_exists('_sess_start') )
 
         try 
         {
-            $dsn = "mongodb://{$config['username']}:{$config['password']}@{$config['host']}[:{$config['port']}]";
+            $dsn = "mongodb://{$config['username']}:{$config['password']}@{$config['host']}:{$config['port']}";
 
             $sess->mongo  = new Mongo($dsn, array('timeout' => 100));
 
@@ -60,7 +60,7 @@ if( ! function_exists('_sess_start') )
         }
         catch ( MongoConnectionException $e ) 
         {
-            echo $e->getMessage();
+            throw new Exception($e->getMessage());
         }
             
         // collection
@@ -192,7 +192,6 @@ if( ! function_exists('sess_read') )
         $sess->mongo->close();
         
         // Is there custom data?  If so, add it to the main session array
-
         
         // No result?  Kill it!
         if ($row == NULL)      // Obullo changes ..
@@ -200,7 +199,11 @@ if( ! function_exists('sess_read') )
             sess_destroy();
             return FALSE;
         }  
-           
+        
+        loader::helper('ob/array');
+            
+        $row = array_to_object($row);
+        
         if (isset($row->user_data) AND $row->user_data != '')
         {
             $custom_data = _unserialize($row->user_data);
@@ -215,7 +218,7 @@ if( ! function_exists('sess_read') )
         }                
 
         // Session is valid!
-        $sess->userdata = $session;
+        $sess->userdata = $session;     
         unset($session);
         
         return TRUE;
@@ -261,9 +264,10 @@ if( ! function_exists('sess_write') )
         }
 
         // Run the update query
-        $sess->sess_db->update(array('session_id' => $sess->userdata['session_id']), array('last_activity' => $sess->userdata['last_activity'], 
-        'user_data' => $custom_userdata));
-
+        $new_data = array('$set' => array('last_activity' => $sess->userdata['last_activity'], 'user_data' => $custom_userdata));
+        
+        $sess->sess_db->update(array('session_id' => $sess->userdata['session_id']), $new_data);
+        
         $sess->mongo->close();
         
         // Write the cookie.  Notice that we manually pass the cookie data array to the
@@ -369,8 +373,9 @@ if( ! function_exists('sess_update') )
             $cookie_data[$val] = $sess->userdata[$val];
         }
 
-        $sess->sess_db->update(array('session_id' => $old_sessid),
-                array('last_activity' => $sess->now, 'session_id' => $new_sessid));
+        $new_data = array('$set' => array('last_activity' => $sess->now, 'session_id' => $new_sessid));
+        
+        $sess->sess_db->update(array('session_id' => $old_sessid), $new_data);
 
         $sess->mongo->close();
         

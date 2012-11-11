@@ -168,8 +168,17 @@ if( ! function_exists('ob_system_close'))
     function ob_system_close()
     {
         foreach(loader::$_databases as $db_name => $db_var)  // Close all PDO connections..  
-        {
-            this()->{$db_var} = NULL;
+        {   
+            $driver = db_item('dbdriver', $db_var);
+            
+            if($driver == 'mongodb')
+            {
+                this()->{$db_var}->close();
+            } 
+            else 
+            {
+                this()->{$db_var} = NULL;
+            }
         } 
     }
 }

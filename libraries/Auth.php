@@ -134,36 +134,56 @@ Class OB_Auth {
         {
             $password = md5($password);
         }
-        
-        if($this->query_binding)         // High Secure Pdo Query
+
+        if(db_item('dbdriver') == 'mongodb')
         {
-            $this->db->prep();      
-            $this->db->select(implode(',', $this->select_data));
-            $this->db->where($this->username_col, ':username');
-            $this->db->where($this->password_col, ':password');
-            $this->db->get($this->tablename);
-
-            $this->db->bind_param(':username', $username, param_str, $this->username_length); // String (int Length)
-            $this->db->bind_param(':password', $password, param_str, $this->password_length); // String (int Length)
-
-            $query = $this->db->exec();
-            $this->row = $query->row();
-        } 
+            $collection = $this->db->{$this->tablename};
+            $criteria = array($this->username_col => $username, $this->password_col => $password);
+            
+            $array = $collection->findOne($criteria, $this->select_data);
+            
+            loader::helper('ob/array');
+            
+            $this->row = array_to_object($array);
+            
+            if($this->row != NULL AND isset($this->row->{$this->username_col}))
+            {
+                return $this->row;
+            }
+        }
         else 
         {
-            $this->db->select(implode(',', $this->select_data));
-            $this->db->where($this->username_col, $username);
-            $this->db->where($this->password_col, $password);
-            $query = $this->db->get($this->tablename);
+            if($this->query_binding)         // High Secure Pdo Query
+            {
+                $this->db->prep();      
+                $this->db->select(implode(',', $this->select_data));
+                $this->db->where($this->username_col, ':username');
+                $this->db->where($this->password_col, ':password');
+                $this->db->get($this->tablename);
+
+                $this->db->bind_param(':username', $username, param_str, $this->username_length); // String (int Length)
+                $this->db->bind_param(':password', $password, param_str, $this->password_length); // String (int Length)
+
+                $query = $this->db->exec();
+                $this->row = $query->row();
+            } 
+            else 
+            {
+                $this->db->select(implode(',', $this->select_data));
+                $this->db->where($this->username_col, $username);
+                $this->db->where($this->password_col, $password);
+
+                $query = $this->db->get($this->tablename);
+
+                $this->row = $query->row();
+            }
             
-            $this->row = $query->row();
+            if(is_object($this->row) AND isset($this->row->{$this->username_col}))
+            {   
+                return $this->row;
+            }
         }
-        
-        if(is_object($this->row) AND isset($this->row->{$this->username_col}))
-        {
-            return $this->row;
-        }
-        
+      
         return FALSE;
     }
     
@@ -362,7 +382,7 @@ Class OB_Auth {
     public function set_auth($data = array())
     {
         $row = $this->get_row();
-        
+
         sess_set('ok', 1, $this->session_prefix);  // Authenticate the user.
         
         $sess_data = array();

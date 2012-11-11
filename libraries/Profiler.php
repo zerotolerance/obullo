@@ -102,7 +102,7 @@ Class OB_Profiler {
         $total_dbs = loader::$_databases;
         
         // Let's determine which databases are currently connected to         
-        if (count($total_dbs) == 0)
+        if (count($total_dbs) == 0 OR db_item('dbdriver', 'db') == 'mongodb')
         {    
             $output  = '<div id="queries">';       
             $output .= "<table class=\"tableborder\">";
