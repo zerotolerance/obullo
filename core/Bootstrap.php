@@ -171,9 +171,9 @@ if( ! function_exists('ob_system_close'))
         {   
             $driver = db_item('dbdriver', $db_var);
             
-            if($driver == 'mongodb')
+            if($driver == 'mongodb' AND is_object(this()->{$db_var}->connection))
             {
-                this()->{$db_var}->close();
+                this()->{$db_var}->connection->close();
             } 
             else 
             {

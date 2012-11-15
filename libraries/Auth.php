@@ -137,14 +137,13 @@ Class OB_Auth {
 
         if(db_item('dbdriver') == 'mongodb')
         {
-            $collection = $this->db->{$this->tablename};
-            $criteria = array($this->username_col => $username, $this->password_col => $password);
+            $this->db->select($this->select_data);
+            $this->db->where($this->username_col, $username);
+            $this->db->where($this->password_col, $password);
             
-            $array = $collection->findOne($criteria, $this->select_data);
-            
-            loader::helper('ob/array');
-            
-            $this->row = array_to_object($array);
+            $docs = $this->db->get($this->tablename);
+
+            $this->row = (object) $docs->getNext();
             
             if($this->row != NULL AND isset($this->row->{$this->username_col}))
             {

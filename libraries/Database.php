@@ -40,8 +40,6 @@ Class OB_Database {
         {
             throw new Exception('The PDO extension is required but extension is not loaded !');
         }
-        
-        loader::helper('core/driver');
     }
     
     /**
@@ -108,7 +106,7 @@ Class OB_Database {
            $driver_name = 'cubrid';
              break;
          
-           // CUBRID    
+           // MONGO   
            case 'mongodb':
            $driver_name = 'mongodb';
              break;
@@ -119,7 +117,6 @@ Class OB_Database {
         } // end switch.
         
         $hostname = db_item('hostname', $db_var);
-        $database = db_item('database', $db_var);
         
         if($hostname == FALSE)
         {
@@ -130,25 +127,9 @@ Class OB_Database {
         
         if($driver_name == 'mongodb') 
         {
-            try {
-                
-                $username = db_item('username', $db_var);
-                $password = db_item('password', $db_var);
-                $port     = (db_item('dbh_port', $db_var) == '') ? '' : ':'.db_item('dbh_port', $db_var);
-                
-                $mongo_dsn = "mongodb://{$username}:{$password}@{$hostname}{$port}";
-                $conn = new Mongo($mongo_dsn); // open connection to MongoDB server
-                
-                return $conn->{$database}; // access database
+            $mongo = lib('ob/Mongo_db');
             
-            } catch (MongoConnectionException $e) 
-            {
-                throw new Exception('Error connecting to MongoDB server.');
-                
-            } catch (MongoException $e) 
-            {
-                throw new Exception('Error: ' . $e->getMessage());
-            }
+            return $mongo->connect();
         }
         
         //----------- MONGO CONNECTION END ------------//
@@ -166,6 +147,8 @@ Class OB_Database {
         {
             $options = array('default_db' => $db_var);
         }
+               
+        loader::helper('core/driver');
         
         $DB = lib_driver($folder = 'database', 'Database_'.$driver_name, $options);
         $DB->__wakeup();
