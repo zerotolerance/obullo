@@ -142,9 +142,14 @@ Class OB_Auth {
             $this->db->where($this->password_col, $password);
             
             $docs = $this->db->get($this->tablename);
-
-            $this->row = (object) $docs->getNext();
             
+            if( ! $docs->hasNext())
+            {
+                return FALSE;
+            }
+            
+            $this->row = (object) $docs->getNext();
+
             if($this->row != NULL AND isset($this->row->{$this->username_col}))
             {
                 return $this->row;
@@ -347,6 +352,7 @@ Class OB_Auth {
         return $this->{$key};
     }
     
+    //-------------------------------------------------------------------------
     
     public function set_expire() {}
     public function set_idle() {}
@@ -369,7 +375,7 @@ Class OB_Auth {
         
         return preg_match('/^[a-f0-9]{32}$/', $md5);
     }
-        
+
     // ------------------------------------------------------------------------
     
     /**

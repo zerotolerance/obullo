@@ -806,7 +806,7 @@ Class OB_Mongo_db {
         $options = array();
         if ($this->persist === TRUE)
         {
-            $options['persist'] = isset($this->persist_key) && !empty($this->persist_key) ? $this->persist_key : 'ob_mongo_persist';
+            $options['persist'] = isset($this->persist_key) AND ! empty($this->persist_key) ? $this->persist_key : 'ob_mongo_persist';
         }
         
         try
@@ -833,19 +833,20 @@ Class OB_Mongo_db {
     {
         $config = get_config('mongodb');
 
-        if($config['database'] == '')
-        {
-            throw new Exception('Please set a <b>$mongodb[\'database\']</b> from <b>/app/config/mongodb.php</b>.');
-        }
-        $this->host         = $config['host'];
-        $this->port         = $config['port'];
-        $this->user         = $config['username'];
-        $this->pass         = $config['password'];
+        $this->host         = (empty($config['host'])) ? db_item('hostname') : $config['host'];
+        $this->port         = (empty($config['port'])) ? db_item('dbh_port') : $config['port'];
+        $this->user         = (empty($config['username'])) ? db_item('username') : $config['username'];
+        $this->pass         = (empty($config['password'])) ? db_item('password') : $config['password'];
+        $this->dbname       = (empty($config['database'])) ? db_item('database') : $config['database'];
         
-        $this->dbname       = $config['database'];
         $this->persist      = $config['persist'];
         $this->persist_key  = $config['persist_key'];
         $this->query_safety = $config['query_safety'];
+        
+        if($this->dbname == '')
+        {
+            throw new Exception('Please set a <b>$mongodb[\'database\']</b> from <b>/app/config/mongodb.php</b>.');
+        }
         
         $dbhostflag = (bool)$config['host_db_flag'];
 
@@ -861,12 +862,12 @@ Class OB_Mongo_db {
             throw new Exception("You need to specify a database name connect to MongoDB.");
         }
 
-        if ( ! empty($this->user) && ! empty($this->pass))
+        if ( ! empty($this->user) AND ! empty($this->pass))
         {
             $connection_string .= "{$this->user}:{$this->pass}@";
         }
 
-        if (isset($this->port) && ! empty($this->port))
+        if (isset($this->port) AND ! empty($this->port))
         {
             $connection_string .= "{$this->host}:{$this->port}";
         }

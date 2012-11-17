@@ -45,18 +45,27 @@ if( ! function_exists('_sess_start') )
 
         $config = get_config('mongodb');
 
-        if($config['database'] == '')
-        {
-            throw new Exception('Please set a <b>$mongodb[\'database\']</b> from <b>/app/config/mongodb.php</b>.');
-        }
-
         try 
         {
-            $dsn = "mongodb://{$config['username']}:{$config['password']}@{$config['host']}:{$config['port']}";
+            $host         = (empty($config['host'])) ? db_item('hostname') : $config['host'];
+            $port         = (empty($config['port'])) ? db_item('dbh_port') : $config['port'];
+            $user         = (empty($config['username'])) ? db_item('username') : $config['username'];
+            $pass         = (empty($config['password'])) ? db_item('password') : $config['password'];
+            $dbname       = (empty($config['database'])) ? db_item('database') : $config['database'];
+            
+            $dsn = "mongodb://{$user}:{$pass}@{$host}:{$port}";
 
-            $sess->mongo  = new Mongo($dsn, array('timeout' => 100));
+            $options = array();
+            if($config['persist'])
+            {
+                $options['persist'] = ( ! empty($config['persist_key'])) ? $config['persist_key'] : 'ob_mongo_persist';
+            }
+            
+            $options['timeout'] = $config['timeout'];
+            
+            $sess->mongo  = new Mongo($dsn, $options);
 
-            $database = $sess->mongo->selectDB($config['database']);
+            $database = $sess->mongo->selectDB($dbname);
         }
         catch ( MongoConnectionException $e ) 
         {
