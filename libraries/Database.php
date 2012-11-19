@@ -127,7 +127,7 @@ Class OB_Database {
         
         if($driver_name == 'mongodb') 
         {
-            $mongo = lib('ob/Mongo_db');
+            $mongo = lib('ob/Mongo');
             
             return $mongo->connect();
         }
