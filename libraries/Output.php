@@ -27,6 +27,7 @@ defined('BASE') or exit('Access Denied!');
  * @link          
  * @version       0.1
  * @version       0.2  Added HMVC Output Cache Support
+ * @version       0.3  @deprecated HMVC Output Cache, @deprecated submodules cache support ( for performance )
  */
 Class OB_Output {
 
@@ -156,65 +157,6 @@ Class OB_Output {
     public function cache($time)
     {
         $this->cache_expiration = ( ! is_numeric($time)) ? 0 : $time;
-    }
-    
-    // --------------------------------------------------------------------
-    
-    /**
-    * Display HMVC Output
-    * 
-    * @version  0.1
-    * @version  0.2  added parse exec vars
-    * @param    string $output
-    * @param    object $URI
-    * @return   string
-    */
-    public function _display_hmvc($output = '', $URI = '')
-    {            
-        // Do we need to write a HMVC cache file?
-        if ($URI->cache_time > 0)
-        {
-            $this->_write_cache($output, $URI);
-        }
-        
-        // Are there any server headers to send ?
-        // --------------------------------------------------------------------
-        if( ! headers_sent()) 
-        {       
-            if (count($this->headers) > 0)
-            {
-                foreach ($this->headers as $header)
-                {
-                    @header($header[0], $header[1]);
-                }
-            }        
-        } 
-        
-        // Does the controller contain a function named _hmvc_output() ?
-        // If so send the output there.
-        $OB = this();
-    
-            if (method_exists($OB, '_hmvc_output'))
-            {
-                $OB->_hmvc_output($output);
-            }
-            else
-            {
-                // --------------------------------------------------------------------
-
-                // Parse out the elapsed time and memory usage,
-                // then swap the pseudo-variables with the data
-
-                if ($this->parse_exec_vars === TRUE)
-                {
-                    $memory = ( ! function_exists('memory_get_usage')) ? '0' : round(memory_get_usage()/1024/1024, 2).'MB';
-                    $output = str_replace('{memory_usage}', $memory, $output);
-                }       
-                
-                echo $output;
-            }
-        
-        log_me('debug', 'HMVC '.str_replace('__HMVC_URI__', '', $URI->uri_string).' uri output sent to browser');  
     }
     
     // --------------------------------------------------------------------
@@ -361,47 +303,22 @@ Class OB_Output {
     * @access    public
     * @return    void
     */    
-    public function _write_cache($output, $HMVC_URI = '')
+    public function _write_cache($output)
     {
         $OB = this();
-        
-        $router = lib('ob/Router');
         $config = lib('ob/Config');
         
         $path       = $config->item('cache_path');
         $cache_path = ($path == '') ?  APP .'core'. DS .'cache'. DS : $path;
-    
-        //----------- SUB MODULES AND MODULES SUPPORT -------------//
-        
-        if(is_dir(MODULES .'sub.'.$OB->uri->fetch_sub_module(). DS .'core'. DS . 'cache'))
-        {
-            $cache_path = MODULES .'sub.'.$OB->uri->fetch_sub_module(). DS .'core'. DS .'cache'. DS;
-        }
-        elseif (is_dir(MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS . 'cache'))
-        {
-            $cache_path = MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS .'cache'. DS;
-        }
-        
-        //----------- SUB MODULES AND MODULES SUPPORT -------------//
 
         if ( ! is_dir(rtrim($cache_path, DS)) OR ! is_really_writable(rtrim($cache_path, DS)))
         {
             return;
         }
-        
-        // ( Obullo changes .. )
-        
-        if(is_object($HMVC_URI))
-        {
-            $uri_string = $HMVC_URI->uri_string;   // HMVC Uri
-            $uri        = $uri_string;
-        } 
-        else 
-        {
-            $uri_string = $OB->uri->uri_string();  // Standart Uri
-            $uri        = $OB->config->base_url() . $OB->config->item('index_page'). $uri_string;
-        }
-        
+
+        $uri_string = $OB->uri->uri_string();  // Standart Uri
+        $uri        = $OB->config->base_url() . $OB->config->item('index_page'). $uri_string;
+
         $cache_path .= md5($uri);
 
         if ( ! $fp = @fopen($cache_path, FOPEN_WRITE_CREATE_DESTRUCTIVE))
@@ -410,8 +327,7 @@ Class OB_Output {
             return;
         }
         
-        // ( Obullo changes .. )
-        $cache_expiration = (is_object($HMVC_URI)) ? $HMVC_URI->cache_time : $this->cache_expiration;
+        $cache_expiration = $this->cache_expiration;
         $expire           = time() + ($cache_expiration * 60);
         
         if (flock($fp, LOCK_EX))
@@ -439,47 +355,20 @@ Class OB_Output {
     * @access    public
     * @return    void
     */    
-    public function _display_cache(&$config, &$URI, &$router, $HMVC = FALSE)
+    public function _display_cache(&$config, &$URI, &$router)
     {        
         $cache_path = ($config->item('cache_path') == '') ? APP .'core'. DS .'cache'. DS : $config->item('cache_path');
-
-        //----------- SUB MODULES AND MODULES SUPPORT -------------//
-
-        if(is_dir(MODULES .'sub.'.$URI->fetch_sub_module(). DS .'core'. DS . 'cache'))
-        {
-            $cache_path = MODULES .'sub.'.$URI->fetch_sub_module(). DS .'core'. DS .'cache'. DS;
-        }
-        elseif (is_dir(MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS . 'cache'))
-        {
-            $cache_path = MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'core'. DS .'cache'. DS;
-        }
-
-        //----------- SUB MODULES AND MODULES SUPPORT -------------//
         
         // Build the file path.  The file name is an MD5 hash of the full URI
         $uri =  $config->base_url() . $config->item('index_page') . $URI->uri_string;
         
-        if($HMVC)
-        {    
-            $uri = $URI->uri_string;
+        $filepath = $cache_path . md5($uri);
 
-            $filepath = $cache_path . md5($uri);
-            
-            if ( ! file_exists($filepath))
-            {
-                return FALSE;
-            }
-        }
-        else
+        if ( ! @file_exists($filepath))
         {
-            $filepath = $cache_path . md5($uri);
-                
-            if ( ! @file_exists($filepath))
-            {
-                return FALSE;
-            }
+            return FALSE;
         }
-        
+
         if ( ! $fp = @fopen($filepath, FOPEN_READ))
         {
             return FALSE;
@@ -514,22 +403,6 @@ Class OB_Output {
                 return FALSE;
             }
         }
-        
-        if($HMVC) // ( Obullo Changes ..)
-        {
-            // if current cache time = 0 for current HMVC URI delete old cached file.
-            if($URI->cache_time == 0) 
-            {
-                @unlink($filepath);
-            }
-            
-            // Display the cache
-            $this->_display_hmvc(str_replace($match['0'], '', $cache_data), $URI);
-            
-            log_me('debug', 'HMVC '.str_replace('__HMVC_URI__', '', $URI->uri_string).' uri cache file is current and displayed.');
-            
-            return TRUE;
-        } 
 
         // Display the cache
         $this->_display(str_replace($match['0'], '', $cache_data));
