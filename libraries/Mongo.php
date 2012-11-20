@@ -114,6 +114,11 @@ Class OB_Mongo {
 
     // --------------------------------------------------------------------
     
+    /**
+     * Set a collection.
+     * 
+     * @param type $collection 
+     */
     public function from($collection = '')
     {
         $this->collection = $collection;
@@ -142,7 +147,7 @@ Class OB_Mongo {
      */
     public function where($wheres, $value = null)
     {
-        if(is_string($wheres) AND strpos($wheres, ' ') > 0)
+        if(is_string($wheres) AND strpos(ltrim($wheres), ' ') > 0)
         {
             $array    = explode(' ', $wheres);
             $field    = $array[0];
@@ -169,7 +174,7 @@ Class OB_Mongo {
                     break;
                 
                 case '!=':   // not equal to
-                    $this->wheres[$field]['$ne']  = $value;
+                    $this->wheres[$field]['$ne']  = self::_is_mongo_id($field, $value);
                     break;
                 
                 default:
@@ -183,12 +188,12 @@ Class OB_Mongo {
         {
             foreach ($wheres as $wh => $val)
             {
-                $this->wheres[$wh] = $val;
+                $this->wheres[$wh] = self::_is_mongo_id($wh, $val);
             }
         }
         else
         {
-            $this->wheres[$wheres] = $value;
+            $this->wheres[$wheres] = self::_is_mongo_id($wheres, $value);   
         }
 
         return ($this);
@@ -210,12 +215,12 @@ Class OB_Mongo {
         {
             foreach ($value as $wh => $val)
             {
-                $this->wheres['$or'][][$wheres] = $val;
+                $this->wheres['$or'][][$wh] = self::_is_mongo_id($wh, $val);
             }
         }
         else
         {
-            $this->wheres['$or'][][$wheres] = $value;
+            $this->wheres['$or'][][$wheres] = self::_is_mongo_id($wheres, $value);
         }
         
         return ($this);
@@ -357,12 +362,12 @@ Class OB_Mongo {
             throw new Exception('You need to set a collection name using <b>$this->db->from("collection")</b> function.');
         }
         
-        $documents = $this->db->{$this->collection}->find($criteria, array_merge($this->selects, $fields))
+        $docs = $this->db->{$this->collection}->find($criteria, array_merge($this->selects, $fields))
                 ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
         
         $this->_reset_select();         // Reset
         
-        return $documents;
+        return $docs;
     }
     
     // --------------------------------------------------------------------
@@ -382,12 +387,12 @@ Class OB_Mongo {
             throw new Exception('You need to set a collection name using <b>$this->db->from("collection")</b> function.');
         }
         
-        $documents = $this->db->{$this->collection}->findOne($criteria, array_merge($this->selects, $fields))
+        $docs = $this->db->{$this->collection}->findOne($criteria, array_merge($this->selects, $fields))
                 ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
         
         $this->_reset_select();         // Reset
         
-        return $documents;
+        return $docs;
     }
     
     // --------------------------------------------------------------------
@@ -409,15 +414,15 @@ Class OB_Mongo {
         {
             throw new Exception("In order to retrieve documents from MongoDB, a collection name must be passed.");
         }
-        
-        // print_r($this->wheres);
 
-        $documents = $this->db->{$collection}->find($this->wheres, $this->selects)
+        $docs = $this->db->{$collection}->find($this->wheres, $this->selects)
                 ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
+        
+        // var_dump($docs);
         
         $this->_reset_select();         // Reset
         
-        return $documents;
+        return $docs;
     }
 
     // --------------------------------------------------------------------
@@ -579,7 +584,6 @@ Class OB_Mongo {
         {
             $this->updates['$inc'][$fields] = $value;
         }
-
         elseif (is_array($fields))
         {
             foreach ($fields as $field => $value)
@@ -610,7 +614,6 @@ Class OB_Mongo {
         {
             $this->updates['$inc'][$fields] = $value;
         }
-
         elseif (is_array($fields))
         {
             foreach ($fields as $field => $value)
@@ -642,7 +645,6 @@ Class OB_Mongo {
         {
             $this->updates['$set'][$fields] = $value;
         }
-
         elseif (is_array($fields))
         {
             foreach ($fields as $field => $value)
@@ -673,7 +675,6 @@ Class OB_Mongo {
         {
             $this->updates['$unset'][$fields] = 1;
         }
-
         elseif (is_array($fields))
         {
             foreach ($fields as $field)
@@ -705,7 +706,6 @@ Class OB_Mongo {
         {
             $this->updates['$addToSet'][$field] = $values;
         }
-
         elseif (is_array($values))
         {
             $this->updates['$attToSet'][$field] = array('$each' => $values);
@@ -990,6 +990,24 @@ Class OB_Mongo {
     public function insert_id()
     {
         return $this->last_inserted_id;
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
+     * Auto add mongo id if "_id" used and .
+     * 
+     * @param type $string
+     * @return \MongoId 
+     */
+    private function _is_mongo_id($string = '', $value = '')
+    {
+        if($string == '_id' AND ! is_object($value))
+        {
+            return new MongoId($value);
+        }
+        
+        return $value;
     }
     
     // --------------------------------------------------------------------
