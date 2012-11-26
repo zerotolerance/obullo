@@ -17,7 +17,7 @@ defined('BASE') or exit('Access Denied!');
  *
  */
 
-Class OB_Mongo_db {
+Class OB_Mongo {
 
     private $connection;
     private $db;
@@ -59,36 +59,6 @@ Class OB_Mongo_db {
         }
         
         $this->connection_string();
-    }
-
-    // --------------------------------------------------------------------
-
-    /**
-    * Switch from default database to a different db
-    * 
-    * $this->db->switch_db('foobar');
-    * 
-    * @param type $database
-    * @return type 
-    */
-    public function switch_db($database = '')
-    {
-        if (empty($database))
-        {
-            throw new Exception("To switch MongoDB databases, a new database name must be specified.");
-        }
-
-        $this->dbname = $database;
-
-        try
-        {
-            $this->db = $this->connection->{$this->dbname};
-            return (TRUE);
-        }
-        catch (Exception $e)
-        {
-            throw new Exception("Unable to switch Mongo Databases: ".$e->getMessage());
-        }
     }
     
     // --------------------------------------------------------------------
@@ -144,6 +114,11 @@ Class OB_Mongo_db {
 
     // --------------------------------------------------------------------
     
+    /**
+     * Set a collection.
+     * 
+     * @param type $collection 
+     */
     public function from($collection = '')
     {
         $this->collection = $collection;
@@ -152,11 +127,19 @@ Class OB_Mongo_db {
     // --------------------------------------------------------------------
     
     /**
-     * Get the documents based on these search parameters.  The $wheres array should 
+     * Get the documents based on these search parameters. The $wheres array can
      * be an associative array with the field as the key and the value as the search
      * criteria.
      * 
      * @usage : $this->db->where(array('foo' => 'bar'))->get('foobar');
+     * @usage : $this->db->where('foo >', 20)->get('foobar');
+     * @usage : $this->db->where('foo <', 20)->get('foobar');
+     * @usage : $this->db->where('foo >=', 20)->get('foobar');
+     * @usage : $this->db->where('foo <=', 20)->get('foobar');
+     * @usage : $this->db->where('foo !=', 20)->get('foobar');
+     * 
+     * @usage : $this->db->where('foo <', 10)->where('foo >', 25)->get('foobar');
+     * @usage : $this->db->where('foo <=', 10)->where('foo >=', 25)->get('foobar');
      * 
      * @param type $wheres
      * @param type $value
@@ -164,19 +147,56 @@ Class OB_Mongo_db {
      */
     public function where($wheres, $value = null)
     {
+        if(is_string($wheres) AND strpos(ltrim($wheres), ' ') > 0)
+        {
+            $array    = explode(' ', $wheres);
+            $field    = $array[0];
+            $criteria = $array[1];
+            
+            $this->_where_init($field);
+            
+            switch ($criteria)
+            {
+                case '>':    // greater than
+                    $this->wheres[$field]['$gt']  = $value;
+                    break;
+                
+                case '<':    // less than
+                    $this->wheres[$field]['$lt']  = $value;
+                    break;
+                
+                case '>=':   // greater than or equal to
+                    $this->wheres[$field]['$gte'] = $value;
+                    break;
+                
+                case '<=':   // less than or equal to
+                    $this->wheres[$field]['$lte'] = $value;
+                    break;
+                
+                case '!=':   // not equal to
+                    $this->wheres[$field]['$ne']  = self::_is_mongo_id($field, $value);
+                    break;
+                
+                default:
+                    break;
+            }
+            
+            return ($this);
+        }
+        
         if (is_array($wheres))
         {
             foreach ($wheres as $wh => $val)
             {
-                $this->wheres[$wh] = $val;
+                $this->wheres[$wh] = self::_is_mongo_id($wh, $val);
             }
         }
         else
         {
-            $this->wheres[$wheres] = $value;
+            $this->wheres[$wheres] = self::_is_mongo_id($wheres, $value);   
         }
 
-        return $this;
+        return ($this);
     }
 
     // --------------------------------------------------------------------
@@ -187,7 +207,7 @@ Class OB_Mongo_db {
      * @usage : $this->db->or_where(array('foo'=>'bar', 'bar'=>'foo'))->get('foobar');
      * 
      * @param type $wheres
-     * @return type 
+     * @return \OB_Mongo_db 
      */
     public function or_where($wheres, $value = null)
     {
@@ -195,12 +215,12 @@ Class OB_Mongo_db {
         {
             foreach ($value as $wh => $val)
             {
-                $this->wheres['$or'][][$wheres] = $val;
+                $this->wheres['$or'][][$wh] = self::_is_mongo_id($wh, $val);
             }
         }
         else
         {
-            $this->wheres['$or'][][$wheres] = $value;
+            $this->wheres['$or'][][$wheres] = self::_is_mongo_id($wheres, $value);
         }
         
         return ($this);
@@ -212,15 +232,46 @@ Class OB_Mongo_db {
      * Get the documents where the value of a $field is in a given $in array().
      * 
      * @usage : $this->db->where_in('foo', array('bar', 'zoo', 'blah'))->get('foobar');
+     * @usage : $this->db->where_in('foo !=', array('bar', 'zoo', 'blah'))->get('foobar');
      * 
      * @param type $field
      * @param type $in
-     * @return type 
+     * @return \OB_Mongo_db 
      */
     public function where_in($field = "", $in = array())
     {
+        if(strpos($field, '!=') > 0)
+        {
+            $array = explode('!=', $field);
+            $field = trim($array[0]);
+            
+            $this->_where_init($field);
+            $this->wheres[$field]['$nin'] = $in;
+            
+            return ($this);
+        }
+        
         $this->_where_init($field);
         $this->wheres[$field]['$in'] = $in;
+        
+        return ($this);
+    }
+
+    // --------------------------------------------------------------------
+    
+    /**
+     * Get the documents where the value of a $field is in all of a given $in array().
+     * 
+     * @usage : $this->db->where_in_all('foo', array('bar', 'zoo', 'blah'))->get('foobar');
+     * 
+     * @param type $field
+     * @param type $in
+     * @return \OB_Mongo_db 
+     */
+    public function where_in_all($field = "", $in = array())
+    {
+        $this->_where_init($field);
+        $this->wheres[$field]['$all'] = $in;
         
         return ($this);
     }
@@ -235,7 +286,7 @@ Class OB_Mongo_db {
      * @usage : $this->db->order_by(array('foo' => 'ASC'))->get('foobar');
      * 
      * @param type $fields
-     * @return type 
+     * @return \OB_Mongo_db 
      */
     public function order_by($fields = array())
     {
@@ -262,7 +313,7 @@ Class OB_Mongo_db {
      * @usage : $this->db->limit($x);
      * 
      * @param type $x
-     * @return type 
+     * @return \OB_Mongo_db 
      */
     public function limit($x = 99999)
     {
@@ -282,7 +333,7 @@ Class OB_Mongo_db {
      * @usage : $this->db->offset($x);
      * 
      * @param type $x
-     * @return type 
+     * @return \OB_Mongo_db 
      */
     public function offset($x = 0)
     {
@@ -301,7 +352,7 @@ Class OB_Mongo_db {
      * 
      * @param type $criteria
      * @param type $fields
-     * @return type
+     * @return Mongo::Cursor Object
      * @throws Exception 
      */
     public function find($criteria = array(), $fields = array())
@@ -311,12 +362,18 @@ Class OB_Mongo_db {
             throw new Exception('You need to set a collection name using <b>$this->db->from("collection")</b> function.');
         }
         
-        $documents = $this->db->{$this->collection}->find($criteria, array_merge($this->selects, $fields))
+        $re_criteria = array();
+        foreach ($criteria as $key => $value)
+        {
+            $re_criteria[$key] = self::_is_mongo_id($key, $value);
+        }
+        
+        $docs = $this->db->{$this->collection}->find($criteria, array_merge($this->selects, $fields))
                 ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
         
         $this->_reset_select();         // Reset
         
-        return $documents;
+        return $docs;
     }
     
     // --------------------------------------------------------------------
@@ -326,7 +383,7 @@ Class OB_Mongo_db {
      * 
      * @param type $criteria
      * @param type $fields
-     * @return type
+     * @return Mongo::Cursor Object
      * @throws Exception 
      */
     public function find_one($criteria = array(), $fields = array())
@@ -336,12 +393,18 @@ Class OB_Mongo_db {
             throw new Exception('You need to set a collection name using <b>$this->db->from("collection")</b> function.');
         }
         
-        $documents = $this->db->{$this->collection}->findOne($criteria, array_merge($this->selects, $fields))
+        $re_criteria = array();
+        foreach ($criteria as $key => $value)
+        {
+            $re_criteria[$key] = self::_is_mongo_id($key, $value);
+        }
+        
+        $docs = $this->db->{$this->collection}->findOne($re_criteria, array_merge($this->selects, $fields))
                 ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
         
         $this->_reset_select();         // Reset
         
-        return $documents;
+        return $docs;
     }
     
     // --------------------------------------------------------------------
@@ -352,7 +415,7 @@ Class OB_Mongo_db {
      * @usage : $this->db->get('foo');
      * 
      * @param type $collection
-     * @return type
+     * @return Mongo::Cursor Object
      * @throws Exception 
      */
     public function get($collection = '')
@@ -363,15 +426,15 @@ Class OB_Mongo_db {
         {
             throw new Exception("In order to retrieve documents from MongoDB, a collection name must be passed.");
         }
-        
-        // print_r($this->wheres);
 
-        $documents = $this->db->{$collection}->find($this->wheres, $this->selects)
+        $docs = $this->db->{$collection}->find($this->wheres, $this->selects)
                 ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
+        
+        // var_dump($docs);
         
         $this->_reset_select();         // Reset
         
-        return $documents;
+        return $docs;
     }
 
     // --------------------------------------------------------------------
@@ -386,7 +449,7 @@ Class OB_Mongo_db {
      * @return int affected rows
      * @throws Exception 
      */
-    public function insert($collection = "", $insert = array())
+    public function insert($collection = "", $insert = array(), $options = array())
     {
         if (empty($collection))
         {
@@ -400,7 +463,9 @@ Class OB_Mongo_db {
 
         try
         {
-            $this->db->{$collection}->insert($insert, array($this->query_safety	 => TRUE));
+            $options = array_merge($options, array($this->query_safety => TRUE));
+            
+            $this->db->{$collection}->insert($insert, $options);
             
             if (isset($insert['_id']))
             {
@@ -469,7 +534,7 @@ Class OB_Mongo_db {
     /**
      * Updates multiple document
      * 
-     * @usage: $this->mongo_db->update('foo', $data = array());
+     * @usage: $this->db->update('foo', $data = array());
      * 
      * @param string $collection
      * @param array $data
@@ -484,7 +549,7 @@ Class OB_Mongo_db {
             throw new Exception("No Mongo collection selected to update.");
         }
 
-        if (is_array($data) && count($data) > 0)
+        if (is_array($data) AND count($data) > 0)
         {
             $this->updates = array_merge($data, $this->updates);
         }
@@ -494,17 +559,37 @@ Class OB_Mongo_db {
             throw new Exception("Nothing to update in Mongo collection or update is not an array.");
         }
 
+        // Modifiers
+        /*
+        $mods = array('$set', '$unset', '$pop', '$push', '$pushAll','$pull','$pullAll','$inc',
+            '$each','$addToSet','$rename', '$bit');   
+        */
+        
         // Multiple update behavior like MYSQL.
+        $default_options = array($this->query_safety => TRUE, 'multiple' => TRUE);
+        
+        ##  If any modifier used remove the default modifier ( $set ).
+        $used_modifier = array_keys($this->updates);
+        
+        if(isset($used_modifier[0]))
+        {
+            $updates = $this->updates;
+            $default_options['multiple'] = FALSE;
+        }
+        else 
+        {
+            $updates = array('$set' => $this->updates); // default mod = $set
+        }
+        
+        $options = array_merge($default_options, $options);
         
         try
         {
-            $options = array_merge($options, array($this->query_safety => TRUE, 'multiple' => FALSE));
-            
-            $this->db->{$collection}->update($this->wheres, array('$set' => $this->updates), $options);
+            $this->db->{$collection}->update($this->wheres, $updates, $options);
             
             $this->_reset_select();
             
-            return $this->db->{$collection}->find($this->updates)->count();
+            return $this->db->{$collection}->find($updates)->count();
         }
         catch (MongoCursorException $e)
         {
@@ -531,7 +616,6 @@ Class OB_Mongo_db {
         {
             $this->updates['$inc'][$fields] = $value;
         }
-
         elseif (is_array($fields))
         {
             foreach ($fields as $field => $value)
@@ -562,7 +646,6 @@ Class OB_Mongo_db {
         {
             $this->updates['$inc'][$fields] = $value;
         }
-
         elseif (is_array($fields))
         {
             foreach ($fields as $field => $value)
@@ -594,7 +677,6 @@ Class OB_Mongo_db {
         {
             $this->updates['$set'][$fields] = $value;
         }
-
         elseif (is_array($fields))
         {
             foreach ($fields as $field => $value)
@@ -625,7 +707,6 @@ Class OB_Mongo_db {
         {
             $this->updates['$unset'][$fields] = 1;
         }
-
         elseif (is_array($fields))
         {
             foreach ($fields as $field)
@@ -657,10 +738,9 @@ Class OB_Mongo_db {
         {
             $this->updates['$addToSet'][$field] = $values;
         }
-
         elseif (is_array($values))
         {
-            $this->updates['$attToSet'][$field] = array('$each' => $values);
+            $this->updates['$addToSet'][$field] = array('$each' => $values);
         }
 
         return $this;
@@ -945,6 +1025,24 @@ Class OB_Mongo_db {
     }
     
     // --------------------------------------------------------------------
+    
+    /**
+     * Auto add mongo id if "_id" used and .
+     * 
+     * @param type $string
+     * @return \MongoId 
+     */
+    private function _is_mongo_id($string = '', $value = '')
+    {
+        if($string == '_id' AND ! is_object($value))
+        {
+            return new MongoId($value);
+        }
+        
+        return $value;
+    }
+    
+    // --------------------------------------------------------------------
     // Fake functions. Do not remove them.
     
     public function transaction() {}
@@ -954,5 +1052,5 @@ Class OB_Mongo_db {
 }
 // END Mongo_db Class
 
-/* End of file Mongo_db.php */
-/* Location: ./obullo/libraries/mongo_db.php */
+/* End of file Mongo.php */
+/* Location: ./obullo/libraries/mongo.php */

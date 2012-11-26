@@ -926,10 +926,14 @@ Class OB_crud  {
         }
         
         if ($where != NULL)
-        $this->where($where);
+        {
+            $this->where($where);
+        }
         
         if ($limit != NULL)
-        $this->limit($limit);       
+        {
+            $this->limit($limit);   
+        }       
         
         $sql = $this->_update($this->_protect_identifiers($table, TRUE, NULL, FALSE), $this->ar_set, $this->ar_where, $this->ar_orderby, $this->ar_limit);
                  

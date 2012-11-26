@@ -170,10 +170,6 @@ Class Vmodel extends Model {
         lib('ob/Lang')->load('ob/vm');  // Load the language file
         
         $v_data = array();   // validation fields data
-        $db     = $this->settings['database'];
-        $table  = $this->settings['table'];
-        $id     = (isset($this->settings['primary_key'])) ? $this->settings['primary_key'] : 'id';
-
         $db_fields = $this->settings['fields'];
         
         if(count($fields) > 0)
@@ -579,7 +575,6 @@ Class Vmodel extends Model {
                    
         $v_data = array();   // validation fields data
         $s_data = array();   // mysql insert / update fields data
-        $db     = $this->item('database');
         $table  = $this->item('table');
         $id     = ($this->item('primary_key') !== FALSE) ? $this->item('primary_key') : 'id';
         
