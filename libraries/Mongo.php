@@ -118,10 +118,13 @@ Class OB_Mongo {
      * Set a collection.
      * 
      * @param type $collection 
+     * @return \OB_Mongo 
      */
     public function from($collection = '')
     {
         $this->collection = $collection;
+        
+        return ($this);
     }
     
     // --------------------------------------------------------------------
@@ -143,7 +146,7 @@ Class OB_Mongo {
      * 
      * @param type $wheres
      * @param type $value
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function where($wheres, $value = null)
     {
@@ -207,7 +210,7 @@ Class OB_Mongo {
      * @usage : $this->db->or_where(array('foo'=>'bar', 'bar'=>'foo'))->get('foobar');
      * 
      * @param type $wheres
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function or_where($wheres, $value = null)
     {
@@ -236,7 +239,7 @@ Class OB_Mongo {
      * 
      * @param type $field
      * @param type $in
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function where_in($field = "", $in = array())
     {
@@ -266,7 +269,7 @@ Class OB_Mongo {
      * 
      * @param type $field
      * @param type $in
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function where_in_all($field = "", $in = array())
     {
@@ -286,7 +289,7 @@ Class OB_Mongo {
      * @usage : $this->db->order_by(array('foo' => 'ASC'))->get('foobar');
      * 
      * @param type $fields
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function order_by($fields = array())
     {
@@ -313,7 +316,7 @@ Class OB_Mongo {
      * @usage : $this->db->limit($x);
      * 
      * @param type $x
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function limit($x = 99999)
     {
@@ -333,7 +336,7 @@ Class OB_Mongo {
      * @usage : $this->db->offset($x);
      * 
      * @param type $x
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function offset($x = 0)
     {
@@ -443,7 +446,7 @@ Class OB_Mongo {
     /**
      * Insert a new document into the passed collection
      *
-     * @usage : $this->mongo_db->insert('foo', $data = array());
+     * @usage : $this->db->insert('foo', $data = array());
      * 
      * @param string $collection
      * @param array $insert
@@ -492,7 +495,7 @@ Class OB_Mongo {
      * 
      * Insert a multiple new document into the passed collection.
      * 
-     * @usage : $this->mongo_db->batch_insert('foo', $data = array());
+     * @usage : $this->db->batch_insert('foo', $data = array());
      * 
      * @param type $collection
      * @param type $insert
@@ -603,11 +606,11 @@ Class OB_Mongo {
     /**
      * Increments the value of a field.
      * 
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->inc(array('num_comments' => 1))->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->inc(array('num_comments' => 1))->update('blog_posts');
      * 
      * @param type $fields
      * @param type $value
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function inc($fields = array(), $value = 0)
     {
@@ -633,11 +636,11 @@ Class OB_Mongo {
     /**
      * Decrements the value of a field.
      * 
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->dec(array('num_comments' => 1))->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->dec(array('num_comments' => 1))->update('blog_posts');
      * 
      * @param type $fields
      * @param type $value
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function dec($fields = array(), $value = 0)
     {
@@ -663,12 +666,12 @@ Class OB_Mongo {
     /**
      * Sets a field to a value.
      * 
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->set('posted', 1)->update('blog_posts');
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->set(array('posted' => 1, 'time' => time()))->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->set('posted', 1)->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->set(array('posted' => 1, 'time' => time()))->update('blog_posts');
      * 
      * @param type $fields
      * @param type $value
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function set($fields, $value = NULL)
     {
@@ -694,11 +697,11 @@ Class OB_Mongo {
     /**
      * Unsets a field (or fields).
      * 
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->unset('posted')->update('blog_posts');
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->set(array('posted','time'))->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->unset('posted')->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->set(array('posted','time'))->update('blog_posts');
      * 
      * @param type $fields
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function unset_field($fields)
     {
@@ -729,7 +732,7 @@ Class OB_Mongo {
      * 
      * @param type $field
      * @param type $values
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function addtoset($field, $values)
     {
@@ -752,12 +755,12 @@ Class OB_Mongo {
     /**
      * Pushes values into a field (field must be an array).
      * 
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->push('comments', array('text'=>'Hello world'))->update('blog_posts');
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->push(array('comments' => array('text'=>'Hello world')), 'viewed_by' => array('Alex')->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->push('comments', array('text'=>'Hello world'))->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->push(array('comments' => array('text'=>'Hello world')), 'viewed_by' => array('Alex')->update('blog_posts');
      * 
      * @param type $fields
      * @param type $value
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function push($fields, $value = array())
     {
@@ -784,11 +787,11 @@ Class OB_Mongo {
     /**
      * Pops the last value from a field (field must be an array).
      *  
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->pop('comments')->update('blog_posts');
-     * @usage: $this->mongo_db->where(array('blog_id'=>123))->pop(array('comments', 'viewed_by'))->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->pop('comments')->update('blog_posts');
+     * @usage: $this->db->where(array('blog_id'=>123))->pop(array('comments', 'viewed_by'))->update('blog_posts');
      * 
      * @param type $field
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function pop($field)
     {
@@ -815,11 +818,11 @@ Class OB_Mongo {
     /**
      * Removes by an array by the value of a field.
      * 
-     * @usage: $this->mongo_db->pull('comments', array('comment_id'=>123))->update('blog_posts');
+     * @usage: $this->db->pull('comments', array('comment_id'=>123))->update('blog_posts');
      * 
      * @param type $field
      * @param type $value
-     * @return \OB_Mongo_db 
+     * @return \OB_Mongo 
      */
     public function pull($field = "", $value = array())
     {
@@ -835,7 +838,7 @@ Class OB_Mongo {
     /**
      * Delete all documents from the passed collection based upon certain criteria.
      * 
-     * @usage : $this->mongo_db->delete_all('foo', $data = array());
+     * @usage : $this->db->delete_all('foo', $data = array());
      * 
      * @param string $collection
      * @return int affected rows.
@@ -1051,7 +1054,7 @@ Class OB_Mongo {
     public function rollback() {}
     
 }
-// END Mongo_db Class
+// END Mongo Class
 
 /* End of file Mongo.php */
 /* Location: ./obullo/libraries/mongo.php */
