@@ -1,3 +1,4 @@
+
 <?php
 defined('BASE') or exit('Access Denied!');
 
@@ -625,7 +626,7 @@ Class OB_Mongo {
             }
         }
 
-        return $this;
+        return ($this);
     }
 
     // --------------------------------------------------------------------
@@ -655,7 +656,7 @@ Class OB_Mongo {
             }
         }
 
-        return $this;
+        return ($this);
     }
 
     // --------------------------------------------------------------------
@@ -686,7 +687,7 @@ Class OB_Mongo {
             }
         }
 
-        return $this;
+        return ($this);
     }
 
     // --------------------------------------------------------------------
@@ -716,7 +717,7 @@ Class OB_Mongo {
             }
         }
 
-        return $this;
+        return ($this);
     }
 
     // --------------------------------------------------------------------
@@ -744,7 +745,7 @@ Class OB_Mongo {
             $this->updates['$addToSet'][$field] = array('$each' => $values);
         }
 
-        return $this;
+        return ($this);
     }
 
     // --------------------------------------------------------------------
@@ -776,7 +777,7 @@ Class OB_Mongo {
             }
         }
 
-        return $this;
+        return ($this);
     }
     
     // --------------------------------------------------------------------
@@ -807,7 +808,7 @@ Class OB_Mongo {
             }
         }
 
-        return $this;
+        return ($this);
     }
     
     // --------------------------------------------------------------------
@@ -827,7 +828,7 @@ Class OB_Mongo {
 
         $this->updates['$pull'] = array($field => $value);
 
-        return $this;
+        return ($this);
     }
 
     // --------------------------------------------------------------------
@@ -835,7 +836,7 @@ Class OB_Mongo {
     /**
      * Delete all documents from the passed collection based upon certain criteria.
      * 
-     * @usage : $this->db->delete_all('foo', $data = array());
+     * @usage : $this->db->delete('foo', $data = array());
      * 
      * @param string $collection
      * @return int affected rows.
