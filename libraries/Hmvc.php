@@ -387,8 +387,11 @@ Class OB_Hmvc
         $URI->uri_string = rtrim($URI->uri_string, '/').'/__ID__'. $this->_get_id();
         $URI->cache_time = $this->cache_time ;
     
-        ob_start();
 
+        /*
+        ob_start();
+         
+        // DISABLED HMVC CACHE IT SHOULD BE INTERNAL
         if($output->_display_cache($config, $URI, $router, TRUE) !== FALSE) // Check request uri if there is a HMVC cached file exist.
         {
             $cache_content = ob_get_contents();  if(ob_get_level() > 0) { ob_end_clean(); }
@@ -399,11 +402,11 @@ Class OB_Hmvc
 
             return $this->_response();
         }
-
-        if(ob_get_level() > 0) ob_end_clean();
         
-        $hmvc_uri = "{$router->fetch_directory()} / {$router->fetch_class()} / {$router->fetch_method()}";
-
+        if(ob_get_level() > 0) ob_end_clean();
+        */
+        
+        $hmvc_uri   = "{$router->fetch_directory()} / {$router->fetch_class()} / {$router->fetch_method()}";
         $controller = MODULES .$GLOBALS['sub_path'].$router->fetch_directory(). DS .'controllers'. DS .$router->fetch_class(). EXT;
 
         // Check the controller exists or not
@@ -423,7 +426,6 @@ Class OB_Hmvc
 
         if ( ! class_exists($router->fetch_class()) OR $router->fetch_method() == 'controller'
               OR $router->fetch_method() == '_output'
-              OR $router->fetch_method() == '_hmvc_output'
               OR $router->fetch_method() == '_instance'
               OR in_array(strtolower($router->fetch_method()), array_map('strtolower', get_class_methods('Controller')))
             )
@@ -461,15 +463,20 @@ Class OB_Hmvc
         $content = ob_get_contents();       
 
         if(ob_get_level() > 0)  ob_end_clean();   
-                        
-        ob_start();
-
+                       
         // Write cache file if cache on ! and Send the final rendered output to the browser
-        $output->_display_hmvc($content, $URI);
-
-        $content = ob_get_contents();
-
-        if(ob_get_level() > 0)  ob_end_clean(); 
+        // 
+        ################ DISPLAY CACHE FILE  WE WILL DO IT LATER ##################
+        # ob_start();
+        #
+        # 
+        # $output->_display_hmvc($content, $URI);
+        #
+        #        
+        # $content = ob_get_contents();
+        # if(ob_get_level() > 0)  ob_end_clean(); 
+        #
+        ################ DISPLAY CACHE FILE END ##################        
                                         
         $this->set_response($content); 
 

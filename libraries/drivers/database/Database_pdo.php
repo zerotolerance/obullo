@@ -489,6 +489,18 @@ Class OB_Database_pdo extends OB_crud {
     // --------------------------------------------------------------------
     
     /**
+    * Alias of row_count();
+    *
+    * @return  integer
+    */
+    public function count()
+    {
+        return $this->row_count();
+    }
+    
+    // --------------------------------------------------------------------
+    
+    /**
     * Get results for current db 
     * operation. (first_row(), next_row() .. )
     *     

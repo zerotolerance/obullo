@@ -362,12 +362,15 @@ Class OB_Mongo {
             throw new Exception('You need to set a collection name using <b>$this->db->from("collection")</b> function.');
         }
         
+<<<<<<< HEAD:libraries/Mongo.php
         $re_criteria = array();
         foreach ($criteria as $key => $value)
         {
             $re_criteria[$key] = self::_is_mongo_id($key, $value);
         }
         
+=======
+>>>>>>> d02d9bcf410952d595d2a07c0a6ef182612744fb:libraries/Mongo.php
         $docs = $this->db->{$this->collection}->find($criteria, array_merge($this->selects, $fields))
                 ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
         
@@ -393,6 +396,7 @@ Class OB_Mongo {
             throw new Exception('You need to set a collection name using <b>$this->db->from("collection")</b> function.');
         }
         
+<<<<<<< HEAD:libraries/Mongo.php
         $re_criteria = array();
         foreach ($criteria as $key => $value)
         {
@@ -400,6 +404,9 @@ Class OB_Mongo {
         }
         
         $docs = $this->db->{$this->collection}->findOne($re_criteria, array_merge($this->selects, $fields))
+=======
+        $docs = $this->db->{$this->collection}->findOne($criteria, array_merge($this->selects, $fields))
+>>>>>>> d02d9bcf410952d595d2a07c0a6ef182612744fb:libraries/Mongo.php
                 ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
         
         $this->_reset_select();         // Reset
