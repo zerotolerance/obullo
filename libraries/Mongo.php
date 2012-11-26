@@ -395,7 +395,6 @@ Class OB_Mongo {
         {
             throw new Exception('You need to set a collection name using <b>$this->db->from("collection")</b> function.');
         }
-        
 
         $re_criteria = array();
         foreach ($criteria as $key => $value)
@@ -403,8 +402,7 @@ Class OB_Mongo {
             $re_criteria[$key] = self::_is_mongo_id($key, $value);
         }
         
-        $docs = $this->db->{$this->collection}->findOne($re_criteria, array_merge($this->selects, $fields))
-                ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
+        $docs = $this->db->{$this->collection}->findOne($re_criteria, array_merge($this->selects, $fields));
         
         $this->_reset_select();         // Reset
         
@@ -432,7 +430,7 @@ Class OB_Mongo {
         }
 
         $docs = $this->db->{$collection}->find($this->wheres, $this->selects)
-                ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
+            ->limit((int) $this->limit)->skip((int) $this->offset)->sort($this->sorts);
         
         // var_dump($docs);
         
@@ -563,19 +561,18 @@ Class OB_Mongo {
             throw new Exception("Nothing to update in Mongo collection or update is not an array.");
         }
 
-        // Modifiers
-        /*
-        $mods = array('$set', '$unset', '$pop', '$push', '$pushAll','$pull','$pullAll','$inc',
-            '$each','$addToSet','$rename', '$bit');   
-        */
+        // Update Modifiers  http://www.mongodb.org/display/DOCS/Updating
+        $mods = array('$set' => '', '$unset' => '', '$pop' => '', '$push' => '', '$pushAll' => '','$pull' => '', 
+            '$pullAll' => '', '$inc' => '', '$each' => '', '$addToSet' => '', '$rename' => '', '$bit' => '');
         
         // Multiple update behavior like MYSQL.
         $default_options = array($this->query_safety => TRUE, 'multiple' => TRUE);
         
         ##  If any modifier used remove the default modifier ( $set ).
         $used_modifier = array_keys($this->updates);
+        $modifier      = (isset($used_modifier[0])) ? $used_modifier[0] : NULL;
         
-        if(isset($used_modifier[0]))
+        if($modifier != NULL AND isset($mods[$modifier]))
         {
             $updates = $this->updates;
             $default_options['multiple'] = FALSE;
