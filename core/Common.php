@@ -208,10 +208,7 @@ function load_class($realname, $new_object = NULL, $params_or_no_ins = '')
 
         $classname   = 'OB_'.$Class;
         $prefix      = config('subclass_prefix');  // MY_
-        
         $module      = lib('ob/Router')->fetch_directory();
-        $sub_module  = lib('ob/Uri')->fetch_sub_module();
-        $module_path = $GLOBALS['sub_path'].$module;
         
         // Override Support
         // --------------------------------------------------------------------
@@ -497,36 +494,29 @@ function get_static($filename = 'config', $var = '', $folder = '')
 * @param    string $var
 * @return   array
 */
-function get_config($filename = 'config', $var = '')
+function get_config($filename = 'config', $var = '', $folder = '')
 {
+    $folder = ($folder == '') ? APP .'config' : $folder;
+    
     if($filename == 'database')
     {
         $database   = get_static($filename, $var, APP .'config');
         
         $sub_module = lib('ob/Uri')->fetch_sub_module();
-        $module     = lib('ob/Router')->fetch_directory(); 
-        
-        // Sub Module database support.
-        if( $sub_module != '')
+       
+        if( $sub_module != '') // Sub Module database support.
         {
             if(file_exists(MODULES .'sub.'.$sub_module. DS .'config'. DS .'database'.EXT))
             {  
                 $sub_module_db = get_static($filename, $var, MODULES .'sub.'.$sub_module. DS .'config');
                 $database      = array_merge($database, $sub_module_db); // override to application variables.
             }
-        } 
-        
-        // Module database support.
-        if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'config'. DS .'database'.EXT)) 
-        {
-            $module_db = get_static($filename, $var, MODULES .$GLOBALS['sub_path'].$module. DS .'config');
-            $database  = array_merge($database, $module_db); // override to sub module and application db variables.
         }
         
         return $database;
     }
-   
-    return get_static($filename, $var, APP .'config');
+    
+    return get_static($filename, $var, $folder);
 }
 
 // --------------------------------------------------------------------
@@ -562,7 +552,7 @@ function config($item, $config_name = 'config')
 
 function config_item($item = '')
 {
-    throw new Exception('config_item() is a deprecated function look at Obullo documentation.');
+    throw new Exception('config_item() is a deprecated, please use config().');
 }
 
 // --------------------------------------------------------------------
@@ -657,7 +647,7 @@ function is_really_writable($file)
 */
 function is_php($version = '5.0.0')
 {
-    static $_is_php;
+    static $_is_php = array();
     
     $version = (string)$version;
 

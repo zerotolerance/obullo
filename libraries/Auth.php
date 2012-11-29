@@ -60,8 +60,16 @@ Class OB_Auth {
     */
     public function __construct($params = array())
     {   
-        $auth   = get_config('auth');        
-        $config = array_merge($auth , $params);
+        if(isset($params['module']))  // Submodule support
+        {
+            $auth   = get_config('auth', '', MODULES .$params['module']. DS .'config');
+            $config = array_merge($auth , $params);
+        } 
+        else 
+        {
+            $auth   = get_config('auth');
+            $config = array_merge($auth , $params);
+        }
 
         foreach($config as $key => $val)
         {
