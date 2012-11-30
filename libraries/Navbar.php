@@ -62,7 +62,7 @@ Class OB_Navbar {
         {
             $this->{$key} = $val;
         }
-        
+
         log_me('debug', "Navbar Class Initialized");
     }
     
@@ -80,7 +80,7 @@ Class OB_Navbar {
     public function top_level()
     {
         $top_level  = array();
-        $module     = lib('ob/Uri')->segment(0);
+        $module     = lib('ob/Uri')->rsegment(0); // * Get routed segments
         
         foreach($this->top_level as $key => $val)
         {
@@ -106,8 +106,8 @@ Class OB_Navbar {
     public function sub_level()
     {
         $sub_level  = array();
-        $module     = lib('ob/Uri')->segment(0);
-        $controller = lib('ob/Uri')->segment(1);
+        $module     = lib('ob/Uri')->rsegment(0); // * Get routed segments
+        $controller = lib('ob/Uri')->rsegment(1);
 
         if(isset($this->sub_level[$module]))
         {
