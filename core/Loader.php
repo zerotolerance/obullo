@@ -293,13 +293,14 @@ Class loader {
     */
     public static function database($db_name_or_params = 'db', $return_object = FALSE)
     {
+        $db_var = 'db';
         if(is_array($db_name_or_params) AND isset($db_name_or_params['variable']))
         {
             $db_var = $db_name_or_params['variable'];
         }
-        else
-        {
-            $db_var = (empty($db_name_or_params)) ? 'db' : $db_name_or_params;
+        elseif(is_string($db_name_or_params))
+        {            
+            $db_var = ($db_var != 'db') ? $db_name_or_params : 'db';
         }
 
         if (isset(this()->{$db_var}) AND is_object(this()->{$db_var}))  // Lazy Loading ..

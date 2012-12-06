@@ -41,9 +41,29 @@ if( ! function_exists('_sess_start') )
         // Set the cookie name
         $sess->sess_cookie_name = $sess->cookie_prefix . $sess->sess_cookie_name;
         
+        // Database settings
         // --------------------------------------------------------------------
+
+        $params = array();
+        $params['variable'] = $sess->sess_db_var;
+        $params['hostname'] = db_item('hostname', $sess->sess_db_var);
+        $params['username'] = db_item('username', $sess->sess_db_var);
+        $params['password'] = db_item('password', $sess->sess_db_var);
+        $params['database'] = db_item('database', $sess->sess_db_var);
+        $params['dbdriver'] = db_item('dbdriver', $sess->sess_db_var);
+        $params['dbprefix'] = db_item('dbprefix', $sess->sess_db_var);
+        $params['swap_pre'] = db_item('swap_pre', $sess->sess_db_var);
+        $params['dbh_port'] = db_item('dbh_port', $sess->sess_db_var);
+        $params['charset']  = db_item('charset', $sess->sess_db_var);
         
-        $sess->sess_db = loader::database('db', TRUE);
+        if(db_item('dsn', $sess->sess_db_var) != '')
+        {
+            $params['dsn']  = db_item('dsn', $sess->sess_db_var);
+        }
+        
+        $params['options']  = db_item('options', $sess->sess_db_var);
+        
+        $sess->db = loader::database($params, TRUE);
         
         // --------------------------------------------------------------------
         
@@ -155,19 +175,19 @@ if( ! function_exists('sess_read') )
         // Db driver changes ...
         // -------------------------------------------------------------------- 
         
-        $sess->sess_db->where('session_id', $session['session_id']);
+        $sess->db->where('session_id', $session['session_id']);
                 
         if ($sess->sess_match_ip == TRUE)
         {
-            $sess->sess_db->where('ip_address', $session['ip_address']);
+            $sess->db->where('ip_address', $session['ip_address']);
         }
 
         if ($sess->sess_match_useragent == TRUE)
         {
-            $sess->sess_db->where('user_agent', $session['user_agent']);
+            $sess->db->where('user_agent', $session['user_agent']);
         }
         
-        $query = $sess->sess_db->get($sess->sess_table_name);
+        $query = $sess->db->get($sess->sess_table_name);
 
         // Is there custom data?  If so, add it to the main session array
         $row = $query->row();
@@ -239,8 +259,8 @@ if( ! function_exists('sess_write') )
         }
 
         // Run the update query
-        $sess->sess_db->where('session_id', $sess->userdata['session_id']);
-        $sess->sess_db->update($sess->sess_table_name, array('last_activity' => $sess->userdata['last_activity'], 
+        $sess->db->where('session_id', $sess->userdata['session_id']);
+        $sess->db->update($sess->sess_table_name, array('last_activity' => $sess->userdata['last_activity'], 
         'user_data' => $custom_userdata));
 
         // Write the cookie.  Notice that we manually pass the cookie data array to the
@@ -282,7 +302,7 @@ if( ! function_exists('sess_create') )
         // Db driver changes..
         // --------------------------------------------------------------------  
 
-        $sess->sess_db->insert($sess->sess_table_name, $sess->userdata);
+        $sess->db->insert($sess->sess_table_name, $sess->userdata);
         
         // Write the cookie        
         _set_cookie(); 
@@ -344,8 +364,8 @@ if( ! function_exists('sess_update') )
             $cookie_data[$val] = $sess->userdata[$val];
         }
 
-        $sess->sess_db->where('session_id', $old_sessid);
-        $sess->sess_db->update($sess->sess_table_name, 
+        $sess->db->where('session_id', $old_sessid);
+        $sess->db->update($sess->sess_table_name, 
         array('last_activity' => $sess->now, 'session_id' => $new_sessid)); 
         
         // Write the cookie
@@ -371,8 +391,8 @@ if( ! function_exists('sess_destroy') )
         if(isset($sess->userdata['session_id']))
         {
             // Kill the session DB row
-            $sess->sess_db->where('session_id', $sess->userdata['session_id']);
-            $sess->sess_db->delete($sess->sess_table_name);
+            $sess->db->where('session_id', $sess->userdata['session_id']);
+            $sess->db->delete($sess->sess_table_name);
         }
         // -------------------------------------------------------------------
         
@@ -822,8 +842,8 @@ if( ! function_exists('_sess_gc') )
         {
             $expire = $sess->now - $sess->sess_expiration;
             
-            $sess->sess_db->where("last_activity < {$expire}");
-            $sess->sess_db->delete($sess->sess_table_name);
+            $sess->db->where("last_activity < {$expire}");
+            $sess->db->delete($sess->sess_table_name);
 
             log_me('debug', 'Session garbage collection performed.');
         }

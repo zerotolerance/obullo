@@ -109,18 +109,17 @@ if( ! function_exists('lib_driver'))
  * 
  * @param type $folder
  * @param type $helpername
- * @param type $options 
  */
 if( ! function_exists('helper_driver')) 
 {
-    function helper_driver($folder = '', $helpername = '', $options = array())
+    function helper_driver($folder = '', $helpername = '')
     {
         static $overridden_helpers = array();
         
         $prefix = config('subhelper_prefix');
         $module = lib('ob/Router')->fetch_directory();
         
-        if( ! isset($overriden_helpers[$helpername]))
+        if( ! isset($overridden_helpers[$helpername]))
         {
             // Modules extend support
             if(file_exists(MODULES .$GLOBALS['sub_path'].$module. DS .'helpers'. DS .'drivers'. DS .$folder. DS .$prefix. $helpername. EXT))  

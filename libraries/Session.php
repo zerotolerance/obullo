@@ -27,6 +27,7 @@ defined('BASE') or exit('Access Denied!');
 
 Class OB_Session {
     
+    public $db;
     public $sess_encrypt_cookie  = FALSE;
     public $sess_expiration      = '7200';
     public $sess_match_ip        = FALSE;

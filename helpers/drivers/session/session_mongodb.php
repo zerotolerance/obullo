@@ -7,20 +7,20 @@ defined('BASE') or exit('Access Denied!');
 * Less coding and More Control.
 * 
 * @author      Obullo Team.
-* @author      Dalım Çepiç.
 * @version     0.1
-* 
+* @version     0.2 added extend support
+* @version     0.3 added config('sess_die_cookie') and sess() func.
 */
 if( ! function_exists('_sess_start') ) 
 {
     function _sess_start($params = array())
-    {                       
-        log_me('debug', "Session MongoDb Driver Initialized"); 
+    {
+        log_me('debug', "Session Database Driver Initialized"); 
 
         $sess   = lib('ob/Session');
         $config = lib('ob/Config');
-
-        foreach (array('sess_encrypt_cookie', 'sess_driver', 'sess_db_var', 'sess_table_name', 
+        
+        foreach (array('sess_encrypt_cookie', 'sess_driver', 'sess_table_name', 
         'sess_expiration', 'sess_die_cookie', 'sess_match_ip', 'sess_match_useragent', 'sess_cookie_name', 'cookie_path', 
         'cookie_domain', 'sess_time_to_update', 'time_reference', 'cookie_prefix', 'encryption_key') as $key)
         {
@@ -42,39 +42,9 @@ if( ! function_exists('_sess_start') )
         $sess->sess_cookie_name = $sess->cookie_prefix . $sess->sess_cookie_name;
         
         // --------------------------------------------------------------------
-
-        $config = get_config('mongodb');
-
-        try 
-        {
-            $host         = (empty($config['host'])) ? db_item('hostname') : $config['host'];
-            $port         = (empty($config['port'])) ? db_item('dbh_port') : $config['port'];
-            $user         = (empty($config['username'])) ? db_item('username') : $config['username'];
-            $pass         = (empty($config['password'])) ? db_item('password') : $config['password'];
-            $dbname       = (empty($config['database'])) ? db_item('database') : $config['database'];
-            
-            $dsn = "mongodb://{$user}:{$pass}@{$host}:{$port}";
-
-            $options = array();
-            if($config['persist'])
-            {
-                $options['persist'] = ( ! empty($config['persist_key'])) ? $config['persist_key'] : 'ob_mongo_persist';
-            }
-            
-            $options['timeout'] = $config['timeout'];
-            
-            $sess->mongo  = new Mongo($dsn, $options);
-
-            $database = $sess->mongo->selectDB($dbname);
-        }
-        catch ( MongoConnectionException $e ) 
-        {
-            throw new Exception($e->getMessage());
-        }
-            
-        // collection
-        $sess->sess_db = $database->{$sess->sess_table_name};
-
+        
+        $sess->db = loader::database(array('dbdriver' => 'mongodb'), TRUE);
+        
         // --------------------------------------------------------------------
         
         // Run the Session routine. If a session doesn't exist we'll 
@@ -113,7 +83,7 @@ if( ! function_exists('_sess_start') )
 if( ! function_exists('sess_read') ) 
 {
     function sess_read()
-    {    
+    {
         $sess = lib('ob/Session');
         
         // Fetch the cookie
@@ -123,6 +93,7 @@ if( ! function_exists('sess_read') )
         if ($session === FALSE)
         {               
             log_me('debug', 'A session cookie was not found.');
+            
             return FALSE;
         }
         
@@ -155,7 +126,9 @@ if( ! function_exists('sess_read') )
         if ( ! is_array($session) OR ! isset($session['session_id']) 
         OR ! isset($session['ip_address']) OR ! isset($session['user_agent']) 
         OR ! isset($session['last_activity'])) 
-        {               
+        {              
+            log_me('debug', 'The session unserialize data did not match what was expected.');
+            
             sess_destroy();
             return FALSE;
         }
@@ -183,36 +156,45 @@ if( ! function_exists('sess_read') )
         
         // Db driver changes ...
         // -------------------------------------------------------------------- 
-
-        $where['session_id'] = $session['session_id'];
+        
+        //log_me('debug', '');
+        
+        $sess->db->where('session_id', $session['session_id']);
                 
         if ($sess->sess_match_ip == TRUE)
         {
-            $where['ip_address'] = $session['ip_address'];
+            $sess->db->where('ip_address', $session['ip_address']);
         }
 
         if ($sess->sess_match_useragent == TRUE)
         {
-            $where['user_agent'] =$session['user_agent'];
+            $sess->db->where('user_agent', $session['user_agent']);
         }
         
-        $row = $sess->sess_db->findOne($where);
+        $query = $sess->db->get($sess->sess_table_name);
 
-        $sess->mongo->close();
+        // Mongo db changes
+        // -------------------------------------------------------------------- 
         
         // Is there custom data?  If so, add it to the main session array
+        $row = $query->hasNext();
+        
+        // -------------------------------------------------------------------- 
         
         // No result?  Kill it!
-        if ($row == NULL)      // Obullo changes ..
+        if ($row == FALSE)      // Obullo changes ..
         {
             sess_destroy();
             return FALSE;
         }  
         
-        loader::helper('ob/array');
-            
-        $row = array_to_object($row);
+        // Mongo db changes
+        // -------------------------------------------------------------------- 
         
+        $row = (object)$query->getNext();
+        
+        // -------------------------------------------------------------------- 
+           
         if (isset($row->user_data) AND $row->user_data != '')
         {
             $custom_data = _unserialize($row->user_data);
@@ -227,7 +209,7 @@ if( ! function_exists('sess_read') )
         }                
 
         // Session is valid!
-        $sess->userdata = $session;     
+        $sess->userdata = $session;
         unset($session);
         
         return TRUE;
@@ -273,11 +255,10 @@ if( ! function_exists('sess_write') )
         }
 
         // Run the update query
-        $new_data = array('$set' => array('last_activity' => $sess->userdata['last_activity'], 'user_data' => $custom_userdata));
-        
-        $sess->sess_db->update(array('session_id' => $sess->userdata['session_id']), $new_data);
-        
-        $sess->mongo->close();
+        $sess->db->where('session_id', $sess->userdata['session_id']);
+        $sess->db->update($sess->sess_table_name, array('last_activity' => $sess->userdata['last_activity'], 'user_data' => $custom_userdata));
+
+        log_me('debug', 'The SESSION updated (write function): id: '.$sess->userdata['session_id'], print_r($sess->userdata, true));
         
         // Write the cookie.  Notice that we manually pass the cookie data array to the
         // _set_cookie() function. Normally that function will store $this->userdata, but 
@@ -318,9 +299,7 @@ if( ! function_exists('sess_create') )
         // Db driver changes..
         // --------------------------------------------------------------------  
 
-        $sess->sess_db->insert($sess->userdata);
-        
-        $sess->mongo->close();
+        $sess->db->insert($sess->sess_table_name, $sess->userdata);
         
         // Write the cookie        
         _set_cookie(); 
@@ -382,12 +361,9 @@ if( ! function_exists('sess_update') )
             $cookie_data[$val] = $sess->userdata[$val];
         }
 
-        $new_data = array('$set' => array('last_activity' => $sess->now, 'session_id' => $new_sessid));
-        
-        $sess->sess_db->update(array('session_id' => $old_sessid), $new_data);
+        $sess->db->where('session_id', $old_sessid);
+        $sess->db->update($sess->sess_table_name, array('last_activity' => $sess->now, 'session_id' => $new_sessid)); 
 
-        $sess->mongo->close();
-        
         // Write the cookie
         _set_cookie($cookie_data);
     }
@@ -411,9 +387,8 @@ if( ! function_exists('sess_destroy') )
         if(isset($sess->userdata['session_id']))
         {
             // Kill the session DB row
-            $sess->sess_db->remove(array('session_id' => $sess->userdata['session_id']));
-          
-            $sess->mongo->close();
+            $sess->db->where('session_id', $sess->userdata['session_id']);
+            $sess->db->delete($sess->sess_table_name);
         }
         // -------------------------------------------------------------------
         
@@ -496,7 +471,8 @@ if( ! function_exists('sess_set') )
         $sess = lib('ob/Session');
         
         if (is_string($newdata))
-        {
+        {   
+            $data = str_replace('\\', '{{slash}}', $data);
             $newdata = array($newdata => $newval);
         }
 
@@ -796,13 +772,17 @@ if( ! function_exists('_serialize') )
             foreach ($data as $key => $val)
             {
                 if (is_string($val))
-                $data[$key] = str_replace('\\', '{{slash}}', $val);
+                {
+                    $data[$key] = str_replace('\\', '{{slash}}', $val);
+                }
             }
         }
         else
         {
             if (is_string($val))
-            $data = str_replace('\\', '{{slash}}', $data);
+            {
+                $data = str_replace('\\', '{{slash}}', $data);   
+            }
         }
         
         return serialize($data);
@@ -824,14 +804,16 @@ if( ! function_exists('_unserialize') )
 {
     function _unserialize($data)
     {
-        $data = @unserialize(strip_slashes($data));
+        $data = unserialize(strip_slashes($data));
         
         if (is_array($data))
         {
             foreach ($data as $key => $val)
             {
                 if(is_string($val))
-                $data[$key] = str_replace('{{slash}}', '\\', $val);
+                {
+                    $data[$key] = str_replace('{{slash}}', '\\', $val);
+                }
             }
             
             return $data;
@@ -862,12 +844,14 @@ if( ! function_exists('_sess_gc') )
         if ((rand() % 100) < $sess->gc_probability)
         {
             $expire = $sess->now - $sess->sess_expiration;
-            $sess->sess_db->remove(array('last_activity' => array('$lt' => $expire)));
             
+            $sess->db->where("last_activity < {$expire}");
+            $sess->db->delete($sess->sess_table_name);
+
             log_me('debug', 'Session garbage collection performed.');
         }
     }
 }
 
-/* End of file session_mongodb.php */
-/* Location: ./obullo/helpers/drivers/session/session_mongodb.php */
+/* End of file session_database.php */
+/* Location: ./obullo/helpers/drivers/session/session_database.php */
