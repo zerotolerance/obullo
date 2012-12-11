@@ -471,8 +471,7 @@ if( ! function_exists('sess_set') )
         $sess = lib('ob/Session');
         
         if (is_string($newdata))
-        {   
-            $data = str_replace('\\', '{{slash}}', $data);
+        {
             $newdata = array($newdata => $newval);
         }
 
@@ -853,5 +852,5 @@ if( ! function_exists('_sess_gc') )
     }
 }
 
-/* End of file session_database.php */
-/* Location: ./obullo/helpers/drivers/session/session_database.php */
+/* End of file session_mongodb.php */
+/* Location: ./obullo/helpers/drivers/session/session_mongodb.php */
