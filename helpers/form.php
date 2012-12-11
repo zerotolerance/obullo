@@ -295,9 +295,14 @@ if( ! function_exists('form_dropdown') )
 { 
     function form_dropdown($name = '', $options = array(), $selected = array(), $extra = '')
     {
+        if($selected === FALSE)   // False == "0" bug fix, FALSE is not a Integer.
+        {
+            $selected == array();
+        }
+        
         if ( ! is_array($selected))
         {
-                $selected = array($selected);
+            $selected = array($selected);
         }
 
         // If no selected state was submitted we will attempt to set it automatically
@@ -310,7 +315,10 @@ if( ! function_exists('form_dropdown') )
                 }
         }
 
-        if ($extra != '') $extra = ' '.$extra;
+        if ($extra != '') 
+        {
+            $extra = ' '.$extra;
+        }
 
         $multiple = (count($selected) > 1 && strpos($extra, 'multiple') === FALSE) ? ' multiple="multiple"' : '';
 
