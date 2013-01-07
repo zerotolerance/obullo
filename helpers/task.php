@@ -52,11 +52,11 @@ if ( ! function_exists('task_run'))
         if($debug)
         {
             // @todo escapeshellcmd();
-            
             $output = shell_exec($shell);
-            echo "<pre>$output</pre>";
 
             log_me('debug', 'Task function output -> '. $output);
+            
+            return $output;
         }
         else   // continious task
         {

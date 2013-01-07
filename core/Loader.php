@@ -485,7 +485,7 @@ Class loader {
     }
  
     // --------------------------------------------------------------------
-
+    
     /**
     * Common file loader for models and
     * helpers functions.
@@ -500,7 +500,7 @@ Class loader {
     {
         $realname   = ($case_sensitive) ? trim($file_url, '/') : strtolower(trim($file_url, '/'));
         $root       = rtrim(MODULES. $GLOBALS['sub_path'], DS); 
-    
+            
         $sub_root   = lib('ob/Router')->fetch_directory(). DS .$folder. DS;
        
         if($extra_path != '')
@@ -562,26 +562,36 @@ Class loader {
             return $return;
         }
 
-        if(strpos($realname, '../') === 0)   // ../module folder request
+        $two_dot   = (strpos($realname, '../') === 0) ? TRUE : FALSE;
+        $three_dot = (strpos($realname, '.../') === 0) ? TRUE : FALSE;
+        
+        if($two_dot || $three_dot)   // ../module folder request
         {
-            $paths      = explode('/', substr($realname, 3));
+            $c = ($three_dot) ? 4 : 3;
+            
+            $paths      = explode('/', substr($realname, $c));
             $filename   = array_pop($paths);         // get file name
             $modulename = array_shift($paths);       // get module name
-
+            
             $sub_path   = '';
             if( count($paths) > 0)
             {
                 $sub_path = implode(DS, $paths) . DS;      // .public/css/sub/welcome.css  sub dir support
             }
-
+            
             $modulename     = ($modulename == '') ? '' : $modulename . DS;
-                        
+                       
             $return['filename'] = $filename;
             $return['path']     = MODULES .$modulename . $folder . DS . $sub_path.$extra_path;
 
-            if(lib('ob/Uri')->fetch_sub_module() != '') // If its a su.module ?
+            if(lib('ob/Uri')->fetch_sub_module() != '') // If its a sub.module ?
             {
-                $return['path'] = MODULES .'sub.'.lib('ob/Uri')->fetch_sub_module(). DS . SUB_MODULES. $folder . DS .$sub_path.$extra_path;
+                $return['path'] = MODULES .'sub.'.lib('ob/Uri')->fetch_sub_module(). DS . SUB_MODULES. $modulename. $folder . DS .$sub_path.$extra_path;
+                
+                if($three_dot)  // it its outside dir.
+                {
+                    $return['path'] = MODULES . $modulename. $folder . DS .$sub_path.$extra_path;
+                }
             }            
             
             return $return;
