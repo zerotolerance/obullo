@@ -39,7 +39,7 @@ if ( ! function_exists('form_send_error'))
 {
     function form_send_error($model = '')
     {
-        set_response_header();
+        set_application_header();
         
         if(is_object($model))
         {
@@ -50,7 +50,7 @@ if ( ! function_exists('form_send_error'))
            
             if(isset($model->errors[$model->item('table')]['transaction_error']))
             {
-                log_me('debug', 'Transaction (system) Error: '. $model->errors[$model->item('table')]['transaction_error']);
+                log_me('debug', 'Transaction Error: '. $model->errors[$model->item('table')]['transaction_error']);
                 
                 return json_encode(array('success' => false, 'errors' => array('system_msg' => lang('vm_system_msg').$model->errors[$model->item('table')]['transaction_error'])));
             }
@@ -84,7 +84,7 @@ if ( ! function_exists('form_send_success'))
 {
     function form_send_success($model = '')
     {
-        set_response_header();
+        set_application_header();
        
         if(is_object($model))
         {
@@ -119,7 +119,7 @@ if ( ! function_exists('form_send_redirect'))
 {
     function form_send_redirect($redirect_url, $top_redirect = FALSE)
     {
-        set_response_header();
+        set_application_header();
         
         $type = 'redirect'; // window.location.replace(); command
         
@@ -145,7 +145,7 @@ if ( ! function_exists('form_send_forward'))
 {
     function form_send_forward($forward_url)
     {
-        set_response_header();
+        set_application_header();
         
         return json_encode(array('success' => true, 'forward_url' => $forward_url));
     }
@@ -164,7 +164,7 @@ if ( ! function_exists('form_send_alert'))
 {
     function form_send_alert($msg = '')
     {
-        set_response_header();
+        set_application_header();
         
         return json_encode(array('success' => false, 'alert' => $msg));
     }

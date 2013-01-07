@@ -747,13 +747,13 @@ function set_status_header($code = 200, $text = '')
 //----------------------------------------------------------------------- 
 
 /**
- * Set Response Header ( Default Json Format )
+ * Set Application Header ( Default Json Format )
  * 
  * @param type $no_cache 
  */
-if ( ! function_exists('set_response_header'))
+if ( ! function_exists('set_application_header'))
 {
-    function set_response_header( $no_cache = TRUE , $charset = 'UTF-8')
+    function set_application_header($header = 'json', $no_cache = TRUE , $charset = 'UTF-8')
     {
         if(uri_extension() == 'json' AND ! headers_sent() ) // Check uri extension 
         {
@@ -768,7 +768,7 @@ if ( ! function_exists('set_response_header'))
                 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
             }
 
-            header('Content-type: application/json;charset='.$charset);
+            header('Content-type: application/'.$header.';charset='.$charset);
         }
     }
 }
