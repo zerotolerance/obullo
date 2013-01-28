@@ -754,7 +754,11 @@ Class Vmodel extends Model {
                 }
                 
             }
-            
+
+        }
+        else 
+        {
+            $this->clear();    // reset validator data  // reset validator data
         }
         
         if( ! i_ajax())  // If request not AJAX, add success key for native posts.
@@ -992,6 +996,10 @@ Class Vmodel extends Model {
                 return FALSE;
             }
 
+        }
+        else 
+        {
+            $this->clear();    // reset validator data  // reset validator data
         }
         
         if( ! i_ajax())  // If request not AJAX, add success key for native posts.
