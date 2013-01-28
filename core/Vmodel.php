@@ -758,7 +758,7 @@ Class Vmodel extends Model {
         }
         else 
         {
-            $this->clear();    // reset validator data  // reset validator data
+            lib('ob/Validator')->clear(); // Clear validation settings.
         }
         
         if( ! i_ajax())  // If request not AJAX, add success key for native posts.
@@ -999,7 +999,7 @@ Class Vmodel extends Model {
         }
         else 
         {
-            $this->clear();    // reset validator data  // reset validator data
+            lib('ob/Validator')->clear(); // Clear validation settings.
         }
         
         if( ! i_ajax())  // If request not AJAX, add success key for native posts.
