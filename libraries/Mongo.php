@@ -1,3 +1,4 @@
+
 <?php
 defined('BASE') or exit('Access Denied!');
 
@@ -19,8 +20,8 @@ defined('BASE') or exit('Access Denied!');
 
 Class OB_Mongo {
 
-    private $connection;
     private $db;
+    public  $connection;    // ! do not remove we close the connection in the bootstrap.
     private $connection_string;
 
     private $host;
