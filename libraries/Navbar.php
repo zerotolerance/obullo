@@ -84,8 +84,10 @@ Class OB_Navbar {
         
         foreach($this->top_level as $key => $val)
         {
+            $val   = array_keys($val);
+            $level = $val[0];
             $active      = (isset($this->top_level[$key][$module])) ? ' class="'.$this->top_active_class.'" ' : ' class="'.$this->top_inactive_class.'" ';
-            $top_level[] = anchor($this->top_level[$key][$module]['url'], $this->top_level[$key][$module]['label'], $active);
+            $top_level[] = anchor($this->top_level[$key][$level]['url'], $this->top_level[$key][$level]['label'], $active);
         }
         
         return $top_level;

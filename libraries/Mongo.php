@@ -1,4 +1,3 @@
-
 <?php
 defined('BASE') or exit('Access Denied!');
 
@@ -904,6 +903,18 @@ Class OB_Mongo {
         }
     }
 
+    // --------------------------------------------------------------------
+    
+    /**
+     * Returns to Mongodb instance of object.
+     * 
+     * @return object
+     */
+    public function mongo_instance()
+    {
+        return $this->db;
+    }
+    
     // --------------------------------------------------------------------
     
     /**
