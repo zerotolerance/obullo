@@ -279,33 +279,26 @@ Class OB_Mongo {
         
         return ($this);
     }
-
+    
     // --------------------------------------------------------------------
     
     /**
-     * Sort the documents based on the parameters passed. To set values to descending order,
-     * you must pass values of either -1, FALSE, 'desc', or 'DESC', else they will be
-     * set to 1 (ASC).
-     * 
-     * @usage : $this->db->order_by(array('foo' => 'ASC'))->get('foobar');
+     * @usage : $this->db->order_by('foo', 'ASC'))->get('foobar');
      * 
      * @param type $fields
      * @return \OB_Mongo 
      */
-    public function order_by($fields = array())
+    public function order_by($col, $direction  = 'ASC')
     {
-        foreach ($fields as $col => $val)
+        if (strtolower($direction) == 'desc')
         {
-            if ($val == -1 || $val === FALSE || strtolower($val) == 'desc')
-            {
-                $this->sorts[$col] = -1;
-            }
-            else
-            {
-                $this->sorts[$col] = 1;
-            }
+            $this->sorts[$col] = -1;
         }
-        
+        else
+        {
+            $this->sorts[$col] = 1;
+        }
+
         return ($this);
     }
     
