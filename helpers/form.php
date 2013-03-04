@@ -292,12 +292,13 @@ if( ! function_exists('form_multiselect') )
 * @return	string
 */
 if( ! function_exists('form_dropdown') ) 
-{ 
+{
     function form_dropdown($name = '', $options = array(), $selected = array(), $extra = '')
     {
         if($selected === FALSE)   // False == "0" bug fix, FALSE is not a Integer.
         {
-            $selected == array();
+            $selected_option = array_keys($options);
+            $selected == $selected_option[0];
         }
         
         if ( ! is_array($selected))
@@ -334,7 +335,7 @@ if( ! function_exists('form_dropdown') )
 
                         foreach ($val as $optgroup_key => $optgroup_val)
                         {
-                                $sel = (in_array($optgroup_key, $selected)) ? ' selected="selected"' : '';
+                                $sel = (in_array($optgroup_key, $selected, true)) ? ' selected="selected"' : '';
 
                                 $form .= '<option value="'.$optgroup_key.'"'.$sel.'>'.(string) $optgroup_val."</option>\n";
                         }
@@ -343,7 +344,7 @@ if( ! function_exists('form_dropdown') )
                 }
                 else
                 {
-                        $sel = (in_array($key, $selected)) ? ' selected="selected"' : '';
+                        $sel = (in_array($key, $selected, true)) ? ' selected="selected"' : '';
 
                         $form .= '<option value="'.$key.'"'.$sel.'>'.(string) $val."</option>\n";
                 }
@@ -354,7 +355,6 @@ if( ! function_exists('form_dropdown') )
         return $form;
     }
 }
-
 // ------------------------------------------------------------------------
 
 /**
